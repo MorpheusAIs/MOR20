@@ -3,18 +3,18 @@ pragma solidity ^0.8.20;
 
 import {OFT} from "../@layerzerolabs/lz-evm-oapp-v2/contracts/oft/OFT.sol";
 
-import {IMOROFT, IERC20, IERC165, IOAppCore} from "../interfaces/IMOROFT.sol";
+import {IERC20MOR, IERC20, IERC165, IOAppCore} from "../interfaces/IERC20MOR.sol";
 
-contract MOROFT is IMOROFT, OFT {
+contract ERC20MOR is IERC20MOR, OFT {
     address private immutable _minter;
 
     constructor(
+        string memory name_,
+        string memory symbol_,
         address layerZeroEndpoint_,
         address delegate_,
         address minter_
-    ) OFT("MOR", "MOR", layerZeroEndpoint_, delegate_) {
-        require(minter_ != address(0), "MOROFT: invalid minter");
-
+    ) OFT(name_, symbol_, layerZeroEndpoint_, delegate_) {
         _minter = minter_;
 
         transferOwnership(delegate_);
@@ -22,7 +22,7 @@ contract MOROFT is IMOROFT, OFT {
 
     function supportsInterface(bytes4 interfaceId_) external pure returns (bool) {
         return
-            interfaceId_ == type(IMOROFT).interfaceId ||
+            interfaceId_ == type(IERC20MOR).interfaceId ||
             interfaceId_ == type(IERC20).interfaceId ||
             interfaceId_ == type(IOAppCore).interfaceId ||
             interfaceId_ == type(IERC165).interfaceId;
@@ -33,7 +33,7 @@ contract MOROFT is IMOROFT, OFT {
     }
 
     function mint(address account_, uint256 amount_) public {
-        require(_msgSender() == minter(), "MOROFT: invalid caller");
+        require(_msgSender() == minter(), "ERC20MOR: invalid caller");
 
         _mint(account_, amount_);
     }

@@ -2,21 +2,19 @@
 pragma solidity ^0.8.20;
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {PRECISION} from "@solarity/solidity-lib/utils/Globals.sol";
 
 import {LinearDistributionIntervalDecrease} from "../libs/LinearDistributionIntervalDecrease.sol";
 
+import {L1Sender} from "./L1Sender.sol";
 import {IDistribution} from "../interfaces/IDistribution.sol";
 
-import {L1Sender} from "./L1Sender.sol";
+import {CorePropertiesL1} from "./CorePropertiesL1.sol";
 
-contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
+contract Distribution is IDistribution, OwnableUpgradeable {
     using SafeERC20 for IERC20;
-
-    bool public isNotUpgradeable;
 
     address public depositToken;
     address public l1Sender;
@@ -28,8 +26,9 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
     // User storage
     mapping(address => mapping(uint256 => UserData)) public usersData;
 
-    // Total deposited storage
     uint256 public totalDepositedInPublicPools;
+
+    CorePropertiesL1 public coreProperties;
 
     /**********************************************************************************************/
     /*** Modifiers                                                                              ***/
@@ -58,7 +57,6 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
         Pool[] calldata poolsInfo_
     ) external initializer {
         __Ownable_init();
-        __UUPSUpgradeable_init();
 
         for (uint256 i; i < poolsInfo_.length; ++i) {
             createPool(poolsInfo_[i]);
@@ -82,7 +80,17 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
 
     function editPool(uint256 poolId_, Pool calldata pool_) external onlyOwner poolExists(poolId_) {
         _validatePool(pool_);
-        require(pools[poolId_].isPublic == pool_.isPublic, "DS: invalid pool type");
+
+        Pool storage pool = pools[poolId_];
+        require(pool.isPublic == pool_.isPublic, "DS: invalid pool type");
+        if (pool_.payoutStart > block.timestamp) {
+            require(pool.payoutStart != pool_.payoutStart, "DS: invalid payout start value");
+            require(pool.withdrawLockPeriod == pool_.withdrawLockPeriod, "DS: invalid withdrawLockPeriod");
+            require(
+                pool.withdrawLockPeriodAfterStake == pool_.withdrawLockPeriodAfterStake,
+                "DS: invalid withdrawLockPeriodAfterStake"
+            );
+        }
 
         PoolData storage poolData = poolsData[poolId_];
         uint256 currentPoolRate_ = _getCurrentPoolRate(poolId_);
@@ -327,6 +335,12 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
         uint256 overplus_ = overplus();
         require(overplus_ > 0, "DS: overplus is zero");
 
+        (uint256 feePercent_, address treasuryAddress_) = coreProperties.getFeeAndTreadury(address(this));
+        uint256 fee_ = _feeAmount(overplus_, feePercent_);
+        IERC20(depositToken).safeTransfer(treasuryAddress_, fee_);
+
+        overplus_ -= fee_;
+
         IERC20(depositToken).safeTransfer(l1Sender, overplus_);
 
         bytes memory bridgeMessageId_ = L1Sender(l1Sender).sendDepositToken{value: msg.value}(
@@ -340,15 +354,7 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
         return bridgeMessageId_;
     }
 
-    /**********************************************************************************************/
-    /*** UUPS                                                                                   ***/
-    /**********************************************************************************************/
-
-    function removeUpgradeability() external onlyOwner {
-        isNotUpgradeable = true;
-    }
-
-    function _authorizeUpgrade(address) internal view override onlyOwner {
-        require(!isNotUpgradeable, "DS: upgrade isn't available");
+    function _feeAmount(uint256 amount_, uint256 feePercent_) internal pure returns (uint256) {
+        return (amount_ * feePercent_) / PRECISION;
     }
 }

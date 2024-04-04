@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
-import {IMOR} from "../interfaces/IMOR.sol";
+import {IERC20MOR} from "../interfaces/IERC20MOR.sol";
 import {IL2MessageReceiver} from "../interfaces/IL2MessageReceiver.sol";
 
-contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgradeable {
+contract L2MessageReceiver is IL2MessageReceiver, Initializable, ContextUpgradeable {
     address public rewardToken;
 
     Config public config;
@@ -18,12 +18,7 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgrad
         _disableInitializers();
     }
 
-    function L2MessageReceiver__init() external initializer {
-        __Ownable_init();
-        __UUPSUpgradeable_init();
-    }
-
-    function setParams(address rewardToken_, Config calldata config_) external onlyOwner {
+    function L2MessageReceiver__init(address rewardToken_, Config calldata config_) external initializer {
         rewardToken = rewardToken_;
         config = config_;
     }
@@ -102,8 +97,6 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgrad
 
         (address user_, uint256 amount_) = abi.decode(payload_, (address, uint256));
 
-        IMOR(rewardToken).mint(user_, amount_);
+        IERC20MOR(rewardToken).mint(user_, amount_);
     }
-
-    function _authorizeUpgrade(address) internal view override onlyOwner {}
 }

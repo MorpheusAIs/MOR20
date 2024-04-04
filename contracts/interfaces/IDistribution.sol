@@ -187,17 +187,6 @@ interface IDistribution {
     ) external payable returns (bytes memory);
 
     /**
-     * The function to remove upgradeability.
-     */
-    function removeUpgradeability() external;
-
-    /**
-     * The function to check if the contract is upgradeable.
-     * @return The flag that indicates if the contract is upgradeable.
-     */
-    function isNotUpgradeable() external view returns (bool);
-
-    /**
      * The function to get the address of deposit token.
      * @return The address of deposit token.
      */

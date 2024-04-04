@@ -6,9 +6,9 @@ import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {IOAppCore} from ".././@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
 
 /**
- * This is the interface for MOROFT token contract. The token is ERC20 with burnable and Layer Zero OFT features.
+ * This is the interface for ERC20MOR token contract. The token is ERC20 burnable and Layer Zero OFT features.
  */
-interface IMOROFT is IERC20, IERC165 {
+interface IERC20MOR is IERC20, IERC165 {
     /**
      * The function to get the minter address.
      * @return The minter address.
