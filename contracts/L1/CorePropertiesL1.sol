@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract CorePropertiesL1 is Ownable {
+contract CorePropertiesL1 is UUPSUpgradeable, OwnableUpgradeable {
     address public arbitrumGateway;
     address public treasuryAddress;
 
@@ -12,12 +13,15 @@ contract CorePropertiesL1 is Ownable {
 
     mapping(address => uint256) private _fees;
 
-    constructor(
+    function __CorePropertiesL1_init(
         address arbitrumGateway_,
         address treasuryAddress_,
         address lZEnpointAddress_,
         uint256 destinationChainId_
-    ) {
+    ) external initializer {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+
         arbitrumGateway = arbitrumGateway_;
         treasuryAddress = treasuryAddress_;
         lZEnpointAddress = lZEnpointAddress_;
@@ -49,4 +53,6 @@ contract CorePropertiesL1 is Ownable {
     function getDeployParams() external view returns (address, address) {
         return (arbitrumGateway, lZEnpointAddress);
     }
+
+    function _authorizeUpgrade(address) internal override onlyOwner {}
 }
