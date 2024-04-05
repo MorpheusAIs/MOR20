@@ -12,62 +12,63 @@ import {IL1Sender} from "../interfaces/IL1Sender.sol";
 contract Mor20FactoryL1 is BaseFactoryL1, Ownable {
     CorePropertiesL1 public coreProperties;
 
-    struct Mor20DeployParams {
-        string name;
-        address depositToken;
-        IDistribution.Pool[] poolsInfo;
-        //////
-        address messageReceiver;
-        address zroPaymentAddress;
-        uint16 l2EndpointId;
-        bytes adapterParams;
-        //////
-        address wrappedToken;
-        address tokenReceiver;
-    }
-
-    event Mor20Deployed(string name, address distribution, address l1Sender);
-
     constructor(address coreProperties_) {
         coreProperties = CorePropertiesL1(coreProperties_);
     }
 
-    function deployMor20OnL1(Mor20DeployParams calldata parameters) external onlyOwner {
+    function deployMor20OnL1(Mor20DeployParams calldata parameters_) external onlyOwner {
         (address arbitrumGateway_, address lZEnpointAddress_) = coreProperties.getDeployParams();
 
-        address distributionAddress_ = _deploy2(PoolType.DISTRIBUTION, parameters.name);
+        address distributionAddress_ = _deploy2(PoolType.DISTRIBUTION, parameters_.name);
 
-        address l1SenderAddress_ = _deploy2(PoolType.L1_SENDER, parameters.name);
+        address l1SenderAddress_ = _deploy2(PoolType.L1_SENDER, parameters_.name);
 
         IDistribution(distributionAddress_).Distribution_init(
-            parameters.depositToken,
+            parameters_.depositToken,
             l1SenderAddress_,
-            parameters.poolsInfo
+            parameters_.poolsInfo
         );
 
         IL1Sender(l1SenderAddress_).L1Sender__init(
             distributionAddress_,
             IL1Sender.RewardTokenConfig(
                 lZEnpointAddress_,
-                parameters.messageReceiver,
-                parameters.l2EndpointId,
-                parameters.zroPaymentAddress,
-                parameters.adapterParams
+                parameters_.messageReceiver,
+                parameters_.l2EndpointId,
+                parameters_.zroPaymentAddress,
+                parameters_.adapterParams
             ),
-            IL1Sender.DepositTokenConfig(parameters.wrappedToken, arbitrumGateway_, parameters.tokenReceiver)
+            IL1Sender.DepositTokenConfig(parameters_.wrappedToken, arbitrumGateway_, parameters_.tokenReceiver)
         );
 
         _addDistribution(distributionAddress_);
 
-        _updateSalt(parameters.name);
+        _updateSalt(parameters_.name);
 
-        emit Mor20Deployed(parameters.name, distributionAddress_, l1SenderAddress_);
+        emit Mor20Deployed(parameters_.name, distributionAddress_, l1SenderAddress_);
     }
 
     function setNewImplementations(
-        PoolType[] memory poolTypes_,
+        uint8[] memory poolTypes_,
         address[] calldata newImplementations_
     ) external onlyOwner {
         _setNewImplementations(poolTypes_, newImplementations_);
+    }
+
+    function predictMor20Address(
+        address deployer_,
+        string calldata mor20Name_
+    ) external view returns (Mor20PredictedAddressesL1 memory predictedAddresses_) {
+        if (bytes(mor20Name_).length == 0) {
+            return predictedAddresses_;
+        }
+
+        bytes32 poolSalt_ = _calculatePoolSalt(deployer_, mor20Name_);
+
+        return
+            Mor20PredictedAddressesL1(
+                _predictPoolAddress(PoolType.DISTRIBUTION, poolSalt_),
+                _predictPoolAddress(PoolType.L1_SENDER, poolSalt_)
+            );
     }
 }
