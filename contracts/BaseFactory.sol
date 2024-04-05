@@ -84,7 +84,6 @@ abstract contract BaseFactory {
      * @param poolTypes_ the types that are associated with the pools implementations
      * @param newImplementations_ the new implementations of the pools (ProxyBeacons will point to these)
      */
-
     function _setNewImplementations(uint8[] memory poolTypes_, address[] memory newImplementations_) internal {
         for (uint256 i = 0; i < poolTypes_.length; i++) {
             if (address(_beacons[poolTypes_[i]]) == address(0)) {

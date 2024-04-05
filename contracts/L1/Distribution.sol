@@ -335,7 +335,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         uint256 overplus_ = overplus();
         require(overplus_ > 0, "DS: overplus is zero");
 
-        (uint256 feePercent_, address treasuryAddress_) = coreProperties.getFeeAndTreadury(address(this));
+        (uint256 feePercent_, address treasuryAddress_) = coreProperties.getFeeAndTreasury(address(this));
         uint256 fee_ = _feeAmount(overplus_, feePercent_);
         IERC20(depositToken).safeTransfer(treasuryAddress_, fee_);
 

@@ -32,10 +32,6 @@ contract CorePropertiesL1 is Ownable {
         treasuryAddress = treasuryAddress_;
     }
 
-    function getFeeAndTreadury(address distributionAddress_) external view returns (uint256, address) {
-        return (_fees[distributionAddress_], treasuryAddress);
-    }
-
     function setDeployParams(
         address arbitrumGateway_,
         address lZEnpointAddress_,
@@ -44,6 +40,10 @@ contract CorePropertiesL1 is Ownable {
         arbitrumGateway = arbitrumGateway_;
         lZEnpointAddress = lZEnpointAddress_;
         destinationChainId = destinationChainId_;
+    }
+
+    function getFeeAndTreasury(address distributionAddress_) external view returns (uint256, address) {
+        return (_fees[distributionAddress_], treasuryAddress);
     }
 
     function getDeployParams() external view returns (address, address) {
