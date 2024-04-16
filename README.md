@@ -1,5 +1,5 @@
 # MOR20 README
-- MOR20 is the generalized Version of the Morpheus Capital Smart Contracts for Community use.
+MOR20 is the generalized version of the Morpheus Capital Smart Contracts available for community use.
 
 ![MOR20Proven](https://github.com/MorpheusAIs/MOR20/assets/1563345/af6e09d7-b03b-491b-8b08-72b8d380eac2)
 
