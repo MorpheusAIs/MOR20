@@ -1,5 +1,8 @@
 # MOR20 README
 Generalized Version of the Morpheus Capital Smart Contracts For Community Use
+100,000+ staked ETH later Morpheus has proven a new Fair Launch model.
+Launch Your Project Using The MOR20 Smart Contract platform. Dashboards available coming in June and audits ongoing to increase security.
+![MOR20PageonMordotorg](https://github.com/MorpheusAIs/MOR20/assets/1563345/1877cdaf-1a64-416b-b199-e7439e3add7a)
 
 ## Github Repo / MOR20 Smart Contracts In Development
 Open source developers are updating these Smart Contracts right now so anyone can leverage them for their own project, as outlined in MRC20.  A new placeholder repo has been set up for where the MOR20 Smart Contracts will be uploaded.
