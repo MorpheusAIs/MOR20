@@ -26,9 +26,6 @@ abstract contract BaseFactoryL1 is BaseFactory {
         IDistribution.Pool[] poolsInfo;
         //////
         address messageReceiver;
-        address zroPaymentAddress;
-        uint16 l2EndpointId;
-        bytes adapterParams;
         //////
         address wrappedToken;
         address tokenReceiver;
@@ -36,12 +33,8 @@ abstract contract BaseFactoryL1 is BaseFactory {
 
     event Mor20Deployed(string name, address distribution, address l1Sender);
 
-    function _predictPoolAddress(PoolType poolType_, bytes32 poolSalt_) internal view returns (address) {
-        return _predictPoolAddress(uint8(poolType_), poolSalt_);
-    }
-
-    function _addDistribution(address distribution_) internal {
-        _pools[uint8(PoolType.DISTRIBUTION)].add(distribution_);
+    function _addPool(PoolType poolType_, string memory poolName_, address pool_) internal {
+        _addPool(tx.origin, uint8(poolType_), poolName_, pool_);
     }
 
     function _deploy2(PoolType poolType_, string memory name_) internal returns (address) {

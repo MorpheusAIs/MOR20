@@ -11,13 +11,14 @@ import {LinearDistributionIntervalDecrease} from "../libs/LinearDistributionInte
 import {L1Sender} from "./L1Sender.sol";
 import {IDistribution} from "../interfaces/IDistribution.sol";
 
-import {CorePropertiesL1} from "./CorePropertiesL1.sol";
+import {FeeParams} from "./FeeParams.sol";
 
 contract Distribution is IDistribution, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
     address public depositToken;
     address public l1Sender;
+    address public feeParams;
 
     // Pool storage
     Pool[] public pools;
@@ -27,8 +28,6 @@ contract Distribution is IDistribution, OwnableUpgradeable {
     mapping(address => mapping(uint256 => UserData)) public usersData;
 
     uint256 public totalDepositedInPublicPools;
-
-    CorePropertiesL1 public coreProperties;
 
     /**********************************************************************************************/
     /*** Modifiers                                                                              ***/
@@ -84,12 +83,9 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         Pool storage pool = pools[poolId_];
         require(pool.isPublic == pool_.isPublic, "DS: invalid pool type");
         if (pool_.payoutStart > block.timestamp) {
-            require(pool.payoutStart != pool_.payoutStart, "DS: invalid payout start value");
+            require(pool.payoutStart == pool_.payoutStart, "DS: invalid payout start value");
             require(pool.withdrawLockPeriod == pool_.withdrawLockPeriod, "DS: invalid withdrawLockPeriod");
-            require(
-                pool.withdrawLockPeriodAfterStake == pool_.withdrawLockPeriodAfterStake,
-                "DS: invalid withdrawLockPeriodAfterStake"
-            );
+            require(pool.withdrawLockPeriodAfterStake == pool_.withdrawLockPeriodAfterStake, "DS: invalid WLPAS value");
         }
 
         PoolData storage poolData = poolsData[poolId_];
@@ -335,11 +331,14 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         uint256 overplus_ = overplus();
         require(overplus_ > 0, "DS: overplus is zero");
 
-        (uint256 feePercent_, address treasuryAddress_) = coreProperties.getFeeAndTreasury(address(this));
-        uint256 fee_ = _feeAmount(overplus_, feePercent_);
-        IERC20(depositToken).safeTransfer(treasuryAddress_, fee_);
+        (uint256 feePercent_, address treasuryAddress_) = FeeParams(feeParams).getFeeAndTreasury(address(this));
 
-        overplus_ -= fee_;
+        uint256 fee_ = (overplus_ * feePercent_) / PRECISION;
+        if (fee_ != 0) {
+            IERC20(depositToken).safeTransfer(treasuryAddress_, fee_);
+
+            overplus_ -= fee_;
+        }
 
         IERC20(depositToken).safeTransfer(l1Sender, overplus_);
 
@@ -352,9 +351,5 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         emit OverplusBridged(overplus_, bridgeMessageId_);
 
         return bridgeMessageId_;
-    }
-
-    function _feeAmount(uint256 amount_, uint256 feePercent_) internal pure returns (uint256) {
-        return (amount_ * feePercent_) / PRECISION;
     }
 }
