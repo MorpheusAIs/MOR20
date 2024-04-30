@@ -7,7 +7,7 @@ import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Recei
 /**
  * This is Swap contract that swaps tokens using Uniswap V3.
  */
-interface IL2TokenReceiver is IERC165, IERC721Receiver {
+interface IL2TokenReceiverV2 is IERC165, IERC721Receiver {
     /**
      * The structure that stores the swap params.
      * @param tokenIn The address of the token to swap from.
@@ -64,19 +64,7 @@ interface IL2TokenReceiver is IERC165, IERC721Receiver {
      */
     event FeesCollected(uint256 indexed tokenId, uint256 amount0, uint256 amount1);
 
-    /**
-     * The function to initialize the contract.
-     * @param router_ The address of the router.
-     * @param nonfungiblePositionManager_ The address of the nonfungible position manager.
-     * @param firstSwapParams_ The first path's part swap params.
-     * @param secondSwapParams_ The second path's part swap params.
-     */
-    function L2TokenReceiver__init(
-        address router_,
-        address nonfungiblePositionManager_,
-        SwapParams memory firstSwapParams_,
-        SwapParams memory secondSwapParams_
-    ) external;
+    function L2TokenReceiver__init(address router_, address nonfungiblePositionManager_) external;
 
     /**
      * The function to edit the swap params.
@@ -90,14 +78,14 @@ interface IL2TokenReceiver is IERC165, IERC721Receiver {
      * @param amountIn_ The amount of tokens to swap.
      * @param amountOutMinimum_ The minimum amount of tokens to receive.
      * @param deadline_ The deadline for the swap.
-     * @param isEditFirstParams_ The flag to indicate if the swapParams is initial.
+     * @param isUseFirstSwapParams_ The flag to indicate if the swapParams is initial.
      * @return The amount of tokens received.
      */
     function swap(
         uint256 amountIn_,
         uint256 amountOutMinimum_,
         uint256 deadline_,
-        bool isEditFirstParams_
+        bool isUseFirstSwapParams_
     ) external returns (uint256);
 
     /**
@@ -119,10 +107,10 @@ interface IL2TokenReceiver is IERC165, IERC721Receiver {
     /**
      * The function to increase liquidity in the current price range.
      * @param tokenId The ID of the position.
-     * @param amountAdd0_ The amount of tokenIn to add.
-     * @param amountAdd1_ The amount of tokenOut to add.
-     * @param depositTokenAmountMin_ The minimum amount of deposit token to add.
-     * @param rewardTokenAmountMin_ The minimum amount of reward token to add.
+     * @param amountAdd0_ The amount of token0 to add.
+     * @param amountAdd1_ The amount of token1 to add.
+     * @param amountMin0_ The minimum amount of token0 to add.
+     * @param amountMin1_ The minimum amount of token1 to add.
      * @return liquidity_ The amount of liquidity added.
      * @return amount0_ The amount of token0 added.
      * @return amount1_ The amount of token1 added.
@@ -131,8 +119,8 @@ interface IL2TokenReceiver is IERC165, IERC721Receiver {
         uint256 tokenId,
         uint256 amountAdd0_,
         uint256 amountAdd1_,
-        uint256 depositTokenAmountMin_,
-        uint256 rewardTokenAmountMin_
+        uint256 amountMin0_,
+        uint256 amountMin1_
     ) external returns (uint128 liquidity_, uint256 amount0_, uint256 amount1_);
 
     /**

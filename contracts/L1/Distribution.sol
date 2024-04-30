@@ -2,23 +2,26 @@
 pragma solidity ^0.8.20;
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {PRECISION} from "@solarity/solidity-lib/utils/Globals.sol";
 
 import {LinearDistributionIntervalDecrease} from "../libs/LinearDistributionIntervalDecrease.sol";
 
+import {IDistribution} from "../interfaces/L1/IDistribution.sol";
 import {L1Sender} from "./L1Sender.sol";
-import {IDistribution} from "../interfaces/IDistribution.sol";
 
-import {FeeParams} from "./FeeParams.sol";
+import {FeeConfig} from "./FeeConfig.sol";
 
-contract Distribution is IDistribution, OwnableUpgradeable {
+contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
+
+    bool public isNotUpgradeable;
 
     address public depositToken;
     address public l1Sender;
-    address public feeParams;
+    address public feeConfig;
 
     // Pool storage
     Pool[] public pools;
@@ -27,6 +30,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
     // User storage
     mapping(address => mapping(uint256 => UserData)) public usersData;
 
+    // Total deposited storage
     uint256 public totalDepositedInPublicPools;
 
     /**********************************************************************************************/
@@ -56,6 +60,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         Pool[] calldata poolsInfo_
     ) external initializer {
         __Ownable_init();
+        __UUPSUpgradeable_init();
 
         for (uint256 i; i < poolsInfo_.length; ++i) {
             createPool(poolsInfo_[i]);
@@ -84,7 +89,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         require(pool.isPublic == pool_.isPublic, "DS: invalid pool type");
         if (pool_.payoutStart > block.timestamp) {
             require(pool.payoutStart == pool_.payoutStart, "DS: invalid payout start value");
-            require(pool.withdrawLockPeriod == pool_.withdrawLockPeriod, "DS: invalid withdrawLockPeriod");
+            require(pool.withdrawLockPeriod == pool_.withdrawLockPeriod, "DS: invalid WLP value");
             require(pool.withdrawLockPeriodAfterStake == pool_.withdrawLockPeriodAfterStake, "DS: invalid WLPAS value");
         }
 
@@ -331,7 +336,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         uint256 overplus_ = overplus();
         require(overplus_ > 0, "DS: overplus is zero");
 
-        (uint256 feePercent_, address treasuryAddress_) = FeeParams(feeParams).getFeeAndTreasury(address(this));
+        (uint256 feePercent_, address treasuryAddress_) = FeeConfig(feeConfig).getFeeAndTreasury(address(this));
 
         uint256 fee_ = (overplus_ * feePercent_) / PRECISION;
         if (fee_ != 0) {
@@ -351,5 +356,16 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         emit OverplusBridged(overplus_, bridgeMessageId_);
 
         return bridgeMessageId_;
+    }
+
+    /**********************************************************************************************/
+    /*** UUPS                                                                                   ***/
+    /**********************************************************************************************/
+    function removeUpgradeability() external onlyOwner {
+        isNotUpgradeable = true;
+    }
+
+    function _authorizeUpgrade(address) internal view override onlyOwner {
+        require(!isNotUpgradeable, "DS: upgrade isn't available");
     }
 }

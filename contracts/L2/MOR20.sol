@@ -3,9 +3,9 @@ pragma solidity ^0.8.20;
 
 import {OFT} from "../@layerzerolabs/lz-evm-oapp-v2/contracts/oft/OFT.sol";
 
-import {IERC20MOR, IERC20, IERC165, IOAppCore} from "../interfaces/IERC20MOR.sol";
+import {IMOR20, IERC20, IERC165, IOAppCore} from "../interfaces/L2/IMOR20.sol";
 
-contract ERC20MOR is IERC20MOR, OFT {
+contract MOR20 is IMOR20, OFT {
     address private immutable _minter;
 
     constructor(
@@ -22,7 +22,7 @@ contract ERC20MOR is IERC20MOR, OFT {
 
     function supportsInterface(bytes4 interfaceId_) external pure returns (bool) {
         return
-            interfaceId_ == type(IERC20MOR).interfaceId ||
+            interfaceId_ == type(IMOR20).interfaceId ||
             interfaceId_ == type(IERC20).interfaceId ||
             interfaceId_ == type(IOAppCore).interfaceId ||
             interfaceId_ == type(IERC165).interfaceId;
@@ -33,7 +33,7 @@ contract ERC20MOR is IERC20MOR, OFT {
     }
 
     function mint(address account_, uint256 amount_) public {
-        require(_msgSender() == minter(), "ERC20MOR: invalid caller");
+        require(_msgSender() == minter(), "MOR20: invalid caller");
 
         _mint(account_, amount_);
     }

@@ -5,7 +5,7 @@ import {IERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 interface IL1Sender is IERC165 {
     /**
-     * The structure that stores the deposit token's data.
+     * The structure that stores the deposit token's data (stETH).
      * @param token The address of wrapped deposit token.
      * @param gateway The address of token's gateway.
      * @param receiver The address of wrapped token's receiver on L2.
