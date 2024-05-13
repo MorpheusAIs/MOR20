@@ -104,9 +104,15 @@ interface IDistribution {
      * The function to initialize the contract.
      * @param depositToken_ The address of deposit token.
      * @param l1Sender_ The address of bridge contract.
+     * @param feeConfig_ The address of fee config contract.
      * @param poolsInfo_ The array of initial pools.
      */
-    function Distribution_init(address depositToken_, address l1Sender_, Pool[] calldata poolsInfo_) external;
+    function Distribution_init(
+        address depositToken_,
+        address l1Sender_,
+        address feeConfig_,
+        Pool[] calldata poolsInfo_
+    ) external;
 
     /**
      * The function to create a new pool.
@@ -185,6 +191,11 @@ interface IDistribution {
         uint256 maxFeePerGas_,
         uint256 maxSubmissionCost_
     ) external payable returns (bytes memory);
+
+    /**
+     * The function to remove the upgradeability of the contract.
+     */
+    function removeUpgradeability() external;
 
     /**
      * The function to get the address of deposit token.

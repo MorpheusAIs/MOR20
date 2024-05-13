@@ -6,11 +6,11 @@ import { getDefaultSwapParams } from '../helpers/distribution-helper';
 import { Reverter } from '../helpers/reverter';
 
 import {
-  ERC20MOR,
   IL2TokenReceiver,
   L2TokenReceiver,
   L2TokenReceiverV2,
   LayerZeroEndpointV2Mock,
+  MOR20,
   NonfungiblePositionManagerMock,
   StETHMock,
   SwapRouterMock,
@@ -31,7 +31,7 @@ describe('L2TokenReceiver', () => {
 
   let l2TokenReceiver: L2TokenReceiver;
   let inputToken: StETHMock;
-  let outputToken: ERC20MOR;
+  let outputToken: MOR20;
   before(async () => {
     [OWNER, SECOND] = await ethers.getSigners();
 
@@ -47,7 +47,7 @@ describe('L2TokenReceiver', () => {
       ethers.getContractFactory('ERC1967Proxy'),
       ethers.getContractFactory('L2TokenReceiver'),
       ethers.getContractFactory('StETHMock'),
-      ethers.getContractFactory('ERC20MOR'),
+      ethers.getContractFactory('MOR20'),
       ethers.getContractFactory('SwapRouterMock'),
       ethers.getContractFactory('NonfungiblePositionManagerMock'),
       ethers.getContractFactory('LayerZeroEndpointV2Mock'),
@@ -92,96 +92,96 @@ describe('L2TokenReceiver', () => {
     await reverter.revert();
   });
 
-  // describe("UUPS proxy functionality", () => {
-  //   it("should disable initialize function", async () => {
-  //     const reason = "Initializable: contract is already initialized";
+  describe('UUPS proxy functionality', () => {
+    it('should disable initialize function', async () => {
+      const reason = 'Initializable: contract is already initialized';
 
-  //     const l2TokenReceiver = await (await ethers.getContractFactory("L2TokenReceiver")).deploy();
+      const l2TokenReceiver = await (await ethers.getContractFactory('L2TokenReceiver')).deploy();
 
-  //     await expect(
-  //       l2TokenReceiver.L2TokenReceiver__init(
-  //         swapRouter,
-  //         nonfungiblePositionManager,
-  //         {
-  //           tokenIn: inputToken,
-  //           tokenOut: outputToken,
-  //           fee: 500,
-  //           sqrtPriceLimitX96: 0,
-  //         },
-  //         {
-  //           tokenIn: inputToken,
-  //           tokenOut: outputToken,
-  //           fee: 500,
-  //           sqrtPriceLimitX96: 0,
-  //         },
-  //       ),
-  //     ).to.be.rejectedWith(reason);
-  //   });
+      await expect(
+        l2TokenReceiver.L2TokenReceiver__init(
+          swapRouter,
+          nonfungiblePositionManager,
+          {
+            tokenIn: inputToken,
+            tokenOut: outputToken,
+            fee: 500,
+            sqrtPriceLimitX96: 0,
+          },
+          {
+            tokenIn: inputToken,
+            tokenOut: outputToken,
+            fee: 500,
+            sqrtPriceLimitX96: 0,
+          },
+        ),
+      ).to.be.rejectedWith(reason);
+    });
 
-  //   describe("#L2TokenReceiver__init", () => {
-  //     it("should revert if try to call init function twice", async () => {
-  //       const reason = "Initializable: contract is already initialized";
+    describe('#L2TokenReceiver__init', () => {
+      it('should revert if try to call init function twice', async () => {
+        const reason = 'Initializable: contract is already initialized';
 
-  //       await expect(
-  //         l2TokenReceiver.L2TokenReceiver__init(
-  //           swapRouter,
-  //           nonfungiblePositionManager,
-  //           {
-  //             tokenIn: inputToken,
-  //             tokenOut: outputToken,
-  //             fee: 500,
-  //             sqrtPriceLimitX96: 0,
-  //           },
-  //           {
-  //             tokenIn: inputToken,
-  //             tokenOut: outputToken,
-  //             fee: 500,
-  //             sqrtPriceLimitX96: 0,
-  //           },
-  //         ),
-  //       ).to.be.rejectedWith(reason);
-  //     });
-  //     it("should set router", async () => {
-  //       expect(await l2TokenReceiver.router()).to.equal(await swapRouter.getAddress());
-  //     });
-  //     it("should set params", async () => {
-  //       const defaultParams = getDefaultSwapParams(await inputToken.getAddress(), await outputToken.getAddress());
-  //       const params = await l2TokenReceiver.secondSwapParams();
+        await expect(
+          l2TokenReceiver.L2TokenReceiver__init(
+            swapRouter,
+            nonfungiblePositionManager,
+            {
+              tokenIn: inputToken,
+              tokenOut: outputToken,
+              fee: 500,
+              sqrtPriceLimitX96: 0,
+            },
+            {
+              tokenIn: inputToken,
+              tokenOut: outputToken,
+              fee: 500,
+              sqrtPriceLimitX96: 0,
+            },
+          ),
+        ).to.be.rejectedWith(reason);
+      });
+      it('should set router', async () => {
+        expect(await l2TokenReceiver.router()).to.equal(await swapRouter.getAddress());
+      });
+      it('should set params', async () => {
+        const defaultParams = getDefaultSwapParams(await inputToken.getAddress(), await outputToken.getAddress());
+        const params = await l2TokenReceiver.secondSwapParams();
 
-  //       expect(params.tokenIn).to.equal(defaultParams.tokenIn);
-  //       expect(params.tokenOut).to.equal(defaultParams.tokenOut);
-  //       expect(params.fee).to.equal(defaultParams.fee);
-  //       expect(params.sqrtPriceLimitX96).to.equal(defaultParams.sqrtPriceLimitX96);
-  //     });
-  //     it("should give allowance", async () => {
-  //       expect(await inputToken.allowance(l2TokenReceiver, swapRouter)).to.equal(ethers.MaxUint256);
-  //       expect(await inputToken.allowance(l2TokenReceiver, nonfungiblePositionManager)).to.equal(ethers.MaxUint256);
-  //       expect(await outputToken.allowance(l2TokenReceiver, nonfungiblePositionManager)).to.equal(ethers.MaxUint256);
-  //     });
-  //   });
+        expect(params.tokenIn).to.equal(defaultParams.tokenIn);
+        expect(params.tokenOut).to.equal(defaultParams.tokenOut);
+        expect(params.fee).to.equal(defaultParams.fee);
+        expect(params.sqrtPriceLimitX96).to.equal(defaultParams.sqrtPriceLimitX96);
+      });
+      it('should give allowance', async () => {
+        expect(await inputToken.allowance(l2TokenReceiver, swapRouter)).to.equal(ethers.MaxUint256);
+        expect(await inputToken.allowance(l2TokenReceiver, nonfungiblePositionManager)).to.equal(ethers.MaxUint256);
+        expect(await outputToken.allowance(l2TokenReceiver, nonfungiblePositionManager)).to.equal(ethers.MaxUint256);
+      });
+    });
 
-  //   describe("#_authorizeUpgrade", () => {
-  //     it("should correctly upgrade", async () => {
-  //       const l2TokenReceiverV2Factory = await ethers.getContractFactory("L2TokenReceiverV2");
-  //       const l2TokenReceiverV2Implementation = await l2TokenReceiverV2Factory.deploy();
+    describe('#_authorizeUpgrade', () => {
+      it('should correctly upgrade', async () => {
+        const l2TokenReceiverV2Factory = await ethers.getContractFactory('L2TokenReceiverV2');
+        const l2TokenReceiverV2Implementation = await l2TokenReceiverV2Factory.deploy();
 
-  //       await l2TokenReceiver.upgradeTo(l2TokenReceiverV2Implementation);
+        await l2TokenReceiver.upgradeTo(l2TokenReceiverV2Implementation);
 
-  //       const l2TokenReceiverV2 = l2TokenReceiverV2Factory.attach(l2TokenReceiver) as L2TokenReceiverV2;
+        const l2TokenReceiverV2 = l2TokenReceiverV2Factory.attach(l2TokenReceiver) as L2TokenReceiverV2;
 
-  //       expect(await l2TokenReceiverV2.version()).to.eq(2);
-  //     });
-  //     it("should revert if caller is not the owner", async () => {
-  //       await expect(l2TokenReceiver.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
-  //         "Ownable: caller is not the owner",
-  //       );
-  //     });
-  //   });
-  // });
+        expect(await l2TokenReceiverV2.version()).to.eq(2);
+      });
+      it('should revert if caller is not the owner', async () => {
+        await expect(l2TokenReceiver.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
+          'Ownable: caller is not the owner',
+        );
+      });
+    });
+  });
 
   describe('supportsInterface', () => {
     it('should support IL2TokenReceiver', async () => {
-      expect(await l2TokenReceiver.supportsInterface('0x2f958df3')).to.be.true;
+      expect(await l2TokenReceiver.supportsInterface('0x710a2868')).to.be.true;
     });
     it('should support IERC165', async () => {
       expect(await l2TokenReceiver.supportsInterface('0x01ffc9a7')).to.be.true;
@@ -252,6 +252,14 @@ describe('L2TokenReceiver', () => {
   describe('#increaseLiquidityCurrentRange', () => {
     it('should return if caller is not the owner', async () => {
       await expect(l2TokenReceiver.connect(SECOND).increaseLiquidityCurrentRange(1, 1, 1, 0, 0)).to.be.revertedWith(
+        'Ownable: caller is not the owner',
+      );
+    });
+  });
+
+  describe('#decreaseLiquidityCurrentRange', () => {
+    it('should return if caller is not the owner', async () => {
+      await expect(l2TokenReceiver.connect(SECOND).decreaseLiquidityCurrentRange(1, 1, 0, 0)).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });

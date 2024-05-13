@@ -56,4 +56,16 @@ interface IL1Sender is IERC165 {
      * @param refundTo_ The address to refund the overpaid gas.
      */
     function sendMintMessage(address user_, uint256 amount_, address refundTo_) external payable;
+
+    /**
+     * The function to set the deposit token to the L2.
+     * @param gasLimit_ The gas limit for the transaction.
+     * @param maxFeePerGas_ The maximum fee per gas for the transaction.
+     * @param maxSubmissionCost_ The maximum submission cost for the transaction.
+     */
+    function sendDepositToken(
+        uint256 gasLimit_,
+        uint256 maxFeePerGas_,
+        uint256 maxSubmissionCost_
+    ) external payable returns (bytes memory);
 }

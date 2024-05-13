@@ -10,10 +10,11 @@ import {IOAppCore} from "../../@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/inte
  */
 interface IMOR20 is IERC20, IERC165 {
     /**
-     * The function to get the minter address.
-     * @return The minter address.
+     * The function to update `minter` addresses.
+     * @param minter_ The updated minter address.
+     * @param status_ The new status. True or false.
      */
-    function minter() external view returns (address);
+    function updateMinter(address minter_, bool status_) external;
 
     /**
      * The function to mint tokens.

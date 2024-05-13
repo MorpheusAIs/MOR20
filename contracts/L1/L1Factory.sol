@@ -1,40 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Factory} from "../Factory.sol";
-
 import {IDistribution} from "../interfaces/L1/IDistribution.sol";
+import {IL1Factory} from "../interfaces/L1/IL1Factory.sol";
 import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 import {IOwnable} from "../interfaces/IOwnable.sol";
 
-contract L1Factory is Factory {
-    enum PoolType {
-        DISTRIBUTION,
-        L1_SENDER
-    }
+import {Factory} from "../Factory.sol";
 
-    struct L1Params {
-        string protocolName;
-        IDistribution.Pool[] poolsInfo;
-        address l2TokenReceiver;
-        address l2MessageReceiver;
-    }
-
-    struct DepositTokenExternalDeps {
-        address token;
-        address wToken;
-    }
-
-    struct LzExternalDeps {
-        address endpoint;
-        address zroPaymentAddress;
-        bytes adapterParams;
-        uint16 destinationChainId;
-    }
-
-    struct ArbExternalDeps {
-        address endpoint;
-    }
+contract L1Factory is IL1Factory, Factory {
+    address public feeConfig;
 
     DepositTokenExternalDeps public depositTokenExternalDeps;
     ArbExternalDeps public arbExternalDeps;
@@ -60,14 +35,14 @@ contract L1Factory is Factory {
         depositTokenExternalDeps = depositTokenExternalDeps_;
     }
 
-    function setLzTokenExternalDeps(LzExternalDeps calldata lzExternalDeps_) external onlyOwner {
+    function setLzExternalDeps(LzExternalDeps calldata lzExternalDeps_) external onlyOwner {
         require(lzExternalDeps_.endpoint != address(0), "L1F: invalid LZ endpoint");
         require(lzExternalDeps_.destinationChainId != 0, "L1F: invalid chain ID");
 
         lzExternalDeps = lzExternalDeps_;
     }
 
-    function setArbTokenExternalDeps(ArbExternalDeps calldata arbExternalDeps_) external onlyOwner {
+    function setArbExternalDeps(ArbExternalDeps calldata arbExternalDeps_) external onlyOwner {
         require(arbExternalDeps_.endpoint != address(0), "L1F: invalid ARB endpoint");
 
         arbExternalDeps = arbExternalDeps_;
@@ -80,6 +55,7 @@ contract L1Factory is Factory {
         IDistribution(distributionProxy_).Distribution_init(
             depositTokenExternalDeps.token,
             l1SenderProxy_,
+            feeConfig,
             l1Params_.poolsInfo
         );
 
@@ -98,6 +74,10 @@ contract L1Factory is Factory {
         );
 
         IL1Sender(l1SenderProxy_).L1Sender__init(distributionProxy_, lzConfig_, arbConfig);
+
+        if (l1Params_.isNotUpgradeable) {
+            IDistribution(distributionProxy_).removeUpgradeability();
+        }
 
         IOwnable(distributionProxy_).transferOwnership(_msgSender());
         IOwnable(l1SenderProxy_).transferOwnership(_msgSender());

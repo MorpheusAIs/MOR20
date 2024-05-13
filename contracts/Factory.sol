@@ -6,16 +6,9 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-abstract contract Factory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
-    /**
-     * The event is emitted when the proxy is deployed.
-     * @param proxy The proxy address.
-     * @param implementation The implementation.
-     * @param poolType The `poolType`.
-     * @param poolName The `poolName`.
-     */
-    event ProxyDeployed(address proxy, address indexed implementation, uint8 indexed poolType, string poolName);
+import {IFactory} from "./interfaces/IFactory.sol";
 
+abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     mapping(uint8 => address) internal _implementations;
     mapping(bytes32 => bool) private _usedSalts;
 
@@ -27,10 +20,6 @@ abstract contract Factory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgrad
     mapping(address => mapping(string => mapping(uint8 => address))) public deployedProxies;
 
     function __Factory_init() internal onlyInitializing {}
-
-    function __Factory_init_unchained() internal onlyInitializing {
-        _pause();
-    }
 
     /**
      * @notice Returns contract to normal state.
@@ -74,13 +63,13 @@ abstract contract Factory is OwnableUpgradeable, PausableUpgradeable, UUPSUpgrad
      * @return proxy the proxy address for the `poolType_`.
      */
     function _deploy2(uint8 poolType_, string memory poolName_) internal returns (address) {
-        require(bytes(poolName_).length != 0, "BF: 'poolName_' is empty");
-        bytes32 salt_ = keccak256(abi.encodePacked(_msgSender(), poolName_));
+        require(bytes(poolName_).length != 0, "F: poolName_ is empty");
+        bytes32 salt_ = keccak256(abi.encodePacked(_msgSender(), poolName_, poolType_));
 
         address implementation_ = _implementations[poolType_];
-        require(implementation_ != address(0), "BF: implementation not found");
+        require(implementation_ != address(0), "F: implementation not found");
 
-        require(!_usedSalts[salt_], "BF: salt used");
+        require(!_usedSalts[salt_], "F: salt used");
         _usedSalts[salt_] = true;
 
         address proxy_ = address(new ERC1967Proxy{salt: salt_}(getImplementation(poolType_), bytes("")));

@@ -19,6 +19,9 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgrad
     }
 
     function L2MessageReceiver__init(address rewardToken_, Config calldata config_) external initializer {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+
         rewardToken = rewardToken_;
         config = config_;
     }
@@ -60,9 +63,9 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgrad
         require(payloadHash_ != bytes32(0), "L2MR: no stored message");
         require(keccak256(payload_) == payloadHash_, "L2MR: invalid payload");
 
-        _nonblockingLzReceive(senderChainId_, senderAndReceiverAddresses_, payload_);
-
         delete failedMessages[senderChainId_][senderAndReceiverAddresses_][nonce_];
+
+        _nonblockingLzReceive(senderChainId_, senderAndReceiverAddresses_, payload_);
 
         emit RetryMessageSuccess(senderChainId_, senderAndReceiverAddresses_, nonce_, payload_);
     }

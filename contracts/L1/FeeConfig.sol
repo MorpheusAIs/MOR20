@@ -6,7 +6,9 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 import {PRECISION} from "@solarity/solidity-lib/utils/Globals.sol";
 
-contract FeeConfig is OwnableUpgradeable, UUPSUpgradeable {
+import {IFeeConfig} from "../interfaces/L1/IFeeConfig.sol";
+
+contract FeeConfig is IFeeConfig, OwnableUpgradeable, UUPSUpgradeable {
     address public treasury;
     uint256 public baseFee;
 

@@ -8,31 +8,39 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
-import {IL2TokenReceiverV2, IERC165, IERC721Receiver} from "../interfaces/L2/IL2TokenReceiverV2.sol";
+import {IL2TokenReceiver, IERC165, IERC721Receiver} from "../interfaces/L2/IL2TokenReceiver.sol";
 import {INonfungiblePositionManager} from "../interfaces/uniswap-v3/INonfungiblePositionManager.sol";
 
-contract L2TokenReceiverV2 is IL2TokenReceiverV2, OwnableUpgradeable, UUPSUpgradeable {
+contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable, UUPSUpgradeable {
     address public router;
     address public nonfungiblePositionManager;
 
-    SwapParams public secondSwapParams;
     SwapParams public firstSwapParams;
+    SwapParams public secondSwapParams;
 
     constructor() {
         _disableInitializers();
     }
 
-    function L2TokenReceiver__init(address router_, address nonfungiblePositionManager_) external initializer {
+    function L2TokenReceiver__init(
+        address router_,
+        address nonfungiblePositionManager_,
+        SwapParams memory firstSwapParams_,
+        SwapParams memory secondSwapParams_
+    ) external initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
         router = router_;
         nonfungiblePositionManager = nonfungiblePositionManager_;
+
+        _addAllowanceUpdateSwapParams(firstSwapParams_, true);
+        _addAllowanceUpdateSwapParams(secondSwapParams_, false);
     }
 
     function supportsInterface(bytes4 interfaceId_) external pure returns (bool) {
         return
-            interfaceId_ == type(IL2TokenReceiverV2).interfaceId ||
+            interfaceId_ == type(IL2TokenReceiver).interfaceId ||
             interfaceId_ == type(IERC721Receiver).interfaceId ||
             interfaceId_ == type(IERC165).interfaceId;
     }
@@ -88,18 +96,18 @@ contract L2TokenReceiverV2 is IL2TokenReceiverV2, OwnableUpgradeable, UUPSUpgrad
 
     function increaseLiquidityCurrentRange(
         uint256 tokenId_,
-        uint256 amountAdd0_,
-        uint256 amountAdd1_,
-        uint256 amountMin0_,
-        uint256 amountMin1_
+        uint256 amount0Add_,
+        uint256 amount1Add_,
+        uint256 amount0Min_,
+        uint256 amount1Min_
     ) external onlyOwner returns (uint128 liquidity_, uint256 amount0_, uint256 amount1_) {
         INonfungiblePositionManager.IncreaseLiquidityParams memory params_ = INonfungiblePositionManager
             .IncreaseLiquidityParams({
                 tokenId: tokenId_,
-                amount0Desired: amountAdd0_,
-                amount1Desired: amountAdd1_,
-                amount0Min: amountMin0_,
-                amount1Min: amountMin1_,
+                amount0Desired: amount0Add_,
+                amount1Desired: amount1Add_,
+                amount0Min: amount0Min_,
+                amount1Min: amount1Min_,
                 deadline: block.timestamp
             });
 
@@ -107,10 +115,32 @@ contract L2TokenReceiverV2 is IL2TokenReceiverV2, OwnableUpgradeable, UUPSUpgrad
             params_
         );
 
-        emit LiquidityIncreased(tokenId_, amount0_, amount1_, liquidity_, amountMin0_, amountMin1_);
+        emit LiquidityIncreased(tokenId_, amount0_, amount1_, liquidity_, amount0Min_, amount1Min_);
     }
 
-    function collectFees(uint256 tokenId_) external returns (uint256 amount0_, uint256 amount1_) {
+    function decreaseLiquidityCurrentRange(
+        uint256 tokenId_,
+        uint128 liquidity_,
+        uint256 amount0Min_,
+        uint256 amount1Min_
+    ) external onlyOwner returns (uint256 amount0_, uint256 amount1_) {
+        INonfungiblePositionManager.DecreaseLiquidityParams memory params_ = INonfungiblePositionManager
+            .DecreaseLiquidityParams({
+                tokenId: tokenId_,
+                liquidity: liquidity_,
+                amount0Min: amount0Min_,
+                amount1Min: amount1Min_,
+                deadline: block.timestamp
+            });
+
+        (amount0_, amount1_) = INonfungiblePositionManager(nonfungiblePositionManager).decreaseLiquidity(params_);
+
+        collectFees(tokenId_);
+
+        emit LiquidityDecreased(tokenId_, amount0_, amount1_, liquidity_, amount0Min_, amount1Min_);
+    }
+
+    function collectFees(uint256 tokenId_) public returns (uint256 amount0_, uint256 amount1_) {
         INonfungiblePositionManager.CollectParams memory params_ = INonfungiblePositionManager.CollectParams({
             tokenId: tokenId_,
             recipient: address(this),
@@ -121,10 +151,6 @@ contract L2TokenReceiverV2 is IL2TokenReceiverV2, OwnableUpgradeable, UUPSUpgrad
         (amount0_, amount1_) = INonfungiblePositionManager(nonfungiblePositionManager).collect(params_);
 
         emit FeesCollected(tokenId_, amount0_, amount1_);
-    }
-
-    function version() external pure returns (uint256) {
-        return 2;
     }
 
     function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
