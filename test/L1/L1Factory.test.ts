@@ -10,6 +10,7 @@ import {
   Distribution__factory,
   FeeConfig,
   GatewayRouterMock,
+  IL1Factory,
   L1Factory,
   L1Sender,
   L1Sender__factory,
@@ -112,19 +113,19 @@ describe('L1Factory', () => {
   afterEach(reverter.revert);
 
   function getL1FactoryParams() {
-    const depositTokenExternalDeps: L1Factory.DepositTokenExternalDepsStruct = {
+    const depositTokenExternalDeps: IL1Factory.DepositTokenExternalDepsStruct = {
       token: stEthMock,
       wToken: wstEthMock,
     };
 
-    const lzExternalDeps: L1Factory.LzExternalDepsStruct = {
+    const lzExternalDeps: IL1Factory.LzExternalDepsStruct = {
       endpoint: lzEndpoint,
       zroPaymentAddress: ZERO_ADDR,
       adapterParams: '0x',
       destinationChainId: 2,
     };
 
-    const arbExternalDeps: L1Factory.ArbExternalDepsStruct = {
+    const arbExternalDeps: IL1Factory.ArbExternalDepsStruct = {
       endpoint: gatewayRouterMock,
     };
 
@@ -132,7 +133,7 @@ describe('L1Factory', () => {
   }
 
   function getL1DefaultParams() {
-    const l1Params: L1Factory.L1ParamsStruct = {
+    const l1Params: IL1Factory.L1ParamsStruct = {
       protocolName: 'Mor20',
       isNotUpgradeable: false,
       poolsInfo: [],
@@ -321,6 +322,32 @@ describe('L1Factory', () => {
       await l1Factory.pause();
 
       await expect(l1Factory.deploy(getL1DefaultParams())).to.be.revertedWith('Pausable: paused');
+    });
+  });
+
+  describe('#predictAddresses', () => {
+    beforeEach(async () => {
+      const { depositTokenExternalDeps, lzExternalDeps, arbExternalDeps } = getL1FactoryParams();
+
+      await l1Factory.setDepositTokenExternalDeps(depositTokenExternalDeps);
+      await l1Factory.setLzExternalDeps(lzExternalDeps);
+      await l1Factory.setArbExternalDeps(arbExternalDeps);
+    });
+
+    it('should predict addresses', async () => {
+      const l1Params = getL1DefaultParams();
+
+      const [distribution, l1Sender] = await l1Factory.predictAddresses(l1Params.protocolName, OWNER);
+
+      expect(distribution).to.be.properAddress;
+      expect(l1Sender).to.be.properAddress;
+
+      await l1Factory.deploy(l1Params);
+
+      expect(await l1Factory.deployedProxies(OWNER, l1Params.protocolName, PoolTypesL1.DISTRIBUTION)).to.equal(
+        distribution,
+      );
+      expect(await l1Factory.deployedProxies(OWNER, l1Params.protocolName, PoolTypesL1.L1_SENDER)).to.equal(l1Sender);
     });
   });
 });

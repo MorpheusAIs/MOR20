@@ -6,6 +6,7 @@ import { PoolTypesL2 } from '../helpers/helper';
 import { Reverter } from '../helpers/reverter';
 
 import {
+  IL2Factory,
   L2Factory,
   L2FactoryV2,
   L2MessageReceiver,
@@ -111,13 +112,13 @@ describe('L2Factory', () => {
   afterEach(reverter.revert);
 
   function getL2FactoryParams() {
-    const lzTokenExternalDeps: L2Factory.LzExternalDepsStruct = {
+    const lzTokenExternalDeps: IL2Factory.LzExternalDepsStruct = {
       endpoint: lzEndpoint,
       oftEndpoint: lzEndpointOFT,
       senderChainId: senderChainId,
     };
 
-    const uniswapExternalDeps: L2Factory.UniswapExternalDepsStruct = {
+    const uniswapExternalDeps: IL2Factory.UniswapExternalDepsStruct = {
       router: swapRouter,
       nonfungiblePositionManager: nonfungiblePositionManager,
     };
@@ -126,7 +127,7 @@ describe('L2Factory', () => {
   }
 
   function getL2DefaultParams() {
-    const l2Params: L2Factory.L2ParamsStruct = {
+    const l2Params: IL2Factory.L2ParamsStruct = {
       protocolName: 'Mor20',
       mor20Name: 'MOR20',
       mor20Symbol: 'M20',
@@ -297,6 +298,34 @@ describe('L2Factory', () => {
       await l2Factory.pause();
 
       await expect(l2Factory.deploy(getL2DefaultParams())).to.be.revertedWith('Pausable: paused');
+    });
+  });
+
+  describe('#predictAddresses', () => {
+    beforeEach(async () => {
+      const { lzTokenExternalDeps, uniswapExternalDeps } = getL2FactoryParams();
+
+      await l2Factory.setLzExternalDeps(lzTokenExternalDeps);
+      await l2Factory.setUniswapExternalDeps(uniswapExternalDeps);
+    });
+
+    it('should predict addresses', async () => {
+      const l2Params = getL2DefaultParams();
+
+      const [l2MessageReceiver, l2TokenReceiver] = await l2Factory.predictAddresses(l2Params.protocolName, OWNER);
+
+      expect(l2MessageReceiver).to.be.properAddress;
+      expect(l2TokenReceiver).to.be.properAddress;
+
+      await l2Factory.deploy(l2Params);
+
+      expect(await l2Factory.deployedProxies(OWNER, l2Params.protocolName, PoolTypesL2.L2_MESSAGE_RECEIVER)).to.equal(
+        l2MessageReceiver,
+      );
+
+      expect(await l2Factory.deployedProxies(OWNER, l2Params.protocolName, PoolTypesL2.L2_TOKEN_RECEIVER)).to.equal(
+        l2TokenReceiver,
+      );
     });
   });
 });

@@ -67,13 +67,13 @@ contract L1Factory is IL1Factory, Factory {
             lzExternalDeps.adapterParams
         );
 
-        IL1Sender.DepositTokenConfig memory arbConfig = IL1Sender.DepositTokenConfig(
+        IL1Sender.DepositTokenConfig memory arbConfig_ = IL1Sender.DepositTokenConfig(
             depositTokenExternalDeps.wToken,
             arbExternalDeps.endpoint,
             l1Params_.l2TokenReceiver
         );
 
-        IL1Sender(l1SenderProxy_).L1Sender__init(distributionProxy_, lzConfig_, arbConfig);
+        IL1Sender(l1SenderProxy_).L1Sender__init(distributionProxy_, lzConfig_, arbConfig_);
 
         if (l1Params_.isNotUpgradeable) {
             IDistribution(distributionProxy_).removeUpgradeability();
@@ -81,5 +81,14 @@ contract L1Factory is IL1Factory, Factory {
 
         IOwnable(distributionProxy_).transferOwnership(_msgSender());
         IOwnable(l1SenderProxy_).transferOwnership(_msgSender());
+    }
+
+    function predictAddresses(
+        string calldata poolName_,
+        address sender_
+    ) external view returns (address distribution_, address l1Sender_) {
+        distribution_ = _predictPoolAddress(uint8(PoolType.DISTRIBUTION), poolName_, sender_);
+
+        l1Sender_ = _predictPoolAddress(uint8(PoolType.L1_SENDER), poolName_, sender_);
     }
 }

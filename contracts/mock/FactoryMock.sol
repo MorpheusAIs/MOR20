@@ -15,7 +15,7 @@ contract FactoryMock is Factory {
         __Factory_init();
     }
 
-    function deploy2(uint8 poolType_, string memory poolName_) external returns (address) {
+    function deploy2(uint8 poolType_, string calldata poolName_) external returns (address) {
         return _deploy2(poolType_, poolName_);
     }
 }

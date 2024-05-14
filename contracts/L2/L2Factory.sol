@@ -73,4 +73,13 @@ contract L2Factory is IL2Factory, Factory {
         IOwnable(l2MessageReceiver).transferOwnership(_msgSender());
         IOwnable(l2TokenReceiver).transferOwnership(_msgSender());
     }
+
+    function predictAddresses(
+        string calldata poolName_,
+        address sender_
+    ) external view returns (address l2MessageReceiver_, address l2TokenReceiver_) {
+        l2MessageReceiver_ = _predictPoolAddress(uint8(PoolType.L2_MESSAGE_RECEIVER), poolName_, sender_);
+
+        l2TokenReceiver_ = _predictPoolAddress(uint8(PoolType.L2_TOKEN_RECEIVER), poolName_, sender_);
+    }
 }

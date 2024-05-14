@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -62,9 +63,9 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param poolName_ the name of the pool.
      * @return proxy the proxy address for the `poolType_`.
      */
-    function _deploy2(uint8 poolType_, string memory poolName_) internal returns (address) {
+    function _deploy2(uint8 poolType_, string calldata poolName_) internal returns (address) {
         require(bytes(poolName_).length != 0, "F: poolName_ is empty");
-        bytes32 salt_ = keccak256(abi.encodePacked(_msgSender(), poolName_, poolType_));
+        bytes32 salt_ = _calculatePoolSalt(_msgSender(), poolName_, poolType_);
 
         address implementation_ = _implementations[poolType_];
         require(implementation_ != address(0), "F: implementation not found");
@@ -79,6 +80,28 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
         emit ProxyDeployed(proxy_, implementation_, poolType_, poolName_);
 
         return proxy_;
+    }
+
+    function _predictPoolAddress(
+        uint8 poolType_,
+        string calldata poolName_,
+        address sender_
+    ) internal view returns (address) {
+        bytes32 salt_ = _calculatePoolSalt(sender_, poolName_, uint8(poolType_));
+
+        bytes32 bytecodeHash_ = keccak256(
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(getImplementation(poolType_), bytes("")))
+        );
+
+        return Create2.computeAddress(salt_, bytecodeHash_);
+    }
+
+    function _calculatePoolSalt(
+        address sender_,
+        string calldata poolName_,
+        uint8 poolType_
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(sender_, poolName_, poolType_));
     }
 
     function _authorizeUpgrade(address) internal view override onlyOwner {}
