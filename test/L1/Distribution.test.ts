@@ -155,13 +155,11 @@ describe('Distribution', () => {
         tokenIn: depositToken,
         tokenOut: depositToken,
         fee: 3000,
-        sqrtPriceLimitX96: 0,
       },
       {
         tokenIn: depositToken,
         tokenOut: depositToken,
         fee: 3000,
-        sqrtPriceLimitX96: 0,
       },
     );
 

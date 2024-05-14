@@ -136,10 +136,8 @@ describe('L2Factory', () => {
         tokenIn: ETHER_ADDR,
         tokenOut: ETHER_ADDR,
         fee: 100,
-        sqrtPriceLimitX96: 0,
       },
       secondSwapFee: 3000,
-      secondSwapSqrtPriceLimitX96: 0,
     };
 
     return l2Params;
@@ -281,13 +279,11 @@ describe('L2Factory', () => {
       expect(firstSwapParams.tokenIn).to.equal(l2Params.firstSwapParams_.tokenIn);
       expect(firstSwapParams.tokenOut).to.equal(l2Params.firstSwapParams_.tokenOut);
       expect(firstSwapParams.fee).to.equal(l2Params.firstSwapParams_.fee);
-      expect(firstSwapParams.sqrtPriceLimitX96).to.equal(l2Params.firstSwapParams_.sqrtPriceLimitX96);
 
       const secondSwapParams = await l2TokenReceiver.secondSwapParams();
       expect(secondSwapParams.tokenIn).to.equal(l2Params.firstSwapParams_.tokenOut);
       expect(secondSwapParams.tokenOut).to.equal(MOR);
       expect(secondSwapParams.fee).to.equal(l2Params.secondSwapFee);
-      expect(secondSwapParams.sqrtPriceLimitX96).to.equal(l2Params.secondSwapSqrtPriceLimitX96);
 
       expect(await MOR.owner()).to.equal(OWNER);
       expect(await MOR.name()).to.equal(l2Params.mor20Name);

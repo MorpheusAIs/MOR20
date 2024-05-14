@@ -72,6 +72,7 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable, UUPSUpgradeabl
         uint256 amountIn_,
         uint256 amountOutMinimum_,
         uint256 deadline_,
+        uint160 sqrtPriceLimitX96_,
         bool isUseFirstSwapParams_
     ) external onlyOwner returns (uint256) {
         SwapParams memory params_ = _getSwapParams(isUseFirstSwapParams_);
@@ -84,7 +85,7 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable, UUPSUpgradeabl
             deadline: deadline_,
             amountIn: amountIn_,
             amountOutMinimum: amountOutMinimum_,
-            sqrtPriceLimitX96: params_.sqrtPriceLimitX96
+            sqrtPriceLimitX96: sqrtPriceLimitX96_
         });
 
         uint256 amountOut_ = ISwapRouter(router).exactInputSingle(swapParams_);

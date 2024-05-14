@@ -62,12 +62,7 @@ contract L2Factory is IL2Factory, Factory {
             uniswapExternalDeps.router,
             uniswapExternalDeps.nonfungiblePositionManager,
             l2Params_.firstSwapParams_,
-            IL2TokenReceiver.SwapParams(
-                l2Params_.firstSwapParams_.tokenOut,
-                mor20,
-                l2Params_.secondSwapFee,
-                l2Params_.secondSwapSqrtPriceLimitX96
-            )
+            IL2TokenReceiver.SwapParams(l2Params_.firstSwapParams_.tokenOut, mor20, l2Params_.secondSwapFee)
         );
 
         IOwnable(l2MessageReceiver).transferOwnership(_msgSender());

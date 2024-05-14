@@ -22,7 +22,6 @@ interface IL2Factory {
      * @param l1Sender The L1 sender address.
      * @param firstSwapParams_ The first swap parameters.
      * @param secondSwapFee The second swap fee.
-     * @param secondSwapSqrtPriceLimitX96 The second swap square root price limit.
      */
     struct L2Params {
         string protocolName;
@@ -31,7 +30,6 @@ interface IL2Factory {
         address l1Sender;
         IL2TokenReceiver.SwapParams firstSwapParams_;
         uint24 secondSwapFee;
-        uint160 secondSwapSqrtPriceLimitX96;
     }
 
     /**

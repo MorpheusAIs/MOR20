@@ -143,15 +143,15 @@ describe('L2TokenReceiver Fork', () => {
     });
 
     it('should swap tokens 1', async () => {
-      const txResult = await l2TokenReceiver.swap.staticCall(amount, 0, (await getCurrentBlockTime()) + 100, true);
-      const tx = await l2TokenReceiver.swap(amount, 0, (await getCurrentBlockTime()) + 100, true);
+      const txResult = await l2TokenReceiver.swap.staticCall(amount, 0, (await getCurrentBlockTime()) + 100, 0, true);
+      const tx = await l2TokenReceiver.swap(amount, 0, (await getCurrentBlockTime()) + 100, 0, true);
 
       await expect(tx).to.changeTokenBalance(innerToken, l2TokenReceiver, txResult);
       await expect(tx).to.changeTokenBalance(inputToken, l2TokenReceiver, -amount);
     });
     it('should swap tokens 2', async () => {
-      const txResult = await l2TokenReceiver.swap.staticCall(amount, 0, (await getCurrentBlockTime()) + 100, false);
-      const tx = await l2TokenReceiver.swap(amount, 0, (await getCurrentBlockTime()) + 100, false);
+      const txResult = await l2TokenReceiver.swap.staticCall(amount, 0, (await getCurrentBlockTime()) + 100, 0, false);
+      const tx = await l2TokenReceiver.swap(amount, 0, (await getCurrentBlockTime()) + 100, 0, false);
 
       await expect(tx).to.changeTokenBalance(outputToken, l2TokenReceiver, txResult);
       await expect(tx).to.changeTokenBalance(innerToken, l2TokenReceiver, -amount);
@@ -186,7 +186,6 @@ describe('L2TokenReceiver Fork', () => {
         tokenIn: await outputToken.getAddress(),
         tokenOut: await innerToken.getAddress(),
         fee: 1,
-        sqrtPriceLimitX96: 1,
       };
 
       await l2TokenReceiver.editParams(newParams, false);
@@ -209,7 +208,7 @@ describe('L2TokenReceiver Fork', () => {
     beforeEach('setup', async () => {
       await innerToken.transfer(l2TokenReceiver, wei(0.001));
 
-      await l2TokenReceiver.swap(wei(0.0001), 0, (await getCurrentBlockTime()) + 100, false);
+      await l2TokenReceiver.swap(wei(0.0001), 0, (await getCurrentBlockTime()) + 100, 0, false);
     });
 
     it('should collect fees', async () => {
@@ -255,7 +254,7 @@ describe('L2TokenReceiver Fork', () => {
     it('should collect fees', async () => {
       await innerToken.transfer(l2TokenReceiver, wei(0.001));
 
-      await l2TokenReceiver.swap(wei(0.0001), 0, (await getCurrentBlockTime()) + 100, false);
+      await l2TokenReceiver.swap(wei(0.0001), 0, (await getCurrentBlockTime()) + 100, 0, false);
 
       const liquidity = (await nonfungiblePositionManager.positions(poolId)).liquidity;
 

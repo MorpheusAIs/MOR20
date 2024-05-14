@@ -229,10 +229,8 @@ describe('Integration', () => {
           tokenIn: l2WstEth,
           tokenOut: l2Weth,
           fee: 100,
-          sqrtPriceLimitX96: 0,
         },
         secondSwapFee: 3000,
-        secondSwapSqrtPriceLimitX96: 0,
       };
 
       await l1Factory.deploy(l1Params);

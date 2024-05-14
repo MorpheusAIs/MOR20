@@ -13,13 +13,11 @@ interface IL2TokenReceiver is IERC165, IERC721Receiver {
      * @param tokenIn The address of the token to swap from.
      * @param tokenOut The address of the token to swap to.
      * @param fee The fee of the swap.
-     * @param sqrtPriceLimitX96 The price limit of the swap.
      */
     struct SwapParams {
         address tokenIn;
         address tokenOut;
         uint24 fee;
-        uint160 sqrtPriceLimitX96;
     }
 
     /**
@@ -108,6 +106,7 @@ interface IL2TokenReceiver is IERC165, IERC721Receiver {
      * @param amountIn_ The amount of tokens to swap.
      * @param amountOutMinimum_ The minimum amount of tokens to receive.
      * @param deadline_ The deadline for the swap.
+     * @param sqrtPriceLimitX96_ The price limit of the swap.
      * @param isUseFirstSwapParams_ The flag to indicate if the swapParams is initial.
      * @return The amount of tokens received.
      */
@@ -115,6 +114,7 @@ interface IL2TokenReceiver is IERC165, IERC721Receiver {
         uint256 amountIn_,
         uint256 amountOutMinimum_,
         uint256 deadline_,
+        uint160 sqrtPriceLimitX96_,
         bool isUseFirstSwapParams_
     ) external returns (uint256);
 

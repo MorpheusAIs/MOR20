@@ -75,13 +75,11 @@ describe('L2TokenReceiver', () => {
         tokenIn: inputToken,
         tokenOut: outputToken,
         fee: 500,
-        sqrtPriceLimitX96: 0,
       },
       {
         tokenIn: inputToken,
         tokenOut: outputToken,
         fee: 500,
-        sqrtPriceLimitX96: 0,
       },
     );
 
@@ -106,13 +104,11 @@ describe('L2TokenReceiver', () => {
             tokenIn: inputToken,
             tokenOut: outputToken,
             fee: 500,
-            sqrtPriceLimitX96: 0,
           },
           {
             tokenIn: inputToken,
             tokenOut: outputToken,
             fee: 500,
-            sqrtPriceLimitX96: 0,
           },
         ),
       ).to.be.rejectedWith(reason);
@@ -130,13 +126,11 @@ describe('L2TokenReceiver', () => {
               tokenIn: inputToken,
               tokenOut: outputToken,
               fee: 500,
-              sqrtPriceLimitX96: 0,
             },
             {
               tokenIn: inputToken,
               tokenOut: outputToken,
               fee: 500,
-              sqrtPriceLimitX96: 0,
             },
           ),
         ).to.be.rejectedWith(reason);
@@ -151,7 +145,6 @@ describe('L2TokenReceiver', () => {
         expect(params.tokenIn).to.equal(defaultParams.tokenIn);
         expect(params.tokenOut).to.equal(defaultParams.tokenOut);
         expect(params.fee).to.equal(defaultParams.fee);
-        expect(params.sqrtPriceLimitX96).to.equal(defaultParams.sqrtPriceLimitX96);
       });
       it('should give allowance', async () => {
         expect(await inputToken.allowance(l2TokenReceiver, swapRouter)).to.equal(ethers.MaxUint256);
@@ -181,7 +174,7 @@ describe('L2TokenReceiver', () => {
 
   describe('supportsInterface', () => {
     it('should support IL2TokenReceiver', async () => {
-      expect(await l2TokenReceiver.supportsInterface('0x710a2868')).to.be.true;
+      expect(await l2TokenReceiver.supportsInterface('0xe15df538')).to.be.true;
     });
     it('should support IERC165', async () => {
       expect(await l2TokenReceiver.supportsInterface('0x01ffc9a7')).to.be.true;
@@ -197,7 +190,6 @@ describe('L2TokenReceiver', () => {
         tokenIn: await outputToken.getAddress(),
         tokenOut: await inputToken.getAddress(),
         fee: 1,
-        sqrtPriceLimitX96: 1,
       };
 
       await l2TokenReceiver.editParams(newParams, false);
@@ -207,14 +199,12 @@ describe('L2TokenReceiver', () => {
       expect(params.tokenIn).to.equal(newParams.tokenIn);
       expect(params.tokenOut).to.equal(newParams.tokenOut);
       expect(params.fee).to.equal(newParams.fee);
-      expect(params.sqrtPriceLimitX96).to.equal(newParams.sqrtPriceLimitX96);
     });
     it('should set new allowance', async () => {
       const newParams: IL2TokenReceiver.SwapParamsStruct = {
         tokenIn: await outputToken.getAddress(),
         tokenOut: await inputToken.getAddress(),
         fee: 1,
-        sqrtPriceLimitX96: 1,
       };
 
       await l2TokenReceiver.editParams(newParams, false);
@@ -243,7 +233,7 @@ describe('L2TokenReceiver', () => {
 
   describe('#swap', () => {
     it('should return if caller is not the owner', async () => {
-      await expect(l2TokenReceiver.connect(SECOND).swap(1, 1, 1, false)).to.be.revertedWith(
+      await expect(l2TokenReceiver.connect(SECOND).swap(1, 1, 1, 0, false)).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });
