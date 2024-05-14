@@ -19,6 +19,7 @@ interface IL2Factory {
      * @param protocolName The protocol name.
      * @param mor20Name The MOR20 name.
      * @param mor20Symbol The MOR20 symbol.
+     * @param l1Sender The L1 sender address.
      * @param firstSwapParams_ The first swap parameters.
      * @param secondSwapFee The second swap fee.
      * @param secondSwapSqrtPriceLimitX96 The second swap square root price limit.
@@ -27,6 +28,7 @@ interface IL2Factory {
         string protocolName;
         string mor20Name;
         string mor20Symbol;
+        address l1Sender;
         IL2TokenReceiver.SwapParams firstSwapParams_;
         uint24 secondSwapFee;
         uint160 secondSwapSqrtPriceLimitX96;

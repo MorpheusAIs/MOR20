@@ -67,13 +67,13 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
         require(bytes(poolName_).length != 0, "F: poolName_ is empty");
         bytes32 salt_ = _calculatePoolSalt(_msgSender(), poolName_, poolType_);
 
-        address implementation_ = _implementations[poolType_];
+        address implementation_ = getImplementation(poolType_);
         require(implementation_ != address(0), "F: implementation not found");
 
         require(!_usedSalts[salt_], "F: salt used");
         _usedSalts[salt_] = true;
 
-        address proxy_ = address(new ERC1967Proxy{salt: salt_}(getImplementation(poolType_), bytes("")));
+        address proxy_ = address(new ERC1967Proxy{salt: salt_}(implementation_, bytes("")));
 
         deployedProxies[_msgSender()][poolName_][poolType_] = proxy_;
 

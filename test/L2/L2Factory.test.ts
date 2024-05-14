@@ -131,6 +131,7 @@ describe('L2Factory', () => {
       protocolName: 'Mor20',
       mor20Name: 'MOR20',
       mor20Symbol: 'M20',
+      l1Sender: ZERO_ADDR,
       firstSwapParams_: {
         tokenIn: ETHER_ADDR,
         tokenOut: ETHER_ADDR,

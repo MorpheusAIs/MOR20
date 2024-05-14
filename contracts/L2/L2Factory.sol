@@ -55,7 +55,7 @@ contract L2Factory is IL2Factory, Factory {
 
         IL2MessageReceiver(l2MessageReceiver).L2MessageReceiver__init(
             mor20,
-            IL2MessageReceiver.Config(lzExternalDeps.endpoint, address(0), lzExternalDeps.senderChainId)
+            IL2MessageReceiver.Config(lzExternalDeps.endpoint, l2Params_.l1Sender, lzExternalDeps.senderChainId)
         );
 
         IL2TokenReceiver(l2TokenReceiver).L2TokenReceiver__init(

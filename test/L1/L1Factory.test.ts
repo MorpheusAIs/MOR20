@@ -83,7 +83,7 @@ describe('L1Factory', () => {
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImpl, '0x');
     feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
 
-    await feeConfig.__FeeConfig_init(OWNER, wei(0.1));
+    await feeConfig.__FeeConfig_init(OWNER, wei(0.1, 25));
 
     distributionFactory = await ethers.getContractFactory('Distribution', {
       libraries: {
@@ -261,6 +261,22 @@ describe('L1Factory', () => {
       arbExternalDeps.endpoint = ZERO_ADDR;
 
       await expect(l1Factory.setArbExternalDeps(arbExternalDeps)).to.be.revertedWith('L1F: invalid ARB endpoint');
+    });
+  });
+
+  describe('#setFeeConfig', () => {
+    it('should set fee config', async () => {
+      await l1Factory.setFeeConfig(feeConfig);
+
+      expect(await l1Factory.feeConfig()).to.equal(await feeConfig.getAddress());
+    });
+    it('should revert if provided fee config is zero address', async () => {
+      await expect(l1Factory.setFeeConfig(ZERO_ADDR)).to.be.revertedWith('L1F: invalid fee config');
+    });
+    it('should revert if called by non-owner', async () => {
+      await expect(l1Factory.connect(SECOND).setFeeConfig(feeConfig)).to.be.revertedWith(
+        'Ownable: caller is not the owner',
+      );
     });
   });
 

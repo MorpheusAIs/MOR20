@@ -48,6 +48,12 @@ contract L1Factory is IL1Factory, Factory {
         arbExternalDeps = arbExternalDeps_;
     }
 
+    function setFeeConfig(address feeConfig_) external onlyOwner {
+        require(feeConfig_ != address(0), "L1F: invalid fee config");
+
+        feeConfig = feeConfig_;
+    }
+
     function deploy(L1Params calldata l1Params_) external whenNotPaused {
         address distributionProxy_ = _deploy2(uint8(PoolType.DISTRIBUTION), l1Params_.protocolName);
         address l1SenderProxy_ = _deploy2(uint8(PoolType.L1_SENDER), l1Params_.protocolName);
