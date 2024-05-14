@@ -1,56 +1,28 @@
 {
-  "cap": "1000000000000000000000000",
-  "chainsConfig": {
-    "senderChainId": 10161,
-    "receiverChainId": 10231
+  "feeConfig": {
+    "baseFee": "1000000000000000000000000",
+    "treasury": "0x901F2d23823730fb7F2356920e0E273EFdCdFe17"
   },
-  "pools": [
-    {
-      "payoutStart": 1704360948,
-      "decreaseInterval": 86400,
-      "withdrawLockPeriod": 120,
-      "claimLockPeriod": 60,
-      "withdrawLockPeriodAfterStake": 30,
-      "initialReward": "14400000000000000000000",
-      "rewardDecrease": "2468994701000000000",
-      "minimalStake": "10000000000",
-      "isPublic": true
-    },
-    {
-      "payoutStart": 1704360948,
-      "decreaseInterval": 60,
-      "withdrawLockPeriod": 1,
-      "claimLockPeriod": 1,
-      "withdrawLockPeriodAfterStake": 30,
-      "initialReward": "100000000000000000000",
-      "rewardDecrease": "100000000000000000000",
-      "minimalStake": "10000000000",
-      "isPublic": false,
-      "whitelistedUsers": [
-        "0x901F2d23823730fb7F2356920e0E273EFdCdFe17",
-        "0x19ec1E4b714990620edf41fE28e9a1552953a7F4"
-      ],
-      "amounts": ["1", "1"]
-    }
-  ],
-  "L1": {
-    "stEth": "0xe6D01D086a844a61641C75f1BCA572e7aa70e154",
-    "wStEth": "0xE7d86F503F3dA0DEF5660420F667BF873d3D6A8f"
+  "depositTokenExternalDeps": {
+    "token": "0xe6D01D086a844a61641C75f1BCA572e7aa70e154",
+    "wToken": "0xE7d86F503F3dA0DEF5660420F667BF873d3D6A8f"
   },
-  "L2": {
-    "swapRouter": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
-    "nonfungiblePositionManager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
-    "wStEth": "0xfD5d8Dc9918e04673b9F5F332cE63BcC3BE427a2"
+  "lzExternalDeps": {
+    "endpoint": "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1",
+    "zroPaymentAddress": "0x0000000000000000000000000000000000000000",
+    "adapterParams": "0x",
+    "destinationChainId": 10231
   },
-  "swapParams": {
-    "fee": 10000,
-    "sqrtPriceLimitX96": 0
+  "arbExternalDeps": {
+    "endpoint": "0xcE18836b233C83325Cc8848CA4487e94C6288264"
   },
-  "arbitrumConfig": {
-    "arbitrumBridgeGatewayRouter": "0xcE18836b233C83325Cc8848CA4487e94C6288264"
+  "lzTokenExternalDeps": {
+    "endpoint": "0x6098e96a28E02f27B1e6BD381f870F1C8Bd169d3",
+    "oftEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
+    "senderChainId": 10161
   },
-  "lzConfig": {
-    "lzEndpointL1": "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1",
-    "lzEndpointL2": "0x6098e96a28E02f27B1e6BD381f870F1C8Bd169d3"
+  "uniswapExternalDeps": {
+    "router": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    "nonfungiblePositionManager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
   }
 }

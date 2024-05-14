@@ -1,41 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { BigNumberish } from 'ethers';
 import { readFileSync } from 'fs';
 
-import { IDistribution } from '@/generated-types/ethers';
+import { IL1Factory, IL2Factory } from '@/generated-types/ethers';
 import { ZERO_ADDR } from '@/scripts/utils/constants';
 
-export type Config = {
-  cap: number;
-  chainsConfig: {
-    senderChainId: number;
-    receiverChainId: number;
-  };
-  pools?: PoolInitInfo[];
-  L1?: {
-    stEth: string;
-    wStEth: string;
-  };
-  L2?: {
-    swapRouter: string;
-    nonfungiblePositionManager: string;
-    wStEth: string;
-  };
-  swapParams: {
-    fee: string;
-    sqrtPriceLimitX96: string;
-  };
-  arbitrumConfig?: {
-    arbitrumBridgeGatewayRouter: string;
-  };
-  lzConfig?: {
-    lzEndpointL1: string;
-    lzEndpointL2: string;
-  };
+type FeeConfig = {
+  baseFee: BigNumberish;
+  treasury: string;
 };
 
-type PoolInitInfo = IDistribution.PoolStruct & {
-  whitelistedUsers: string[];
-  amounts: BigNumberish[];
+export type Config = {
+  feeConfig: FeeConfig;
+
+  depositTokenExternalDeps: IL1Factory.DepositTokenExternalDepsStruct;
+  lzExternalDeps: IL1Factory.LzExternalDepsStruct;
+  arbExternalDeps: IL1Factory.ArbExternalDepsStruct;
+
+  lzTokenExternalDeps: IL2Factory.LzExternalDepsStruct;
+  uniswapExternalDeps: IL2Factory.UniswapExternalDepsStruct;
 };
 
 export function parseConfig(chainId: bigint): Config {
@@ -57,70 +40,14 @@ export function parseConfig(chainId: bigint): Config {
 
   const config: Config = JSON.parse(readFileSync(configPath, 'utf-8')) as Config;
 
-  if (config.cap == undefined) {
-    throw new Error(`Invalid 'cap' value.`);
-  }
+  validateFeeConfig(config.feeConfig);
 
-  if (config.chainsConfig == undefined) {
-    throw new Error(`Invalid 'chainsConfig' value.`);
-  }
-  if (config.chainsConfig.receiverChainId == undefined) {
-    throw new Error(`Invalid 'chainsConfig.receiverChainId' value.`);
-  }
-  if (config.chainsConfig.senderChainId == undefined) {
-    throw new Error(`Invalid 'chainsConfig.senderChainId' value.`);
-  }
+  validateDepositTokenExternalDeps(config.depositTokenExternalDeps);
+  validateLzExternalDeps(config.lzExternalDeps);
+  validateArbExternalDeps(config.arbExternalDeps);
 
-  if (config.pools != undefined) {
-    validatePools(config.pools);
-  }
-
-  if (config.L1 != undefined) {
-    if (config.L1.stEth == undefined) {
-      nonZeroAddr(config.L1.stEth, 'L1.stEth');
-    }
-
-    if (config.L1.wStEth == undefined) {
-      nonZeroAddr(config.L1.wStEth, 'L1.wStEth');
-    }
-  }
-
-  if (config.L2 != undefined) {
-    if (config.L2.swapRouter == undefined) {
-      nonZeroAddr(config.L2.swapRouter, 'L2.swapRouter');
-    }
-
-    if (config.L2.nonfungiblePositionManager == undefined) {
-      nonZeroAddr(config.L2.nonfungiblePositionManager, 'L2.nonfungiblePositionManager');
-    }
-
-    if (config.L2.wStEth == undefined) {
-      nonZeroAddr(config.L2.wStEth, 'L2.wStEth');
-    }
-  }
-
-  if (
-    config.swapParams == undefined ||
-    nonNumber(config.swapParams.fee) ||
-    nonNumber(config.swapParams.sqrtPriceLimitX96)
-  ) {
-    throw new Error('Invalid `swapParams`');
-  }
-
-  if (config.lzConfig != undefined) {
-    if (config.lzConfig.lzEndpointL1 == undefined) {
-      throw new Error('Invalid `lzConfig.lzEndpointL1`');
-    }
-    if (config.lzConfig.lzEndpointL2 == undefined) {
-      throw new Error('Invalid `lzConfig.lzEndpointL2`');
-    }
-  }
-
-  if (config.arbitrumConfig != undefined) {
-    if (config.arbitrumConfig.arbitrumBridgeGatewayRouter == undefined) {
-      throw new Error('Invalid `arbitrumConfig.arbitrumBridgeGatewayRouter`');
-    }
-  }
+  validateLzTokenExternalDeps(config.lzTokenExternalDeps);
+  validateUniswapExternalDeps(config.uniswapExternalDeps);
 
   return config;
 }
@@ -129,7 +56,7 @@ function nonNumber(value: BigNumberish) {
   return !(typeof value === 'number' || typeof value === 'bigint' || typeof BigInt(value) === 'bigint');
 }
 
-function nonZeroAddr(filedDataRaw: string | undefined, filedName: string) {
+function nonZeroAddr(filedDataRaw: any, filedName: string) {
   if (isZeroAddr(filedDataRaw)) {
     throw new Error(`Invalid ${filedName} filed.`);
   }
@@ -139,48 +66,70 @@ function isZeroAddr(filedDataRaw: string | undefined) {
   return isEmptyField(filedDataRaw) || filedDataRaw === ZERO_ADDR;
 }
 
-function isEmptyField(filedDataRaw: string | undefined) {
+function isEmptyField(filedDataRaw: any) {
   return !filedDataRaw || filedDataRaw == '';
 }
 
-function validatePools(pools: PoolInitInfo[]) {
-  pools.forEach((pool: PoolInitInfo) => {
-    if (
-      nonNumber(pool.payoutStart) ||
-      nonNumber(pool.decreaseInterval) ||
-      nonNumber(pool.withdrawLockPeriod) ||
-      nonNumber(pool.claimLockPeriod) ||
-      typeof pool.isPublic !== 'boolean' ||
-      nonNumber(pool.initialReward) ||
-      nonNumber(pool.rewardDecrease) ||
-      nonNumber(pool.minimalStake)
-    ) {
-      throw new Error(`Invalid pool.`);
-    }
+function validateFeeConfig(feeConfig: FeeConfig) {
+  if (feeConfig === undefined) {
+    throw new Error(`Invalid feeConfig.`);
+  }
+  if (nonNumber(feeConfig.baseFee)) {
+    throw new Error(`Invalid feeConfig.baseFee.`);
+  }
+  nonZeroAddr(feeConfig.treasury, 'feeConfig.treasury');
+}
 
-    if (pool.whitelistedUsers != undefined) {
-      if (pool.amounts == undefined || pool.amounts.length != pool.whitelistedUsers.length) {
-        throw new Error(`Invalid pool amounts.`);
-      }
+function validateDepositTokenExternalDeps(depositTokenExternalDeps: IL1Factory.DepositTokenExternalDepsStruct) {
+  if (depositTokenExternalDeps === undefined) {
+    throw new Error(`Invalid depositTokenExternalDeps.`);
+  }
+  nonZeroAddr(depositTokenExternalDeps.token, 'depositTokenExternalDeps.token');
+  nonZeroAddr(depositTokenExternalDeps.wToken, 'depositTokenExternalDeps.wToken');
+}
 
-      if (pool.isPublic) {
-        if ((pool.whitelistedUsers && pool.whitelistedUsers.length > 0) || (pool.amounts && pool.amounts.length > 0)) {
-          throw new Error(`Invalid pool whitelistedUsers.`);
-        }
-      } else {
-        pool.whitelistedUsers.forEach((user: string) => {
-          nonZeroAddr(user, 'whitelistedUsers');
-        });
-        pool.amounts.forEach((amount: BigNumberish) => {
-          if (nonNumber(amount)) {
-            throw new Error(`Invalid pool amounts.`);
-          }
-        });
-      }
-    } else {
-      if (pool.amounts != undefined) {
-        throw new Error(`Invalid pool amounts.`);
-      }
-    }
-  });
+function validateLzExternalDeps(lzExternalDeps: IL1Factory.LzExternalDepsStruct) {
+  if (lzExternalDeps === undefined) {
+    throw new Error(`Invalid lzExternalDeps.`);
+  }
+
+  nonZeroAddr(lzExternalDeps.endpoint, 'lzExternalDeps.endpoint');
+
+  if (isEmptyField(lzExternalDeps.zroPaymentAddress)) {
+    throw new Error(`Invalid lzExternalDeps.zroPaymentAddress.`);
+  }
+  if (isEmptyField(lzExternalDeps.adapterParams)) {
+    throw new Error(`Invalid lzExternalDeps.adapterParams.`);
+  }
+  if (nonNumber(lzExternalDeps.destinationChainId)) {
+    throw new Error(`Invalid lzExternalDeps.destinationChainId.`);
+  }
+}
+
+function validateArbExternalDeps(arbExternalDeps: IL1Factory.ArbExternalDepsStruct) {
+  if (arbExternalDeps === undefined) {
+    throw new Error(`Invalid arbExternalDeps.`);
+  }
+  nonZeroAddr(arbExternalDeps.endpoint, 'arbExternalDeps.endpoint');
+}
+
+function validateLzTokenExternalDeps(lzTokenExternalDeps: IL2Factory.LzExternalDepsStruct) {
+  if (lzTokenExternalDeps === undefined) {
+    throw new Error(`Invalid lzTokenExternalDeps.`);
+  }
+
+  nonZeroAddr(lzTokenExternalDeps.endpoint, 'lzTokenExternalDeps.endpoint');
+  nonZeroAddr(lzTokenExternalDeps.oftEndpoint, 'lzTokenExternalDeps.oftEndpoint');
+  if (nonNumber(lzTokenExternalDeps.senderChainId)) {
+    throw new Error(`Invalid lzTokenExternalDeps.senderChainId.`);
+  }
+}
+
+function validateUniswapExternalDeps(uniswapExternalDeps: IL2Factory.UniswapExternalDepsStruct) {
+  if (uniswapExternalDeps === undefined) {
+    throw new Error(`Invalid uniswapExternalDeps.`);
+  }
+
+  nonZeroAddr(uniswapExternalDeps.router, 'uniswapExternalDeps.router');
+  nonZeroAddr(uniswapExternalDeps.nonfungiblePositionManager, 'uniswapExternalDeps.nonfungiblePositionManager');
 }
