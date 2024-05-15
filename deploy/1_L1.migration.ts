@@ -38,8 +38,10 @@ module.exports = async function (deployer: Deployer) {
   await l1Factory.setLzExternalDeps(config.lzExternalDeps);
   await l1Factory.setArbExternalDeps(config.arbExternalDeps);
 
-  await l1Factory.setImplementation(PoolTypesL1.DISTRIBUTION, distributionImpl);
-  await l1Factory.setImplementation(PoolTypesL1.L1_SENDER, L1SenderImpl);
+  await l1Factory.setImplementations(
+    [PoolTypesL1.DISTRIBUTION, PoolTypesL1.L1_SENDER],
+    [distributionImpl, L1SenderImpl],
+  );
 
   Reporter.reportContracts(
     ['l1Factory', await l1Factory.getAddress()],

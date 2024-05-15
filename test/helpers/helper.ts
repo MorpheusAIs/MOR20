@@ -6,5 +6,4 @@ export enum PoolTypesL1 {
 export enum PoolTypesL2 {
   L2_MESSAGE_RECEIVER,
   L2_TOKEN_RECEIVER,
-  MOR20,
 }

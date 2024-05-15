@@ -142,8 +142,10 @@ describe('Integration', () => {
     l1Factory = L1Factory.attach(l1FactoryProxy) as L1Factory;
     await l1Factory.L1Factory_init();
 
-    await l1Factory.setImplementation(PoolTypesL1.DISTRIBUTION, distributionImplementation);
-    await l1Factory.setImplementation(PoolTypesL1.L1_SENDER, l1SenderImplementation);
+    await l1Factory.setImplementations(
+      [PoolTypesL1.DISTRIBUTION, PoolTypesL1.L1_SENDER],
+      [distributionImplementation, l1SenderImplementation],
+    );
 
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImplementation, '0x');
     const feeConfig = FeeConfigFactory.attach(feeConfigProxy) as FeeConfig;
@@ -159,8 +161,10 @@ describe('Integration', () => {
     l2Factory = L2Factory.attach(l2FactoryProxy) as L2Factory;
     await l2Factory.L2Factory_init();
 
-    await l2Factory.setImplementation(PoolTypesL2.L2_MESSAGE_RECEIVER, l2MessageReceiverImplementation);
-    await l2Factory.setImplementation(PoolTypesL2.L2_TOKEN_RECEIVER, l2TokenReceiverImplementation);
+    await l2Factory.setImplementations(
+      [PoolTypesL2.L2_MESSAGE_RECEIVER, PoolTypesL2.L2_TOKEN_RECEIVER],
+      [l2MessageReceiverImplementation, l2TokenReceiverImplementation],
+    );
 
     depositTokenExternalDeps = {
       token: l1StEth,
@@ -205,11 +209,11 @@ describe('Integration', () => {
 
     it('should deploy correctly', async () => {
       const [l2MessageReceiverPredicted, l2TokenReceiverPredicted] = await l2Factory.predictAddresses(
-        protocolName,
         OWNER,
+        protocolName,
       );
 
-      const [distributionPredicted, l1SenderPredicted] = await l1Factory.predictAddresses(protocolName, OWNER);
+      const [distributionPredicted, l1SenderPredicted] = await l1Factory.predictAddresses(OWNER, protocolName);
 
       await l1LzEndpoint.setDestLzEndpoint(l2MessageReceiverPredicted, l2LzEndpoint);
 
@@ -237,10 +241,7 @@ describe('Integration', () => {
       await l2Factory.deploy(l2Params);
 
       const distribution = await ethers.getContractAt('Distribution', distributionPredicted);
-      const MOR20 = await ethers.getContractAt(
-        'MOR20',
-        await l2Factory.deployedProxies(OWNER, protocolName, PoolTypesL2.MOR20),
-      );
+      const MOR20 = await ethers.getContractAt('MOR20', await l2Factory.mor20(OWNER, protocolName));
 
       const pool = getDefaultPool();
       await distribution.createPool(pool);

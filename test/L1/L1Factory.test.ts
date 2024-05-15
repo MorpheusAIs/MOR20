@@ -104,8 +104,7 @@ describe('L1Factory', () => {
       await l1SenderImplementation.getAddress(),
     ];
 
-    await l1Factory.setImplementation(poolTypes[0], poolImplementations[0]);
-    await l1Factory.setImplementation(poolTypes[1], poolImplementations[1]);
+    await l1Factory.setImplementations(poolTypes, poolImplementations);
 
     await reverter.snapshot();
   });
@@ -322,18 +321,6 @@ describe('L1Factory', () => {
       expect(rewardTokenConfig.zroPaymentAddress).to.equal((await l1Factory.lzExternalDeps()).zroPaymentAddress);
       expect(rewardTokenConfig.adapterParams).to.equal((await l1Factory.lzExternalDeps()).adapterParams);
     });
-    it('should remove upgradeable flag if isNotUpgradeable is true', async () => {
-      const l1Params = getL1DefaultParams();
-      l1Params.isNotUpgradeable = true;
-
-      await l1Factory.deploy(l1Params);
-
-      const distribution = distributionFactory.attach(
-        await l1Factory.deployedProxies(OWNER, l1Params.protocolName, PoolTypesL1.DISTRIBUTION),
-      ) as Distribution;
-
-      expect(await distribution.isNotUpgradeable()).to.be.true;
-    });
     it('should revert if contract is paused', async () => {
       await l1Factory.pause();
 
@@ -353,7 +340,7 @@ describe('L1Factory', () => {
     it('should predict addresses', async () => {
       const l1Params = getL1DefaultParams();
 
-      const [distribution, l1Sender] = await l1Factory.predictAddresses(l1Params.protocolName, OWNER);
+      const [distribution, l1Sender] = await l1Factory.predictAddresses(OWNER, l1Params.protocolName);
 
       expect(distribution).to.be.properAddress;
       expect(l1Sender).to.be.properAddress;

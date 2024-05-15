@@ -6,17 +6,31 @@ interface IFactory {
      * The event is emitted when the proxy is deployed.
      * @param proxy The proxy address.
      * @param implementation The implementation.
+     * @param protocol The `protocol`.
      * @param poolType The `poolType`.
-     * @param poolName The `poolName`.
      */
-    event ProxyDeployed(address proxy, address indexed implementation, uint8 indexed poolType, string poolName);
+    event ProxyDeployed(address proxy, address indexed implementation, uint8 indexed protocol, string poolType);
+
+    /**
+     * The function to freeze the specific pool.
+     * @param protocol_ the name of the protocol.
+     * @param poolType_ the type of the pool.
+     */
+    function freezePool(string calldata protocol_, uint8 poolType_) external;
+
+    /**
+     * The function to unfreeze the specific pool.
+     * @param protocol_ the name of the protocol.
+     * @param poolType_ the type of the pool.
+     */
+    function unfreezePool(string calldata protocol_, uint8 poolType_) external;
 
     /**
      * The function to set the implementation for the specific pool.
-     * @param poolType_ The type of the pool.
-     * @param implementation_ The implementation the pool will point to.
+     * @param poolTypes_ The types of the pools.
+     * @param implementations_ The new implementations pools will point to.
      */
-    function setImplementation(uint8 poolType_, address implementation_) external;
+    function setImplementations(uint8[] calldata poolTypes_, address[] calldata implementations_) external;
 
     /**
      * The function to get the implementation of the specific pools.
@@ -24,4 +38,11 @@ interface IFactory {
      * @return The implementation which the pool points to.
      */
     function getImplementation(uint8 poolType_) external view returns (address);
+
+    /**
+     * The function to get beacon of the specific pools.
+     * @param poolType_ the type of the pools.
+     * @return beacon the beacon which the pool points to.
+     */
+    function getBeacon(uint8 poolType_) external view returns (address);
 }

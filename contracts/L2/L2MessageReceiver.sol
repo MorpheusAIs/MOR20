@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {IMOR20} from "../interfaces/L2/IMOR20.sol";
 import {IL2MessageReceiver} from "../interfaces/L2/IL2MessageReceiver.sol";
 
-contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgradeable {
+contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable {
     address public rewardToken;
 
     Config public config;
@@ -20,7 +19,6 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgrad
 
     function L2MessageReceiver__init(address rewardToken_, Config calldata config_) external initializer {
         __Ownable_init();
-        __UUPSUpgradeable_init();
 
         rewardToken = rewardToken_;
         config = config_;
@@ -108,6 +106,4 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgrad
 
         IMOR20(rewardToken).mint(user_, amount_);
     }
-
-    function _authorizeUpgrade(address) internal view override onlyOwner {}
 }

@@ -27,8 +27,10 @@ module.exports = async function (deployer: Deployer) {
   await l2Factory.setLzExternalDeps(config.lzTokenExternalDeps);
   await l2Factory.setUniswapExternalDeps(config.uniswapExternalDeps);
 
-  await l2Factory.setImplementation(PoolTypesL2.L2_MESSAGE_RECEIVER, l2MessageReceiverImpl);
-  await l2Factory.setImplementation(PoolTypesL2.L2_TOKEN_RECEIVER, l2TokenReceiverImpl);
+  await l2Factory.setImplementations(
+    [PoolTypesL2.L2_MESSAGE_RECEIVER, PoolTypesL2.L2_TOKEN_RECEIVER],
+    [l2MessageReceiverImpl, l2TokenReceiverImpl],
+  );
 
   Reporter.reportContracts(
     ['l2Factory', await l2Factory.getAddress()],

@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
@@ -11,7 +10,7 @@ import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/Transfer
 import {IL2TokenReceiver, IERC165, IERC721Receiver} from "../interfaces/L2/IL2TokenReceiver.sol";
 import {INonfungiblePositionManager} from "../interfaces/uniswap-v3/INonfungiblePositionManager.sol";
 
-contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable, UUPSUpgradeable {
+contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
     address public router;
     address public nonfungiblePositionManager;
 
@@ -29,7 +28,6 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable, UUPSUpgradeabl
         SwapParams memory secondSwapParams_
     ) external initializer {
         __Ownable_init();
-        __UUPSUpgradeable_init();
 
         router = router_;
         nonfungiblePositionManager = nonfungiblePositionManager_;
@@ -177,6 +175,4 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable, UUPSUpgradeabl
     function _getSwapParams(bool isUseFirstSwapParams_) internal view returns (SwapParams memory) {
         return isUseFirstSwapParams_ ? firstSwapParams : secondSwapParams;
     }
-
-    function _authorizeUpgrade(address) internal view override onlyOwner {}
 }

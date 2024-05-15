@@ -94,16 +94,12 @@ describe('Factory', () => {
 
   describe('setImplementation', () => {
     it('should set implementation', async () => {
-      await factory.setImplementation(0, SECOND);
+      await factory.setImplementations([0], [factory]);
 
-      expect(await factory.getImplementation(0)).to.eq(SECOND);
-
-      await factory.setImplementation(0, ZERO_ADDR);
-
-      expect(await factory.getImplementation(0)).to.eq(ZERO_ADDR);
+      expect(await factory.getImplementation(0)).to.eq(await factory.getAddress());
     });
     it('should revert if called by non-owner', async () => {
-      await expect(factory.connect(SECOND).setImplementation(0, SECOND)).to.be.revertedWith(
+      await expect(factory.connect(SECOND).setImplementations([0], [SECOND])).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });
@@ -111,11 +107,11 @@ describe('Factory', () => {
 
   describe('getImplementation', () => {
     it('should get implementation', async () => {
-      expect(await factory.getImplementation(0)).to.eq(ZERO_ADDR);
+      expect(factory.getImplementation(0)).to.be.revertedWith('F: beacon not found');
 
-      await factory.setImplementation(0, SECOND);
+      await factory.setImplementations([0], [factory]);
 
-      expect(await factory.getImplementation(0)).to.eq(SECOND.address);
+      expect(await factory.getImplementation(0)).to.eq(await factory.getAddress());
     });
   });
 
@@ -124,30 +120,30 @@ describe('Factory', () => {
       const L1SenderFactory = await ethers.getContractFactory('L1Sender');
       const L1SenderImplementation = await L1SenderFactory.deploy();
 
-      await factory.setImplementation(0, L1SenderImplementation);
+      await factory.setImplementations([0], [L1SenderImplementation]);
     });
 
     it('should deploy contract', async () => {
-      const proxy = await factory.deploy2.staticCall(0, 'name');
-      await factory.deploy2(0, 'name');
+      const proxy = await factory.deploy2.staticCall('name', 0);
+      await factory.deploy2('name', 0);
 
       expect(await factory.deployedProxies(OWNER, 'name', 0)).to.eq(proxy);
     });
     it('should deploy the same name for different addresses', async () => {
-      await factory.deploy2(0, 'name');
+      await factory.deploy2('name', 0);
 
-      await factory.connect(SECOND).deploy2(0, 'name');
+      await factory.connect(SECOND).deploy2('name', 0);
     });
     it('should revert if name is an empty string', async () => {
-      await expect(factory.deploy2(0, '')).to.be.revertedWith('F: poolName_ is empty');
+      await expect(factory.deploy2('', 0)).to.be.revertedWith('F: poolName_ is empty');
     });
     it('should revert if implementation is not set', async () => {
-      await expect(factory.deploy2(1, 'name')).to.be.revertedWith('F: implementation not found');
+      await expect(factory.deploy2('name', 1)).to.be.revertedWith('F: beacon not found');
     });
     it('should revert if called twice with the same name for same address', async () => {
-      await factory.deploy2(0, 'name');
+      await factory.deploy2('name', 0);
 
-      await expect(factory.deploy2(0, 'name')).to.be.revertedWith('F: salt used');
+      await expect(factory.deploy2('name', 0)).to.be.revertedWith('F: salt used');
     });
   });
 });

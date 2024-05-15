@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {PRECISION} from "@solarity/solidity-lib/utils/Globals.sol";
@@ -13,10 +12,8 @@ import {IDistribution} from "../interfaces/L1/IDistribution.sol";
 import {IFeeConfig} from "../interfaces/L1/IFeeConfig.sol";
 import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 
-contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
+contract Distribution is IDistribution, OwnableUpgradeable {
     using SafeERC20 for IERC20;
-
-    bool public isNotUpgradeable;
 
     address public depositToken;
     address public l1Sender;
@@ -60,7 +57,6 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
         Pool[] calldata poolsInfo_
     ) external initializer {
         __Ownable_init();
-        __UUPSUpgradeable_init();
 
         for (uint256 i; i < poolsInfo_.length; ++i) {
             createPool(poolsInfo_[i]);
@@ -357,16 +353,5 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
         emit OverplusBridged(overplus_, bridgeMessageId_);
 
         return bridgeMessageId_;
-    }
-
-    /**********************************************************************************************/
-    /*** UUPS                                                                                   ***/
-    /**********************************************************************************************/
-    function removeUpgradeability() external onlyOwner {
-        isNotUpgradeable = true;
-    }
-
-    function _authorizeUpgrade(address) internal view override onlyOwner {
-        require(!isNotUpgradeable, "DS: upgrade isn't available");
     }
 }

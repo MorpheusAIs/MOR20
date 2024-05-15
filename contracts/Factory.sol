@@ -2,23 +2,23 @@
 pragma solidity ^0.8.20;
 
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {IFreezableBeaconProxy, FreezableBeaconProxy} from "./proxy/FreezableBeaconProxy.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {IFactory} from "./interfaces/IFactory.sol";
 
 abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
-    mapping(uint8 => address) internal _implementations;
+    mapping(uint8 poolType => UpgradeableBeacon) internal _beacons;
     mapping(bytes32 => bool) private _usedSalts;
 
     /**
      * @dev It is used exclusively for storing information about the detached proxies.
-     *
-     * `_msgSender()` -> `poolName` -> `poolType` -> `proxy`
      */
-    mapping(address => mapping(string => mapping(uint8 => address))) public deployedProxies;
+    mapping(address deployer => mapping(string protocol => mapping(uint8 poolType => address proxy)))
+        public deployedProxies;
 
     function __Factory_init() internal onlyInitializing {}
 
@@ -37,13 +37,48 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
     }
 
     /**
-     * @notice The function to set implementation for the specific pool.
-     *
+     * @notice The function to freeze the specific pool.
+     * @param protocol_ the name of the protocol.
      * @param poolType_ the type of the pool.
-     * @param implementation_ the implementation the pool will point to.
      */
-    function setImplementation(uint8 poolType_, address implementation_) public onlyOwner {
-        _implementations[poolType_] = implementation_;
+    function freezePool(string calldata protocol_, uint8 poolType_) public {
+        address proxy_ = deployedProxies[_msgSender()][protocol_][poolType_];
+
+        require(proxy_ != address(0), "F: pool not found");
+
+        IFreezableBeaconProxy(proxy_).freeze();
+    }
+
+    /**
+     * @notice The function to unfreeze the specific pool.
+     * @param protocol_ the name of the protocol.
+     * @param poolType_ the type of the pool.
+     */
+    function unfreezePool(string calldata protocol_, uint8 poolType_) public {
+        address proxy_ = deployedProxies[_msgSender()][protocol_][poolType_];
+
+        require(proxy_ != address(0), "F: pool not found");
+
+        IFreezableBeaconProxy(proxy_).unfreeze();
+    }
+
+    /**
+     * The function to set the implementation for the specific pool.
+     *
+     * @param poolTypes_ The types of the pools.
+     * @param implementations_ The new implementations pools will point to.
+     */
+    function setImplementations(uint8[] calldata poolTypes_, address[] calldata implementations_) public onlyOwner {
+        for (uint256 i = 0; i < poolTypes_.length; i++) {
+            uint8 poolType_ = poolTypes_[i];
+            address implementation_ = implementations_[i];
+
+            if (address(_beacons[poolType_]) == address(0)) {
+                _beacons[poolType_] = new UpgradeableBeacon(implementation_);
+            } else if (_beacons[poolType_].implementation() != implementation_) {
+                _beacons[poolType_].upgradeTo(implementation_);
+            }
+        }
     }
 
     /**
@@ -53,44 +88,58 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @return implementation the implementation which the pool points to.
      */
     function getImplementation(uint8 poolType_) public view returns (address) {
-        return _implementations[poolType_];
+        return UpgradeableBeacon(getBeacon(poolType_)).implementation();
+    }
+
+    /**
+     * @notice The function to get beacon of the specific pools.
+     *
+     * @param poolType_ the type of the pools.
+     * @return beacon the beacon which the pool points to.
+     */
+    function getBeacon(uint8 poolType_) public view returns (address) {
+        address beacon_ = address(_beacons[poolType_]);
+
+        require(beacon_ != address(0), "F: beacon not found");
+
+        return beacon_;
     }
 
     /**
      * @notice The function to deploy new `ERC1967Proxy`.
      *
+     * @param protocol_ the name of the protocol.
      * @param poolType_ the type of the pool.
-     * @param poolName_ the name of the pool.
      * @return proxy the proxy address for the `poolType_`.
      */
-    function _deploy2(uint8 poolType_, string calldata poolName_) internal returns (address) {
-        require(bytes(poolName_).length != 0, "F: poolName_ is empty");
-        bytes32 salt_ = _calculatePoolSalt(_msgSender(), poolName_, poolType_);
+    function _deploy2(string calldata protocol_, uint8 poolType_) internal returns (address) {
+        require(bytes(protocol_).length != 0, "F: poolName_ is empty");
+        bytes32 salt_ = _calculatePoolSalt(_msgSender(), protocol_, poolType_);
 
-        address implementation_ = getImplementation(poolType_);
-        require(implementation_ != address(0), "F: implementation not found");
+        address beacon_ = getBeacon(poolType_);
+        require(beacon_ != address(0), "F: beacon not found");
 
         require(!_usedSalts[salt_], "F: salt used");
         _usedSalts[salt_] = true;
 
-        address proxy_ = address(new ERC1967Proxy{salt: salt_}(implementation_, bytes("")));
+        address proxy_ = address(new FreezableBeaconProxy{salt: salt_}(beacon_, bytes("")));
 
-        deployedProxies[_msgSender()][poolName_][poolType_] = proxy_;
+        deployedProxies[_msgSender()][protocol_][poolType_] = proxy_;
 
-        emit ProxyDeployed(proxy_, implementation_, poolType_, poolName_);
+        emit ProxyDeployed(proxy_, UpgradeableBeacon(beacon_).implementation(), poolType_, protocol_);
 
         return proxy_;
     }
 
     function _predictPoolAddress(
-        uint8 poolType_,
-        string calldata poolName_,
-        address sender_
+        address deployer_,
+        string calldata protocol_,
+        uint8 poolType_
     ) internal view returns (address) {
-        bytes32 salt_ = _calculatePoolSalt(sender_, poolName_, uint8(poolType_));
+        bytes32 salt_ = _calculatePoolSalt(deployer_, protocol_, uint8(poolType_));
 
         bytes32 bytecodeHash_ = keccak256(
-            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(getImplementation(poolType_), bytes("")))
+            abi.encodePacked(type(FreezableBeaconProxy).creationCode, abi.encode(getBeacon(poolType_), bytes("")))
         );
 
         return Create2.computeAddress(salt_, bytecodeHash_);
@@ -98,10 +147,10 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
 
     function _calculatePoolSalt(
         address sender_,
-        string calldata poolName_,
+        string calldata protocol_,
         uint8 poolType_
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(sender_, poolName_, poolType_));
+        return keccak256(abi.encodePacked(sender_, protocol_, poolType_));
     }
 
     function _authorizeUpgrade(address) internal view override onlyOwner {}

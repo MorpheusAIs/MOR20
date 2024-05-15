@@ -93,24 +93,6 @@ describe('L2MessageReceiver', () => {
         ).to.be.rejectedWith(reason);
       });
     });
-
-    describe('#_authorizeUpgrade', () => {
-      it('should correctly upgrade', async () => {
-        const l2MessageReceiverV2Factory = await ethers.getContractFactory('L2MessageReceiverV2');
-        const l2MessageReceiverV2Implementation = await l2MessageReceiverV2Factory.deploy();
-
-        await l2MessageReceiver.upgradeTo(l2MessageReceiverV2Implementation);
-
-        const l2MessageReceiverV2 = l2MessageReceiverV2Factory.attach(l2MessageReceiver) as L2MessageReceiverV2;
-
-        expect(await l2MessageReceiverV2.version()).to.eq(2);
-      });
-      it('should revert if caller is not the owner', async () => {
-        await expect(l2MessageReceiver.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
-          'Ownable: caller is not the owner',
-        );
-      });
-    });
   });
 
   describe('#setLzSender', async () => {
