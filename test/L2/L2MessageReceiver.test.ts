@@ -5,7 +5,6 @@ import { ethers } from 'hardhat';
 import {
   ERC1967Proxy__factory,
   L2MessageReceiver,
-  L2MessageReceiverV2,
   L2MessageReceiver__factory,
   LayerZeroEndpointV2Mock,
   LayerZeroEndpointV2Mock__factory,

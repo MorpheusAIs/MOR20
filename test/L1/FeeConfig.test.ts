@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 
 import { Reverter } from '../helpers/reverter';
 
-import { FeeConfig, FeeConfigV2 } from '@/generated-types/ethers';
+import { FeeConfig } from '@/generated-types/ethers';
 import { ZERO_ADDR } from '@/scripts/utils/constants';
 import { wei } from '@/scripts/utils/utils';
 

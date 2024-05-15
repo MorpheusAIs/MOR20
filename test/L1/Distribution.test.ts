@@ -4,7 +4,6 @@ import { ethers } from 'hardhat';
 
 import {
   Distribution,
-  DistributionV2,
   Distribution__factory,
   FeeConfig,
   GatewayRouterMock,

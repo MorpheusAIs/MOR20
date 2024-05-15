@@ -9,7 +9,6 @@ import { FreezableBeaconProxy, PoolMockV1, PoolMockV2, UpgradeableBeacon } from 
 describe('Factory', () => {
   const reverter = new Reverter();
 
-  let OWNER: SignerWithAddress;
   let SECOND: SignerWithAddress;
 
   let beaconProxy: FreezableBeaconProxy;
@@ -18,7 +17,7 @@ describe('Factory', () => {
   let poolV2: PoolMockV2;
 
   before(async () => {
-    [OWNER, SECOND] = await ethers.getSigners();
+    SECOND = (await ethers.getSigners())[1];
 
     const [FreezableBeaconProxy, UpgradeableBeacon, PoolMockV1, PoolMockV2] = await Promise.all([
       ethers.getContractFactory('FreezableBeaconProxy'),

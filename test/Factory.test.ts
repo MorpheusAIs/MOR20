@@ -166,7 +166,7 @@ describe('Factory', () => {
 
   describe('getImplementation', () => {
     it('should get implementation', async () => {
-      expect(factory.getImplementation(0)).to.be.revertedWith('F: beacon not found');
+      await expect(factory.getImplementation(0)).to.be.revertedWith('F: beacon not found');
 
       await factory.setImplementations([0], [poolV1]);
 

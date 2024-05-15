@@ -8,7 +8,6 @@ import { Reverter } from '../helpers/reverter';
 import {
   IL2TokenReceiver,
   L2TokenReceiver,
-  L2TokenReceiverV2,
   LayerZeroEndpointV2Mock,
   MOR20,
   NonfungiblePositionManagerMock,

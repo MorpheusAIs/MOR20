@@ -6,7 +6,6 @@ import {
   GatewayRouterMock,
   IL1Sender,
   L1Sender,
-  L1SenderV2,
   L2MessageReceiver,
   LZEndpointMock,
   LayerZeroEndpointV2Mock,
