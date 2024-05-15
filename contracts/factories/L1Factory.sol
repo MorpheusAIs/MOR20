@@ -7,7 +7,7 @@ import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 import {IOwnable} from "../interfaces/IOwnable.sol";
 import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
 
-import {Factory} from "../Factory.sol";
+import {Factory} from "./Factory.sol";
 
 contract L1Factory is IL1Factory, Factory {
     address public feeConfig;
@@ -82,8 +82,9 @@ contract L1Factory is IL1Factory, Factory {
 
         IL1Sender(l1SenderProxy_).L1Sender__init(distributionProxy_, lzConfig_, arbConfig_);
 
-        if (l1Params_.isNotUpgradeable) {
+        if (!l1Params_.isUpgradeable) {
             IFreezableBeaconProxy(distributionProxy_).freeze();
+            IFreezableBeaconProxy(l1SenderProxy_).freeze();
         }
 
         IOwnable(distributionProxy_).transferOwnership(_msgSender());

@@ -6,8 +6,9 @@ import {IL2TokenReceiver} from "../interfaces/L2/IL2TokenReceiver.sol";
 import {IL2Factory} from "../interfaces/L2/IL2Factory.sol";
 import {IOwnable} from "../interfaces/IOwnable.sol";
 import {IMOR20} from "../interfaces/L2/IMOR20.sol";
+import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
 
-import {Factory} from "../Factory.sol";
+import {Factory} from "./Factory.sol";
 import {MOR20Deployer} from "../libs/MOR20Deployer.sol";
 
 contract L2Factory is IL2Factory, Factory {
@@ -66,6 +67,11 @@ contract L2Factory is IL2Factory, Factory {
             l2Params_.firstSwapParams_,
             IL2TokenReceiver.SwapParams(l2Params_.firstSwapParams_.tokenOut, mor20_, l2Params_.secondSwapFee)
         );
+
+        if (!l2Params_.isUpgradeable) {
+            IFreezableBeaconProxy(l2MessageReceiver_).freeze();
+            IFreezableBeaconProxy(l2TokenReceiver_).freeze();
+        }
 
         IOwnable(l2MessageReceiver_).transferOwnership(_msgSender());
         IOwnable(l2TokenReceiver_).transferOwnership(_msgSender());

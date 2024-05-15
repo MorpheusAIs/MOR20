@@ -2,13 +2,13 @@
 pragma solidity ^0.8.20;
 
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
-import {IFreezableBeaconProxy, FreezableBeaconProxy} from "./proxy/FreezableBeaconProxy.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
-import {IFactory} from "./interfaces/IFactory.sol";
+import {IFactory} from "../interfaces/IFactory.sol";
+import {IFreezableBeaconProxy, FreezableBeaconProxy} from "../proxy/FreezableBeaconProxy.sol";
 
 abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     mapping(uint8 poolType => UpgradeableBeacon) internal _beacons;

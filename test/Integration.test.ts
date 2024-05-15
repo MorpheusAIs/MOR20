@@ -218,13 +218,14 @@ describe('Integration', () => {
       await l1LzEndpoint.setDestLzEndpoint(l2MessageReceiverPredicted, l2LzEndpoint);
 
       const l1Params: IL1Factory.L1ParamsStruct = {
+        isUpgradeable: false,
         protocolName: protocolName,
-        isNotUpgradeable: true,
         poolsInfo: [],
         l2TokenReceiver: l2TokenReceiverPredicted,
         l2MessageReceiver: l2MessageReceiverPredicted,
       };
       const l2Params: IL2Factory.L2ParamsStruct = {
+        isUpgradeable: false,
         protocolName: protocolName,
         mor20Name: 'MOR20',
         mor20Symbol: 'M20',

@@ -127,6 +127,7 @@ describe('L2Factory', () => {
 
   function getL2DefaultParams() {
     const l2Params: IL2Factory.L2ParamsStruct = {
+      isUpgradeable: true,
       protocolName: 'Mor20',
       mor20Name: 'MOR20',
       mor20Symbol: 'M20',

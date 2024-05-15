@@ -133,8 +133,8 @@ describe('L1Factory', () => {
 
   function getL1DefaultParams() {
     const l1Params: IL1Factory.L1ParamsStruct = {
+      isUpgradeable: true,
       protocolName: 'Mor20',
-      isNotUpgradeable: false,
       poolsInfo: [],
       l2TokenReceiver: SECOND,
       l2MessageReceiver: SECOND,

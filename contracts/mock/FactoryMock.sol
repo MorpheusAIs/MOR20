@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Factory} from "../Factory.sol";
+import {Factory} from "../factories/Factory.sol";
 
 contract FactoryMock is Factory {
     function Factory_init() external initializer {
