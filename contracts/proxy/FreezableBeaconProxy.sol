@@ -3,13 +3,15 @@ pragma solidity ^0.8.20;
 
 import {IBeacon, BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
+import {Context} from "@openzeppelin/contracts/utils/Context.sol";
+
 import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
 
 /**
  * The FreezableBeaconProxy is a beacon proxy contract with freeze/unfreeze features.
  * When the FreezableBeaconProxy is being frozen, the actual implementation is stored in the storage slot.
  */
-contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy {
+contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy, Context {
     modifier onlyFactory() {
         _onlyFactory();
         _;
@@ -20,7 +22,7 @@ contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy {
     address private immutable _FACTORY;
 
     constructor(address beacon_, bytes memory data_) payable BeaconProxy(beacon_, data_) {
-        _FACTORY = msg.sender;
+        _FACTORY = _msgSender();
     }
 
     /**
