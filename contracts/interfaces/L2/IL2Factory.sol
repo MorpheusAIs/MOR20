@@ -9,8 +9,7 @@ interface IL2Factory {
      */
     enum PoolType {
         L2_MESSAGE_RECEIVER,
-        L2_TOKEN_RECEIVER,
-        MOR20
+        L2_TOKEN_RECEIVER
     }
 
     /**
