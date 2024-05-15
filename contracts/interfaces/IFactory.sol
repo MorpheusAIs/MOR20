@@ -9,7 +9,7 @@ interface IFactory {
      * @param protocol The `protocol`.
      * @param poolType The `poolType`.
      */
-    event ProxyDeployed(address proxy, address indexed implementation, uint8 indexed protocol, string poolType);
+    event ProxyDeployed(address proxy, address indexed implementation, string protocol, uint8 indexed poolType);
 
     /**
      * The function to freeze the specific pool.

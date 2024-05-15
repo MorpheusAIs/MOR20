@@ -126,7 +126,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
 
         deployedProxies[_msgSender()][protocol_][poolType_] = proxy_;
 
-        emit ProxyDeployed(proxy_, UpgradeableBeacon(beacon_).implementation(), poolType_, protocol_);
+        emit ProxyDeployed(proxy_, UpgradeableBeacon(beacon_).implementation(), protocol_, poolType_);
 
         return proxy_;
     }
