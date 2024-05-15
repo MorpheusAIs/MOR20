@@ -35,6 +35,16 @@ describe('FeeConfig', () => {
 
   afterEach(reverter.revert);
 
+  describe('initialization', () => {
+    describe('#__FeeConfig_init', () => {
+      it('should revert if try to call init function twice', async () => {
+        const reason = 'Initializable: contract is already initialized';
+
+        await expect(feeConfig.__FeeConfig_init(SECOND, wei(0.1, 25))).to.be.rejectedWith(reason);
+      });
+    });
+  });
+
   describe('#setFee', () => {
     it('should set the fee', async () => {
       expect(await feeConfig.fees(SECOND)).to.be.equal(0);

@@ -90,7 +90,7 @@ describe('L2TokenReceiver', () => {
     await reverter.revert();
   });
 
-  describe('UUPS proxy functionality', () => {
+  describe('initialization', () => {
     it('should disable initialize function', async () => {
       const reason = 'Initializable: contract is already initialized';
 

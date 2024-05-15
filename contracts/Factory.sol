@@ -117,7 +117,6 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
         bytes32 salt_ = _calculatePoolSalt(_msgSender(), protocol_, poolType_);
 
         address beacon_ = getBeacon(poolType_);
-        require(beacon_ != address(0), "F: beacon not found");
 
         require(!_usedSalts[salt_], "F: salt used");
         _usedSalts[salt_] = true;

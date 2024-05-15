@@ -125,7 +125,7 @@ describe('L1Sender', () => {
     await reverter.revert();
   });
 
-  describe('UUPS proxy functionality', () => {
+  describe('initialization', () => {
     let rewardTokenConfig: IL1Sender.RewardTokenConfigStruct;
     let depositTokenConfig: IL1Sender.DepositTokenConfigStruct;
 

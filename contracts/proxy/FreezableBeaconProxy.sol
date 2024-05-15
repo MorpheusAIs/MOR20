@@ -68,6 +68,6 @@ contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy, Context {
     }
 
     function _onlyFactory() internal view {
-        require(msg.sender == _FACTORY, "FBP: not factory");
+        require(_msgSender() == _FACTORY, "FBP: not factory");
     }
 }

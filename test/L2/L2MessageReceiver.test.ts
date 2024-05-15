@@ -63,7 +63,7 @@ describe('L2MessageReceiver', () => {
     await reverter.revert();
   });
 
-  describe('UUPS proxy functionality', () => {
+  describe('initialization', () => {
     describe('#constructor', () => {
       it('should disable initialize function', async () => {
         const reason = 'Initializable: contract is already initialized';
