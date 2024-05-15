@@ -6,7 +6,7 @@ import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
 import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
 
 /**
- * The FreezableBeaconProxy is a contract is a beacon proxy with freeze/unfreeze features.
+ * The FreezableBeaconProxy is a beacon proxy contract with freeze/unfreeze features.
  * When the FreezableBeaconProxy is being frozen, the actual implementation is stored in the storage slot.
  */
 contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy {
