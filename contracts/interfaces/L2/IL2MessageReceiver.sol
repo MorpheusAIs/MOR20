@@ -51,17 +51,17 @@ interface IL2MessageReceiver is ILayerZeroReceiver {
     }
 
     /**
+     * The function to initialize the contract.
+     * @param rewardToken_ The address of reward token.
+     * @param config_ The config data.
+     */
+    function L2MessageReceiver__init(address rewardToken_, Config calldata config_) external;
+
+    /**
      * The function to get the reward token's address.
      * @return The address of reward token.
      */
     function rewardToken() external view returns (address);
-
-    /**
-     * The function to set the params.
-     * @param rewardToken_ The address of reward token.
-     * @param config_ The config data.
-     */
-    function setParams(address rewardToken_, Config calldata config_) external;
 
     /**
      * The function to call the nonblockingLzReceive.

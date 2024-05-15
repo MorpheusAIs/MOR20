@@ -23,6 +23,5 @@ export const getDefaultSwapParams = (tokenIn: string, tokenOut: string): IL2Toke
     tokenIn: tokenIn,
     tokenOut: tokenOut,
     fee: 500,
-    sqrtPriceLimitX96: 0,
   };
 };

@@ -39,7 +39,7 @@ describe('L1Sender Fork', () => {
     await ethers.provider.send('hardhat_reset', [
       {
         forking: {
-          jsonRpcUrl: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+          jsonRpcUrl: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
         },
       },
     ]);

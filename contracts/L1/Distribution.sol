@@ -9,9 +9,9 @@ import {PRECISION} from "@solarity/solidity-lib/utils/Globals.sol";
 
 import {LinearDistributionIntervalDecrease} from "../libs/LinearDistributionIntervalDecrease.sol";
 
-import {IDistribution} from "../interfaces/IDistribution.sol";
-
-import {L1Sender} from "./L1Sender.sol";
+import {IDistribution} from "../interfaces/L1/IDistribution.sol";
+import {IFeeConfig} from "../interfaces/L1/IFeeConfig.sol";
+import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 
 contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
@@ -20,6 +20,7 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
 
     address public depositToken;
     address public l1Sender;
+    address public feeConfig;
 
     // Pool storage
     Pool[] public pools;
@@ -55,6 +56,7 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
     function Distribution_init(
         address depositToken_,
         address l1Sender_,
+        address feeConfig_,
         Pool[] calldata poolsInfo_
     ) external initializer {
         __Ownable_init();
@@ -66,6 +68,7 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
 
         depositToken = depositToken_;
         l1Sender = l1Sender_;
+        feeConfig = feeConfig_;
     }
 
     /**********************************************************************************************/
@@ -82,7 +85,14 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
 
     function editPool(uint256 poolId_, Pool calldata pool_) external onlyOwner poolExists(poolId_) {
         _validatePool(pool_);
-        require(pools[poolId_].isPublic == pool_.isPublic, "DS: invalid pool type");
+
+        Pool storage pool = pools[poolId_];
+        require(pool.isPublic == pool_.isPublic, "DS: invalid pool type");
+        if (pool_.payoutStart > block.timestamp) {
+            require(pool.payoutStart == pool_.payoutStart, "DS: invalid payout start value");
+            require(pool.withdrawLockPeriod == pool_.withdrawLockPeriod, "DS: invalid WLP value");
+            require(pool.withdrawLockPeriodAfterStake == pool_.withdrawLockPeriodAfterStake, "DS: invalid WLPAS value");
+        }
 
         PoolData storage poolData = poolsData[poolId_];
         uint256 currentPoolRate_ = _getCurrentPoolRate(poolId_);
@@ -174,7 +184,7 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
         userData.pendingRewards = 0;
 
         // Transfer rewards
-        L1Sender(l1Sender).sendMintMessage{value: msg.value}(receiver_, pendingRewards_, user_);
+        IL1Sender(l1Sender).sendMintMessage{value: msg.value}(receiver_, pendingRewards_, user_);
 
         emit UserClaimed(poolId_, user_, receiver_, pendingRewards_);
     }
@@ -327,9 +337,18 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
         uint256 overplus_ = overplus();
         require(overplus_ > 0, "DS: overplus is zero");
 
+        (uint256 feePercent_, address treasuryAddress_) = IFeeConfig(feeConfig).getFeeAndTreasury(address(this));
+
+        uint256 fee_ = (overplus_ * feePercent_) / PRECISION;
+        if (fee_ != 0) {
+            IERC20(depositToken).safeTransfer(treasuryAddress_, fee_);
+
+            overplus_ -= fee_;
+        }
+
         IERC20(depositToken).safeTransfer(l1Sender, overplus_);
 
-        bytes memory bridgeMessageId_ = L1Sender(l1Sender).sendDepositToken{value: msg.value}(
+        bytes memory bridgeMessageId_ = IL1Sender(l1Sender).sendDepositToken{value: msg.value}(
             gasLimit_,
             maxFeePerGas_,
             maxSubmissionCost_
@@ -343,7 +362,6 @@ contract Distribution is IDistribution, OwnableUpgradeable, UUPSUpgradeable {
     /**********************************************************************************************/
     /*** UUPS                                                                                   ***/
     /**********************************************************************************************/
-
     function removeUpgradeability() external onlyOwner {
         isNotUpgradeable = true;
     }

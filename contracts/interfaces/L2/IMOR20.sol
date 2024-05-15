@@ -3,17 +3,18 @@ pragma solidity ^0.8.20;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import {IOAppCore} from ".././@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
+import {IOAppCore} from "../../@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/interfaces/IOAppCore.sol";
 
 /**
- * This is the interface for MOROFT token contract. The token is ERC20 with burnable and Layer Zero OFT features.
+ * This is the interface for IMOR20 token contract. The token is ERC20 burnable and Layer Zero OFT features.
  */
-interface IMOROFT is IERC20, IERC165 {
+interface IMOR20 is IERC20, IERC165 {
     /**
-     * The function to get the minter address.
-     * @return The minter address.
+     * The function to update `minter` addresses.
+     * @param minter_ The updated minter address.
+     * @param status_ The new status. True or false.
      */
-    function minter() external view returns (address);
+    function updateMinter(address minter_, bool status_) external;
 
     /**
      * The function to mint tokens.

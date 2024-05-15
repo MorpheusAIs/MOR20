@@ -33,7 +33,8 @@ const config: HardhatUserConfig = {
     hardhat: {
       initialDate: '1970-01-01T00:00:00Z',
       // forking: {
-      //   url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+      //   url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
+      //   blockNumber: 19842819,
       // },
       // forking: {
       //   url: `https://arbitrum-sepolia.infura.io/v3/${process.env.INFURA_KEY}`,

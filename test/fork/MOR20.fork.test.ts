@@ -1,11 +1,11 @@
 import { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { ethers, expect } from 'hardhat';
 
-import { MOROFT, OptionsGenerator } from '@/generated-types/ethers';
+import { MOR20, OptionsGenerator } from '@/generated-types/ethers';
 import { wei } from '@/scripts/utils/utils';
 import { Reverter } from '@/test/helpers/reverter';
 
-describe('MOROFT', () => {
+describe('MOR20 Fork', () => {
   const reverter = new Reverter();
 
   let SECOND: SignerWithAddress;
@@ -14,8 +14,8 @@ describe('MOROFT', () => {
 
   let optionsGenerator: OptionsGenerator;
 
-  let l1Mor: MOROFT;
-  let l2Mor: MOROFT;
+  let l1Mor: MOR20;
+  let l2Mor: MOR20;
 
   // *** LZ CONFIG ***
   // https://docs.layerzero.network/contracts/endpoint-addresses
@@ -31,7 +31,7 @@ describe('MOROFT', () => {
     await ethers.provider.send('hardhat_reset', [
       {
         forking: {
-          jsonRpcUrl: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+          jsonRpcUrl: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
           // blockNumber: 190000000,
         },
       },
@@ -40,13 +40,13 @@ describe('MOROFT', () => {
     [SECOND, MINTER, DELEGATE] = await ethers.getSigners();
 
     const [MOR, OptionsGenerator] = await Promise.all([
-      ethers.getContractFactory('MOROFT'),
+      ethers.getContractFactory('MOR20'),
       ethers.getContractFactory('OptionsGenerator'),
     ]);
 
     optionsGenerator = await OptionsGenerator.deploy();
-    l1Mor = await MOR.deploy(l1LzEndpointV2Address, DELEGATE.address, MINTER.address);
-    l2Mor = await MOR.deploy(l2LzEndpointV2Address, DELEGATE.address, MINTER.address);
+    l1Mor = await MOR.deploy('MOR20_1', 'MOR20_1', l1LzEndpointV2Address, DELEGATE.address, MINTER.address);
+    l2Mor = await MOR.deploy('MOR20_2', 'MOR20_2', l2LzEndpointV2Address, DELEGATE.address, MINTER.address);
 
     await reverter.snapshot();
   });
@@ -114,4 +114,4 @@ describe('MOROFT', () => {
   });
 });
 
-// npx hardhat test "test/fork/MOROFT.fork.test.ts"
+// npx hardhat test "test/fork/MOR20.fork.test.ts"

@@ -4,8 +4,8 @@ pragma solidity ^0.8.20;
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {IMOR} from "../interfaces/IMOR.sol";
-import {IL2MessageReceiver} from "../interfaces/IL2MessageReceiver.sol";
+import {IMOR20} from "../interfaces/L2/IMOR20.sol";
+import {IL2MessageReceiver} from "../interfaces/L2/IL2MessageReceiver.sol";
 
 contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgradeable {
     address public rewardToken;
@@ -18,14 +18,18 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgrad
         _disableInitializers();
     }
 
-    function L2MessageReceiver__init() external initializer {
+    function L2MessageReceiver__init(address rewardToken_, Config calldata config_) external initializer {
         __Ownable_init();
         __UUPSUpgradeable_init();
-    }
 
-    function setParams(address rewardToken_, Config calldata config_) external onlyOwner {
         rewardToken = rewardToken_;
         config = config_;
+    }
+
+    function setLzSender(address lzSender_) external onlyOwner {
+        require(lzSender_ != address(0), "L2MR: invalid sender");
+
+        config.sender = lzSender_;
     }
 
     function lzReceive(
@@ -59,9 +63,9 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgrad
         require(payloadHash_ != bytes32(0), "L2MR: no stored message");
         require(keccak256(payload_) == payloadHash_, "L2MR: invalid payload");
 
-        _nonblockingLzReceive(senderChainId_, senderAndReceiverAddresses_, payload_);
-
         delete failedMessages[senderChainId_][senderAndReceiverAddresses_][nonce_];
+
+        _nonblockingLzReceive(senderChainId_, senderAndReceiverAddresses_, payload_);
 
         emit RetryMessageSuccess(senderChainId_, senderAndReceiverAddresses_, nonce_, payload_);
     }
@@ -102,7 +106,7 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable, UUPSUpgrad
 
         (address user_, uint256 amount_) = abi.decode(payload_, (address, uint256));
 
-        IMOR(rewardToken).mint(user_, amount_);
+        IMOR20(rewardToken).mint(user_, amount_);
     }
 
     function _authorizeUpgrade(address) internal view override onlyOwner {}

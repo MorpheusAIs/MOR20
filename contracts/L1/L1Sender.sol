@@ -10,7 +10,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {IWStETH} from "../interfaces/tokens/IWStETH.sol";
-import {IL1Sender, IERC165} from "../interfaces/IL1Sender.sol";
+import {IL1Sender, IERC165} from "../interfaces/L1/IL1Sender.sol";
 
 contract L1Sender is IL1Sender, OwnableUpgradeable, UUPSUpgradeable {
     address public unwrappedDepositToken;
@@ -36,67 +36,40 @@ contract L1Sender is IL1Sender, OwnableUpgradeable, UUPSUpgradeable {
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        setDistribution(distribution_);
-        setRewardTokenConfig(rewardTokenConfig_);
-        setDepositTokenConfig(depositTokenConfig_);
+        distribution = distribution_;
+        rewardTokenConfig = rewardTokenConfig_;
+        _setDepositTokenConfig(depositTokenConfig_);
     }
 
     function supportsInterface(bytes4 interfaceId_) external pure returns (bool) {
         return interfaceId_ == type(IL1Sender).interfaceId || interfaceId_ == type(IERC165).interfaceId;
     }
 
-    function setDistribution(address distribution_) public onlyOwner {
-        distribution = distribution_;
+    function setRewardTokenLZParams(address zroPaymentAddress_, bytes calldata adapterParams_) external onlyOwner {
+        rewardTokenConfig.zroPaymentAddress = zroPaymentAddress_;
+        rewardTokenConfig.adapterParams = adapterParams_;
     }
 
-    function setRewardTokenConfig(RewardTokenConfig calldata newConfig_) public onlyOwner {
-        rewardTokenConfig = newConfig_;
-    }
-
-    function setDepositTokenConfig(DepositTokenConfig calldata newConfig_) public onlyOwner {
+    function _setDepositTokenConfig(DepositTokenConfig calldata newConfig_) private {
         require(newConfig_.receiver != address(0), "L1S: invalid receiver");
 
-        DepositTokenConfig storage oldConfig = depositTokenConfig;
-
-        _replaceDepositToken(oldConfig.token, newConfig_.token);
-        _replaceDepositTokenGateway(oldConfig.gateway, newConfig_.gateway, oldConfig.token, newConfig_.token);
+        _setDepositToken(newConfig_.token);
+        _setDepositTokenGateway(newConfig_.gateway, newConfig_.token);
 
         depositTokenConfig = newConfig_;
     }
 
-    function _replaceDepositToken(address oldToken_, address newToken_) private {
-        bool isTokenChanged_ = oldToken_ != newToken_;
+    function _setDepositToken(address newToken_) private {
+        // Get stETH from wstETH
+        address unwrappedToken_ = IWStETH(newToken_).stETH();
+        // Increase allowance from stETH to wstETH. To exchange stETH for wstETH
+        IERC20(unwrappedToken_).approve(newToken_, type(uint256).max);
 
-        if (oldToken_ != address(0) && isTokenChanged_) {
-            // Remove allowance from stETH to wstETH
-            IERC20(unwrappedDepositToken).approve(oldToken_, 0);
-        }
-
-        if (isTokenChanged_) {
-            // Get stETH from wstETH
-            address unwrappedToken_ = IWStETH(newToken_).stETH();
-            // Increase allowance from stETH to wstETH. To exchange stETH for wstETH
-            IERC20(unwrappedToken_).approve(newToken_, type(uint256).max);
-
-            unwrappedDepositToken = unwrappedToken_;
-        }
+        unwrappedDepositToken = unwrappedToken_;
     }
 
-    function _replaceDepositTokenGateway(
-        address oldGateway_,
-        address newGateway_,
-        address oldToken_,
-        address newToken_
-    ) private {
-        bool isAllowedChanged_ = (oldToken_ != newToken_) || (oldGateway_ != newGateway_);
-
-        if (oldGateway_ != address(0) && isAllowedChanged_) {
-            IERC20(oldToken_).approve(IGatewayRouter(oldGateway_).getGateway(oldToken_), 0);
-        }
-
-        if (isAllowedChanged_) {
-            IERC20(newToken_).approve(IGatewayRouter(newGateway_).getGateway(newToken_), type(uint256).max);
-        }
+    function _setDepositTokenGateway(address newGateway_, address newToken_) private {
+        IERC20(newToken_).approve(IGatewayRouter(newGateway_).getGateway(newToken_), type(uint256).max);
     }
 
     function sendDepositToken(

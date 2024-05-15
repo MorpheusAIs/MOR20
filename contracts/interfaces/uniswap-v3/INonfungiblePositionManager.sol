@@ -13,6 +13,14 @@ interface INonfungiblePositionManager is IERC721 {
         uint256 deadline;
     }
 
+    struct DecreaseLiquidityParams {
+        uint256 tokenId;
+        uint128 liquidity;
+        uint256 amount0Min;
+        uint256 amount1Min;
+        uint256 deadline;
+    }
+
     struct CollectParams {
         uint256 tokenId;
         address recipient;
@@ -37,6 +45,10 @@ interface INonfungiblePositionManager is IERC721 {
     function increaseLiquidity(
         IncreaseLiquidityParams calldata params
     ) external payable returns (uint128 liquidity, uint256 amount0, uint256 amount1);
+
+    function decreaseLiquidity(
+        DecreaseLiquidityParams calldata params
+    ) external payable returns (uint256 amount0, uint256 amount1);
 
     function collect(CollectParams calldata params) external payable returns (uint256 amount0, uint256 amount1);
 
