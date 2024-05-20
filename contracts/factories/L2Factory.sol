@@ -5,7 +5,6 @@ import {IL2MessageReceiver} from "../interfaces/L2/IL2MessageReceiver.sol";
 import {IL2TokenReceiver} from "../interfaces/L2/IL2TokenReceiver.sol";
 import {IL2Factory} from "../interfaces/factories/IL2Factory.sol";
 import {IOwnable} from "../interfaces/utils/IOwnable.sol";
-import {IMOR20} from "../interfaces/L2/IMOR20.sol";
 import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
 
 import {Factory} from "./Factory.sol";
