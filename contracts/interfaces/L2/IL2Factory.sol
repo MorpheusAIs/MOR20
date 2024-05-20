@@ -9,13 +9,13 @@ interface IL2Factory {
      */
     enum PoolType {
         L2_MESSAGE_RECEIVER,
-        L2_TOKEN_RECEIVER,
-        MOR20
+        L2_TOKEN_RECEIVER
     }
 
     /**
      * The struct that represents the parameters for
      * deploying specific L2 contracts.
+     * @param isUpgradeable The flag indicating whether the deployed pools are upgradeable.
      * @param protocolName The protocol name.
      * @param mor20Name The MOR20 name.
      * @param mor20Symbol The MOR20 symbol.
@@ -24,6 +24,7 @@ interface IL2Factory {
      * @param secondSwapFee The second swap fee.
      */
     struct L2Params {
+        bool isUpgradeable;
         string protocolName;
         string mor20Name;
         string mor20Symbol;

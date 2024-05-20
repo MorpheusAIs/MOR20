@@ -2,13 +2,12 @@
 pragma solidity ^0.8.20;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {PRECISION} from "@solarity/solidity-lib/utils/Globals.sol";
 
 import {IFeeConfig} from "../interfaces/L1/IFeeConfig.sol";
 
-contract FeeConfig is IFeeConfig, OwnableUpgradeable, UUPSUpgradeable {
+contract FeeConfig is IFeeConfig, OwnableUpgradeable {
     address public treasury;
     uint256 public baseFee;
 
@@ -16,7 +15,6 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable, UUPSUpgradeable {
 
     function __FeeConfig_init(address treasury_, uint256 baseFee_) external initializer {
         __Ownable_init();
-        __UUPSUpgradeable_init();
 
         treasury = treasury_;
         baseFee = baseFee_;
@@ -48,6 +46,4 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable, UUPSUpgradeable {
 
         return (fee_, treasury);
     }
-
-    function _authorizeUpgrade(address) internal override onlyOwner {}
 }

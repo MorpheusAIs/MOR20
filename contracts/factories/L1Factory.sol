@@ -5,8 +5,9 @@ import {IDistribution} from "../interfaces/L1/IDistribution.sol";
 import {IL1Factory} from "../interfaces/L1/IL1Factory.sol";
 import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 import {IOwnable} from "../interfaces/IOwnable.sol";
+import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
 
-import {Factory} from "../Factory.sol";
+import {Factory} from "./Factory.sol";
 
 contract L1Factory is IL1Factory, Factory {
     address public feeConfig;
@@ -55,8 +56,8 @@ contract L1Factory is IL1Factory, Factory {
     }
 
     function deploy(L1Params calldata l1Params_) external whenNotPaused {
-        address distributionProxy_ = _deploy2(uint8(PoolType.DISTRIBUTION), l1Params_.protocolName);
-        address l1SenderProxy_ = _deploy2(uint8(PoolType.L1_SENDER), l1Params_.protocolName);
+        address distributionProxy_ = _deploy2(l1Params_.protocolName, uint8(PoolType.DISTRIBUTION));
+        address l1SenderProxy_ = _deploy2(l1Params_.protocolName, uint8(PoolType.L1_SENDER));
 
         IDistribution(distributionProxy_).Distribution_init(
             depositTokenExternalDeps.token,
@@ -81,8 +82,9 @@ contract L1Factory is IL1Factory, Factory {
 
         IL1Sender(l1SenderProxy_).L1Sender__init(distributionProxy_, lzConfig_, arbConfig_);
 
-        if (l1Params_.isNotUpgradeable) {
-            IDistribution(distributionProxy_).removeUpgradeability();
+        if (!l1Params_.isUpgradeable) {
+            IFreezableBeaconProxy(distributionProxy_).freeze();
+            IFreezableBeaconProxy(l1SenderProxy_).freeze();
         }
 
         IOwnable(distributionProxy_).transferOwnership(_msgSender());
@@ -90,11 +92,10 @@ contract L1Factory is IL1Factory, Factory {
     }
 
     function predictAddresses(
-        string calldata poolName_,
-        address sender_
+        address deployer_,
+        string calldata protocol_
     ) external view returns (address distribution_, address l1Sender_) {
-        distribution_ = _predictPoolAddress(uint8(PoolType.DISTRIBUTION), poolName_, sender_);
-
-        l1Sender_ = _predictPoolAddress(uint8(PoolType.L1_SENDER), poolName_, sender_);
+        distribution_ = _predictPoolAddress(deployer_, protocol_, uint8(PoolType.DISTRIBUTION));
+        l1Sender_ = _predictPoolAddress(deployer_, protocol_, uint8(PoolType.L1_SENDER));
     }
 }

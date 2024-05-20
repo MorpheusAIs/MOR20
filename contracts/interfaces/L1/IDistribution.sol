@@ -193,11 +193,6 @@ interface IDistribution {
     ) external payable returns (bytes memory);
 
     /**
-     * The function to remove the upgradeability of the contract.
-     */
-    function removeUpgradeability() external;
-
-    /**
      * The function to get the address of deposit token.
      * @return The address of deposit token.
      */

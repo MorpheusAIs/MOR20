@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 
 import { Reverter } from '../helpers/reverter';
 
-import { FeeConfig, FeeConfigV2 } from '@/generated-types/ethers';
+import { FeeConfig } from '@/generated-types/ethers';
 import { ZERO_ADDR } from '@/scripts/utils/constants';
 import { wei } from '@/scripts/utils/utils';
 
@@ -35,30 +35,12 @@ describe('FeeConfig', () => {
 
   afterEach(reverter.revert);
 
-  describe('UUPS proxy functionality', () => {
+  describe('initialization', () => {
     describe('#__FeeConfig_init', () => {
       it('should revert if try to call init function twice', async () => {
         const reason = 'Initializable: contract is already initialized';
 
         await expect(feeConfig.__FeeConfig_init(SECOND, wei(0.1, 25))).to.be.rejectedWith(reason);
-      });
-
-      describe('#_authorizeUpgrade', () => {
-        it('should correctly upgrade', async () => {
-          const feeConfigV2Factory = await ethers.getContractFactory('FeeConfigV2');
-          const feeConfigV2Implementation = await feeConfigV2Factory.deploy();
-
-          await feeConfig.upgradeTo(feeConfigV2Implementation);
-
-          const feeConfigV2 = feeConfigV2Factory.attach(await feeConfigV2Implementation.getAddress()) as FeeConfigV2;
-
-          expect(await feeConfigV2.version()).to.eq(2);
-        });
-        it('should revert if caller is not the owner', async () => {
-          await expect(feeConfig.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
-            'Ownable: caller is not the owner',
-          );
-        });
       });
     });
   });

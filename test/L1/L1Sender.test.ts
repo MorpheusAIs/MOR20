@@ -6,7 +6,6 @@ import {
   GatewayRouterMock,
   IL1Sender,
   L1Sender,
-  L1SenderV2,
   L2MessageReceiver,
   LZEndpointMock,
   LayerZeroEndpointV2Mock,
@@ -125,7 +124,7 @@ describe('L1Sender', () => {
     await reverter.revert();
   });
 
-  describe('UUPS proxy functionality', () => {
+  describe('initialization', () => {
     let rewardTokenConfig: IL1Sender.RewardTokenConfigStruct;
     let depositTokenConfig: IL1Sender.DepositTokenConfigStruct;
 
@@ -195,24 +194,6 @@ describe('L1Sender', () => {
             receiver: ZERO_ADDR,
           }),
         ).to.be.rejectedWith('L1S: invalid receiver');
-      });
-    });
-
-    describe('#_authorizeUpgrade', () => {
-      it('should correctly upgrade', async () => {
-        const l1SenderV2Factory = await ethers.getContractFactory('L1SenderV2');
-        const l1SenderV2Implementation = await l1SenderV2Factory.deploy();
-
-        await l1Sender.upgradeTo(l1SenderV2Implementation);
-
-        const l1SenderV2 = l1SenderV2Factory.attach(l1Sender) as L1SenderV2;
-
-        expect(await l1SenderV2.version()).to.eq(2);
-      });
-      it('should revert if caller is not the owner', async () => {
-        await expect(l1Sender.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
-          'Ownable: caller is not the owner',
-        );
       });
     });
   });

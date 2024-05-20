@@ -6,13 +6,16 @@ import {IL2TokenReceiver} from "../interfaces/L2/IL2TokenReceiver.sol";
 import {IL2Factory} from "../interfaces/L2/IL2Factory.sol";
 import {IOwnable} from "../interfaces/IOwnable.sol";
 import {IMOR20} from "../interfaces/L2/IMOR20.sol";
+import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
 
-import {Factory} from "../Factory.sol";
+import {Factory} from "./Factory.sol";
 import {MOR20Deployer} from "../libs/MOR20Deployer.sol";
 
 contract L2Factory is IL2Factory, Factory {
     UniswapExternalDeps public uniswapExternalDeps;
     LzExternalDeps public lzExternalDeps;
+
+    mapping(address deployer => mapping(string protocol => address)) public mor20;
 
     constructor() {
         _disableInitializers();
@@ -41,40 +44,44 @@ contract L2Factory is IL2Factory, Factory {
     }
 
     function deploy(L2Params calldata l2Params_) external whenNotPaused {
-        address l2MessageReceiver = _deploy2(uint8(PoolType.L2_MESSAGE_RECEIVER), l2Params_.protocolName);
-        address l2TokenReceiver = _deploy2(uint8(PoolType.L2_TOKEN_RECEIVER), l2Params_.protocolName);
+        address l2MessageReceiver_ = _deploy2(l2Params_.protocolName, uint8(PoolType.L2_MESSAGE_RECEIVER));
+        address l2TokenReceiver_ = _deploy2(l2Params_.protocolName, uint8(PoolType.L2_TOKEN_RECEIVER));
 
-        address mor20 = MOR20Deployer.deployMOR20(
+        address mor20_ = MOR20Deployer.deployMOR20(
             l2Params_.mor20Name,
             l2Params_.mor20Symbol,
             lzExternalDeps.oftEndpoint,
             _msgSender(),
-            l2MessageReceiver
+            l2MessageReceiver_
         );
-        deployedProxies[_msgSender()][l2Params_.protocolName][uint8(PoolType.MOR20)] = mor20;
+        mor20[_msgSender()][l2Params_.protocolName] = mor20_;
 
-        IL2MessageReceiver(l2MessageReceiver).L2MessageReceiver__init(
-            mor20,
+        IL2MessageReceiver(l2MessageReceiver_).L2MessageReceiver__init(
+            mor20_,
             IL2MessageReceiver.Config(lzExternalDeps.endpoint, l2Params_.l1Sender, lzExternalDeps.senderChainId)
         );
 
-        IL2TokenReceiver(l2TokenReceiver).L2TokenReceiver__init(
+        IL2TokenReceiver(l2TokenReceiver_).L2TokenReceiver__init(
             uniswapExternalDeps.router,
             uniswapExternalDeps.nonfungiblePositionManager,
             l2Params_.firstSwapParams_,
-            IL2TokenReceiver.SwapParams(l2Params_.firstSwapParams_.tokenOut, mor20, l2Params_.secondSwapFee)
+            IL2TokenReceiver.SwapParams(l2Params_.firstSwapParams_.tokenOut, mor20_, l2Params_.secondSwapFee)
         );
 
-        IOwnable(l2MessageReceiver).transferOwnership(_msgSender());
-        IOwnable(l2TokenReceiver).transferOwnership(_msgSender());
+        if (!l2Params_.isUpgradeable) {
+            IFreezableBeaconProxy(l2MessageReceiver_).freeze();
+            IFreezableBeaconProxy(l2TokenReceiver_).freeze();
+        }
+
+        IOwnable(l2MessageReceiver_).transferOwnership(_msgSender());
+        IOwnable(l2TokenReceiver_).transferOwnership(_msgSender());
     }
 
     function predictAddresses(
-        string calldata poolName_,
-        address sender_
+        address deployer_,
+        string calldata protocol_
     ) external view returns (address l2MessageReceiver_, address l2TokenReceiver_) {
-        l2MessageReceiver_ = _predictPoolAddress(uint8(PoolType.L2_MESSAGE_RECEIVER), poolName_, sender_);
-
-        l2TokenReceiver_ = _predictPoolAddress(uint8(PoolType.L2_TOKEN_RECEIVER), poolName_, sender_);
+        l2MessageReceiver_ = _predictPoolAddress(deployer_, protocol_, uint8(PoolType.L2_MESSAGE_RECEIVER));
+        l2TokenReceiver_ = _predictPoolAddress(deployer_, protocol_, uint8(PoolType.L2_TOKEN_RECEIVER));
     }
 }

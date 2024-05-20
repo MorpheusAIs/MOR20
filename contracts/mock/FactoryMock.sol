@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Factory} from "../Factory.sol";
+import {Factory} from "../factories/Factory.sol";
 
 contract FactoryMock is Factory {
     function Factory_init() external initializer {
@@ -15,7 +15,7 @@ contract FactoryMock is Factory {
         __Factory_init();
     }
 
-    function deploy2(uint8 poolType_, string calldata poolName_) external returns (address) {
-        return _deploy2(poolType_, poolName_);
+    function deploy2(string calldata protocol_, uint8 poolType_) external returns (address) {
+        return _deploy2(protocol_, poolType_);
     }
 }

@@ -8,7 +8,6 @@ import { Reverter } from '../helpers/reverter';
 import {
   IL2TokenReceiver,
   L2TokenReceiver,
-  L2TokenReceiverV2,
   LayerZeroEndpointV2Mock,
   MOR20,
   NonfungiblePositionManagerMock,
@@ -90,7 +89,7 @@ describe('L2TokenReceiver', () => {
     await reverter.revert();
   });
 
-  describe('UUPS proxy functionality', () => {
+  describe('initialization', () => {
     it('should disable initialize function', async () => {
       const reason = 'Initializable: contract is already initialized';
 
@@ -150,24 +149,6 @@ describe('L2TokenReceiver', () => {
         expect(await inputToken.allowance(l2TokenReceiver, swapRouter)).to.equal(ethers.MaxUint256);
         expect(await inputToken.allowance(l2TokenReceiver, nonfungiblePositionManager)).to.equal(ethers.MaxUint256);
         expect(await outputToken.allowance(l2TokenReceiver, nonfungiblePositionManager)).to.equal(ethers.MaxUint256);
-      });
-    });
-
-    describe('#_authorizeUpgrade', () => {
-      it('should correctly upgrade', async () => {
-        const l2TokenReceiverV2Factory = await ethers.getContractFactory('L2TokenReceiverV2');
-        const l2TokenReceiverV2Implementation = await l2TokenReceiverV2Factory.deploy();
-
-        await l2TokenReceiver.upgradeTo(l2TokenReceiverV2Implementation);
-
-        const l2TokenReceiverV2 = l2TokenReceiverV2Factory.attach(l2TokenReceiver) as L2TokenReceiverV2;
-
-        expect(await l2TokenReceiverV2.version()).to.eq(2);
-      });
-      it('should revert if caller is not the owner', async () => {
-        await expect(l2TokenReceiver.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
-          'Ownable: caller is not the owner',
-        );
       });
     });
   });

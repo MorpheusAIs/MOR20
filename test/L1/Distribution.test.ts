@@ -4,7 +4,6 @@ import { ethers } from 'hardhat';
 
 import {
   Distribution,
-  DistributionV2,
   Distribution__factory,
   FeeConfig,
   GatewayRouterMock,
@@ -211,7 +210,7 @@ describe('Distribution', () => {
 
   afterEach(reverter.revert);
 
-  describe('UUPS proxy functionality', () => {
+  describe('initialization', () => {
     describe('#constructor', () => {
       it('should disable initialize function', async () => {
         const reason = 'Initializable: contract is already initialized';
@@ -255,33 +254,6 @@ describe('Distribution', () => {
         const reason = 'Initializable: contract is already initialized';
 
         await expect(distribution.Distribution_init(depositToken, l1Sender, feeConfig, [])).to.be.rejectedWith(reason);
-      });
-    });
-
-    describe('#_authorizeUpgrade', () => {
-      it('should correctly upgrade', async () => {
-        const distributionV2Factory = await ethers.getContractFactory('DistributionV2', {
-          libraries: {
-            LinearDistributionIntervalDecrease: await lib.getAddress(),
-          },
-        });
-        const distributionV2Implementation = await distributionV2Factory.deploy();
-
-        await distribution.upgradeTo(await distributionV2Implementation.getAddress());
-
-        const distributionV2 = distributionV2Factory.attach(await distribution.getAddress()) as DistributionV2;
-
-        expect(await distributionV2.version()).to.eq(2);
-      });
-      it('should revert if caller is not the owner', async () => {
-        await expect(distribution.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
-          'Ownable: caller is not the owner',
-        );
-      });
-      it('should revert if `isNotUpgradeable == true`', async () => {
-        await distribution.removeUpgradeability();
-
-        await expect(distribution.upgradeTo(ZERO_ADDR)).to.be.revertedWith("DS: upgrade isn't available");
       });
     });
   });
@@ -1413,23 +1385,6 @@ describe('Distribution', () => {
       await distribution.stake(poolId, wei(1));
 
       await expect(distribution.withdraw(poolId, wei(0.1))).to.be.revertedWith('DS: pool withdraw is locked');
-    });
-  });
-
-  describe('#removeUpgradeability', () => {
-    it('should revert if caller is not owner', async () => {
-      await expect(distribution.connect(SECOND).removeUpgradeability()).to.be.revertedWith(
-        'Ownable: caller is not the owner',
-      );
-    });
-    it('should remove upgradeability', async () => {
-      let isNotUpgradeable = await distribution.isNotUpgradeable();
-      expect(isNotUpgradeable).to.be.false;
-
-      await distribution.removeUpgradeability();
-
-      isNotUpgradeable = await distribution.isNotUpgradeable();
-      expect(isNotUpgradeable).to.be.true;
     });
   });
 

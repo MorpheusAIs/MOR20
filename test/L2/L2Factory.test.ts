@@ -103,8 +103,7 @@ describe('L2Factory', () => {
     const poolTypes = [PoolTypesL2.L2_MESSAGE_RECEIVER, PoolTypesL2.L2_TOKEN_RECEIVER];
     const poolImplementations = [await l2MessageReceiver.getAddress(), await l2TokenReceiver.getAddress()];
 
-    await l2Factory.setImplementation(poolTypes[0], poolImplementations[0]);
-    await l2Factory.setImplementation(poolTypes[1], poolImplementations[1]);
+    await l2Factory.setImplementations(poolTypes, poolImplementations);
 
     await reverter.snapshot();
   });
@@ -128,6 +127,7 @@ describe('L2Factory', () => {
 
   function getL2DefaultParams() {
     const l2Params: IL2Factory.L2ParamsStruct = {
+      isUpgradeable: true,
       protocolName: 'Mor20',
       mor20Name: 'MOR20',
       mor20Symbol: 'M20',
@@ -257,9 +257,7 @@ describe('L2Factory', () => {
       const l2TokenReceiver = l2TokenReceiverFactory.attach(
         await l2Factory.deployedProxies(OWNER, l2Params.protocolName, PoolTypesL2.L2_TOKEN_RECEIVER),
       ) as L2TokenReceiver;
-      const MOR = MOR20Factory.attach(
-        await l2Factory.deployedProxies(OWNER, l2Params.protocolName, PoolTypesL2.MOR20),
-      ) as MOR20;
+      const MOR = MOR20Factory.attach(await l2Factory.mor20(OWNER, l2Params.protocolName)) as MOR20;
 
       expect(await l2MessageReceiver.owner()).to.equal(OWNER);
       expect(await l2TokenReceiver.owner()).to.equal(OWNER);
@@ -309,7 +307,7 @@ describe('L2Factory', () => {
     it('should predict addresses', async () => {
       const l2Params = getL2DefaultParams();
 
-      const [l2MessageReceiver, l2TokenReceiver] = await l2Factory.predictAddresses(l2Params.protocolName, OWNER);
+      const [l2MessageReceiver, l2TokenReceiver] = await l2Factory.predictAddresses(OWNER, l2Params.protocolName);
 
       expect(l2MessageReceiver).to.be.properAddress;
       expect(l2TokenReceiver).to.be.properAddress;

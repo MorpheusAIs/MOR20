@@ -5,7 +5,6 @@ import { ethers } from 'hardhat';
 import {
   ERC1967Proxy__factory,
   L2MessageReceiver,
-  L2MessageReceiverV2,
   L2MessageReceiver__factory,
   LayerZeroEndpointV2Mock,
   LayerZeroEndpointV2Mock__factory,
@@ -63,7 +62,7 @@ describe('L2MessageReceiver', () => {
     await reverter.revert();
   });
 
-  describe('UUPS proxy functionality', () => {
+  describe('initialization', () => {
     describe('#constructor', () => {
       it('should disable initialize function', async () => {
         const reason = 'Initializable: contract is already initialized';
@@ -91,24 +90,6 @@ describe('L2MessageReceiver', () => {
             senderChainId: 0,
           }),
         ).to.be.rejectedWith(reason);
-      });
-    });
-
-    describe('#_authorizeUpgrade', () => {
-      it('should correctly upgrade', async () => {
-        const l2MessageReceiverV2Factory = await ethers.getContractFactory('L2MessageReceiverV2');
-        const l2MessageReceiverV2Implementation = await l2MessageReceiverV2Factory.deploy();
-
-        await l2MessageReceiver.upgradeTo(l2MessageReceiverV2Implementation);
-
-        const l2MessageReceiverV2 = l2MessageReceiverV2Factory.attach(l2MessageReceiver) as L2MessageReceiverV2;
-
-        expect(await l2MessageReceiverV2.version()).to.eq(2);
-      });
-      it('should revert if caller is not the owner', async () => {
-        await expect(l2MessageReceiver.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
-          'Ownable: caller is not the owner',
-        );
       });
     });
   });
