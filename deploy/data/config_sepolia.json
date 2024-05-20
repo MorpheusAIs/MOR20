@@ -1,0 +1,28 @@
+{
+  "feeConfig": {
+    "baseFee": "1000000000000000000000000",
+    "treasury": "0x901F2d23823730fb7F2356920e0E273EFdCdFe17"
+  },
+  "depositTokenExternalDeps": {
+    "token": "0xe6D01D086a844a61641C75f1BCA572e7aa70e154",
+    "wToken": "0xE7d86F503F3dA0DEF5660420F667BF873d3D6A8f"
+  },
+  "lzExternalDeps": {
+    "endpoint": "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1",
+    "zroPaymentAddress": "0x0000000000000000000000000000000000000000",
+    "adapterParams": "0x",
+    "destinationChainId": 10231
+  },
+  "arbExternalDeps": {
+    "endpoint": "0xcE18836b233C83325Cc8848CA4487e94C6288264"
+  },
+  "lzTokenExternalDeps": {
+    "endpoint": "0x6098e96a28E02f27B1e6BD381f870F1C8Bd169d3",
+    "oftEndpoint": "0x6EDCE65403992e310A62460808c4b910D972f10f",
+    "senderChainId": 10161
+  },
+  "uniswapExternalDeps": {
+    "router": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+    "nonfungiblePositionManager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
+  }
+}
