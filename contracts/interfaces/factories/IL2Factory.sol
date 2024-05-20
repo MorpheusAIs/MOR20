@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IL2TokenReceiver} from "./IL2TokenReceiver.sol";
+import {IL2TokenReceiver} from "../L2/IL2TokenReceiver.sol";
 
 interface IL2Factory {
     /**

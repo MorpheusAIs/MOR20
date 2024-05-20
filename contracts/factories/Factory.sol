@@ -7,7 +7,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
-import {IFactory} from "../interfaces/IFactory.sol";
+import {IFactory} from "../interfaces/factories/IFactory.sol";
 import {IFreezableBeaconProxy, FreezableBeaconProxy} from "../proxy/FreezableBeaconProxy.sol";
 
 abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {

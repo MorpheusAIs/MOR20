@@ -2,9 +2,9 @@
 pragma solidity ^0.8.20;
 
 import {IDistribution} from "../interfaces/L1/IDistribution.sol";
-import {IL1Factory} from "../interfaces/L1/IL1Factory.sol";
+import {IL1Factory} from "../interfaces/factories/IL1Factory.sol";
 import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
-import {IOwnable} from "../interfaces/IOwnable.sol";
+import {IOwnable} from "../interfaces/utils/IOwnable.sol";
 import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
 
 import {Factory} from "./Factory.sol";

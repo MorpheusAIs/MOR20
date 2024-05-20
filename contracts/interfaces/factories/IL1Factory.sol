@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IDistribution} from "./IDistribution.sol";
+import {IDistribution} from "../L1/IDistribution.sol";
 
 /**
  * This is L1Factory contract that deploys the L1 contracts.
