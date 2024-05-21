@@ -13,6 +13,8 @@ contract WStETHMock is ERC20 {
     }
 
     function mint(address account_, uint256 amount_) external {
+        require(amount_ <= 1000 * (10 ** decimals()), "WStETHMock: amount is too big");
+
         _mint(account_, amount_);
     }
 

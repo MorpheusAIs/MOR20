@@ -7,6 +7,8 @@ contract WETHMock is ERC20 {
     constructor() ERC20("WETH", "WETH") {}
 
     function mint(address account_, uint256 amount_) external {
+        require(amount_ <= 1000000 * (10 ** decimals()), "WETHMock: amount is too big");
+
         _mint(account_, amount_);
     }
 }
