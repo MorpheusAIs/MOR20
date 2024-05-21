@@ -5,17 +5,10 @@ import {IL2TokenReceiver} from "../L2/IL2TokenReceiver.sol";
 
 interface IL2Factory {
     /**
-     * The enum that represents the deployed L2 contract.
-     */
-    enum PoolType {
-        L2_MESSAGE_RECEIVER,
-        L2_TOKEN_RECEIVER
-    }
-
-    /**
      * The struct that represents the parameters for
      * deploying specific L2 contracts.
      * @param isUpgradeable The flag indicating whether the deployed pools are upgradeable.
+     * @param owner The owner address.
      * @param protocolName The protocol name.
      * @param mor20Name The MOR20 name.
      * @param mor20Symbol The MOR20 symbol.
@@ -25,6 +18,7 @@ interface IL2Factory {
      */
     struct L2Params {
         bool isUpgradeable;
+        address owner;
         string protocolName;
         string mor20Name;
         string mor20Symbol;
@@ -56,6 +50,20 @@ interface IL2Factory {
     }
 
     /**
+     * The struct that represents deployed pools.
+     * @param protocol The protocol name.
+     * @param l2MessageReceiver The L2 message receiver address.
+     * @param l2TokenReceiver The L2 token receiver address.
+     * @param mor20 The MOR20 address.
+     */
+    struct PoolView {
+        string protocol;
+        address l2MessageReceiver;
+        address l2TokenReceiver;
+        address mor20;
+    }
+
+    /**
      * The function that initializes the contract.
      */
     function L2Factory_init() external;
@@ -77,4 +85,37 @@ interface IL2Factory {
      * @param l2Params_ The L2 parameters.
      */
     function deploy(L2Params calldata l2Params_) external;
+
+    /**
+     * The function that predicts the pool addresses.
+     * @param deployer_ The deployer address.
+     * @param protocol_ The protocol name.
+     * @return l2MessageReceiver_ The L2 message receiver address.
+     * @return l2TokenReceiver_ The L2 token receiver address.
+     */
+    function predictAddresses(
+        address deployer_,
+        string calldata protocol_
+    ) external view returns (address l2MessageReceiver_, address l2TokenReceiver_);
+
+    /**
+     * The function that gets the deployed pools.
+     * @param deployer_ The deployer address.
+     * @param offset_ The offset.
+     * @param limit_ The limit.
+     * @return pools_ The deployed pools.
+     */
+    function getDeployedPools(
+        address deployer_,
+        uint256 offset_,
+        uint256 limit_
+    ) external view returns (PoolView[] memory pools_);
+
+    /**
+     * The function to get the MOR20 address.
+     * @param deployer_ The deployer address.
+     * @param protocol_ The protocol name.
+     * @return mor20 The MOR20 address.
+     */
+    function getMor20(address deployer_, string calldata protocol_) external view returns (address);
 }

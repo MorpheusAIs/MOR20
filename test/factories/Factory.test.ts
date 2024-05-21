@@ -1,10 +1,10 @@
+import { FactoryMock, FactoryMockV2, PoolMockV1, PoolMockV2 } from '@ethers-v6';
 import { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-import { Reverter } from './helpers/reverter';
+import { Reverter } from '../helpers/reverter';
 
-import { FactoryMock, FactoryMockV2, PoolMockV1, PoolMockV2 } from '@/generated-types/ethers';
 import { ZERO_ADDR } from '@/scripts/utils/constants';
 
 describe('Factory', () => {
@@ -101,64 +101,74 @@ describe('Factory', () => {
 
   describe('freezePool', () => {
     it('should not freeze pool if pool not found', async () => {
-      await expect(factory.freezePool('name', 0)).to.be.revertedWith('F: pool not found');
+      await expect(factory.freezePool('name', 'pool0')).to.be.revertedWith('F: pool not found');
     });
 
     it('should freeze pool if all conditions are met', async () => {
-      await factory.setImplementations([0, 1], [poolV1, poolV1]);
+      await factory.setImplementations(['pool0', 'pool1'], [poolV1, poolV1]);
 
-      await factory.deploy2('name', 0);
-      await factory.deploy2('name', 1);
+      await factory.deploy2('name', 'pool0');
+      await factory.deploy2('name', 'pool1');
 
-      await factory.freezePool('name', 0);
+      await factory.freezePool('name', 'pool0');
 
-      await factory.setImplementations([0, 1], [poolV2, poolV2]);
+      await factory.setImplementations(['pool0', 'pool1'], [poolV2, poolV2]);
 
-      expect(await (poolV1.attach(await factory.deployedProxies(OWNER, 'name', 0)) as PoolMockV1).version()).to.eq(1);
-      expect(await (poolV1.attach(await factory.deployedProxies(OWNER, 'name', 1)) as PoolMockV1).version()).to.eq(2);
+      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool0')) as PoolMockV1).version()).to.eq(
+        1,
+      );
+      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool1')) as PoolMockV1).version()).to.eq(
+        2,
+      );
     });
   });
 
   describe('unfreezePool', () => {
     it('should not unfreeze pool if pool not found', async () => {
-      await expect(factory.unfreezePool('name', 0)).to.be.revertedWith('F: pool not found');
+      await expect(factory.unfreezePool('name', 'pool0')).to.be.revertedWith('F: pool not found');
     });
 
     it('should unfreeze pool if all conditions are met', async () => {
-      await factory.setImplementations([0, 1], [poolV1, poolV1]);
+      await factory.setImplementations(['pool0', 'pool1'], [poolV1, poolV1]);
 
-      await factory.deploy2('name', 0);
-      await factory.deploy2('name', 1);
+      await factory.deploy2('name', 'pool0');
+      await factory.deploy2('name', 'pool1');
 
-      await factory.freezePool('name', 0);
+      await factory.freezePool('name', 'pool0');
 
-      await factory.setImplementations([0, 1], [poolV2, poolV2]);
+      await factory.setImplementations(['pool0', 'pool1'], [poolV2, poolV2]);
 
-      expect(await (poolV1.attach(await factory.deployedProxies(OWNER, 'name', 0)) as PoolMockV1).version()).to.eq(1);
-      expect(await (poolV1.attach(await factory.deployedProxies(OWNER, 'name', 1)) as PoolMockV1).version()).to.eq(2);
+      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool0')) as PoolMockV1).version()).to.eq(
+        1,
+      );
+      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool1')) as PoolMockV1).version()).to.eq(
+        2,
+      );
 
-      await factory.unfreezePool('name', 0);
+      await factory.unfreezePool('name', 'pool0');
 
-      expect(await (poolV1.attach(await factory.deployedProxies(OWNER, 'name', 0)) as PoolMockV1).version()).to.eq(2);
+      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool0')) as PoolMockV1).version()).to.eq(
+        2,
+      );
     });
   });
 
   describe('setImplementations', () => {
     it('should set implementation', async () => {
-      await factory.setImplementations([0], [poolV1]);
+      await factory.setImplementations(['pool0'], [poolV1]);
 
-      expect(await factory.getImplementation(0)).to.eq(await poolV1.getAddress());
+      expect(await factory.getImplementation('pool0')).to.eq(await poolV1.getAddress());
 
-      await factory.setImplementations([0], [poolV2]);
+      await factory.setImplementations(['pool0'], [poolV2]);
 
-      expect(await factory.getImplementation(0)).to.eq(await poolV2.getAddress());
+      expect(await factory.getImplementation('pool0')).to.eq(await poolV2.getAddress());
 
-      await factory.setImplementations([0], [poolV2]);
+      await factory.setImplementations(['pool0'], [poolV2]);
 
-      expect(await factory.getImplementation(0)).to.eq(await poolV2.getAddress());
+      expect(await factory.getImplementation('pool0')).to.eq(await poolV2.getAddress());
     });
     it('should revert if called by non-owner', async () => {
-      await expect(factory.connect(SECOND).setImplementations([0], [poolV1])).to.be.revertedWith(
+      await expect(factory.connect(SECOND).setImplementations(['pool0'], [poolV1])).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });
@@ -166,11 +176,11 @@ describe('Factory', () => {
 
   describe('getImplementation', () => {
     it('should get implementation', async () => {
-      await expect(factory.getImplementation(0)).to.be.revertedWith('F: beacon not found');
+      await expect(factory.getImplementation('pool0')).to.be.revertedWith('F: beacon not found');
 
-      await factory.setImplementations([0], [poolV1]);
+      await factory.setImplementations(['pool0'], [poolV1]);
 
-      expect(await factory.getImplementation(0)).to.eq(await poolV1.getAddress());
+      expect(await factory.getImplementation('pool0')).to.eq(await poolV1.getAddress());
     });
   });
 
@@ -179,30 +189,30 @@ describe('Factory', () => {
       const L1SenderFactory = await ethers.getContractFactory('L1Sender');
       const L1SenderImplementation = await L1SenderFactory.deploy();
 
-      await factory.setImplementations([0], [L1SenderImplementation]);
+      await factory.setImplementations(['pool0'], [L1SenderImplementation]);
     });
 
     it('should deploy contract', async () => {
-      const proxy = await factory.deploy2.staticCall('name', 0);
-      await factory.deploy2('name', 0);
+      const proxy = await factory.deploy2.staticCall('name', 'pool0');
+      await factory.deploy2('name', 'pool0');
 
-      expect(await factory.deployedProxies(OWNER, 'name', 0)).to.eq(proxy);
+      expect(await factory.getProxyPool(OWNER, 'name', 'pool0')).to.eq(proxy);
     });
     it('should deploy the same name for different addresses', async () => {
-      await factory.deploy2('name', 0);
+      await factory.deploy2('name', 'pool0');
 
-      await factory.connect(SECOND).deploy2('name', 0);
+      await factory.connect(SECOND).deploy2('name', 'pool0');
     });
     it('should revert if name is an empty string', async () => {
-      await expect(factory.deploy2('', 0)).to.be.revertedWith('F: poolName_ is empty');
+      await expect(factory.deploy2('', 'pool0')).to.be.revertedWith('F: protocol is empty');
     });
     it('should revert if implementation is not set', async () => {
-      await expect(factory.deploy2('name', 1)).to.be.revertedWith('F: beacon not found');
+      await expect(factory.deploy2('name', 'pool1')).to.be.revertedWith('F: beacon not found');
     });
     it('should revert if called twice with the same name for same address', async () => {
-      await factory.deploy2('name', 0);
+      await factory.deploy2('name', 'pool0');
 
-      await expect(factory.deploy2('name', 0)).to.be.revertedWith('F: salt used');
+      await expect(factory.deploy2('name', 'pool0')).to.be.revertedWith('F: salt used');
     });
   });
 });

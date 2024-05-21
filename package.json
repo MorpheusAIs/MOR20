@@ -44,7 +44,7 @@
     "@layerzerolabs/solidity-examples": "^1.0.0",
     "@openzeppelin/contracts": "4.9.2",
     "@openzeppelin/contracts-upgradeable": "4.9.2",
-    "@solarity/solidity-lib": "2.7.2",
+    "@solarity/solidity-lib": "2.7.6",
     "@uniswap/v3-core": "^1.0.1",
     "@uniswap/v3-periphery": "^1.4.4",
     "dotenv": "^10.0.0",
