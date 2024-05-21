@@ -11,6 +11,9 @@ import {Factory} from "./Factory.sol";
 import {MOR20Deployer} from "../libs/MOR20Deployer.sol";
 
 contract L2Factory is IL2Factory, Factory {
+    string public constant L2_MESSAGE_RECEIVER_POOL = "L2_MESSAGE_RECEIVER";
+    string public constant L2_TOKEN_RECEIVER_POOL = "L2_TOKEN_RECEIVER";
+
     UniswapExternalDeps public uniswapExternalDeps;
     LzExternalDeps public lzExternalDeps;
 
@@ -43,8 +46,10 @@ contract L2Factory is IL2Factory, Factory {
     }
 
     function deploy(L2Params calldata l2Params_) external whenNotPaused {
-        address l2MessageReceiver_ = _deploy2(l2Params_.protocolName, uint8(PoolType.L2_MESSAGE_RECEIVER));
-        address l2TokenReceiver_ = _deploy2(l2Params_.protocolName, uint8(PoolType.L2_TOKEN_RECEIVER));
+        _registerProtocol(l2Params_.protocolName);
+
+        address l2MessageReceiver_ = _deploy2(l2Params_.protocolName, L2_MESSAGE_RECEIVER_POOL);
+        address l2TokenReceiver_ = _deploy2(l2Params_.protocolName, L2_TOKEN_RECEIVER_POOL);
 
         address mor20_ = MOR20Deployer.deployMOR20(
             l2Params_.mor20Name,
@@ -80,7 +85,29 @@ contract L2Factory is IL2Factory, Factory {
         address deployer_,
         string calldata protocol_
     ) external view returns (address l2MessageReceiver_, address l2TokenReceiver_) {
-        l2MessageReceiver_ = _predictPoolAddress(deployer_, protocol_, uint8(PoolType.L2_MESSAGE_RECEIVER));
-        l2TokenReceiver_ = _predictPoolAddress(deployer_, protocol_, uint8(PoolType.L2_TOKEN_RECEIVER));
+        l2MessageReceiver_ = _predictPoolAddress(deployer_, protocol_, L2_MESSAGE_RECEIVER_POOL);
+        l2TokenReceiver_ = _predictPoolAddress(deployer_, protocol_, L2_TOKEN_RECEIVER_POOL);
+    }
+
+    function deployedAddresses(
+        address deployer_,
+        uint256 offset_,
+        uint256 limit_
+    ) external view returns (PoolView[] memory pools_) {
+        string[] memory protocols_ = listProtocols(deployer_, offset_, limit_);
+
+        pools_ = new PoolView[](protocols_.length);
+
+        for (uint256 i = 0; i < protocols_.length; i++) {
+            string memory protocol_ = protocols_[i];
+
+            mapping(string => address) storage _pools = _proxyPools[deployer_][protocol_];
+
+            pools_[i] = PoolView(
+                _pools[L2_MESSAGE_RECEIVER_POOL],
+                _pools[L2_TOKEN_RECEIVER_POOL],
+                mor20[deployer_][protocol_]
+            );
+        }
     }
 }

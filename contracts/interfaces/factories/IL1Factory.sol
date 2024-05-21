@@ -8,14 +8,6 @@ import {IDistribution} from "../L1/IDistribution.sol";
  */
 interface IL1Factory {
     /**
-     * The struct that represents the deployed L1 contract.
-     */
-    enum PoolType {
-        DISTRIBUTION,
-        L1_SENDER
-    }
-
-    /**
      * The struct that represents the parameters for
      * deploying specific L1 contracts.
      * @param isUpgradeable The flag indicating whether the deployed pools are upgradeable.
@@ -67,6 +59,16 @@ interface IL1Factory {
     }
 
     /**
+     * The struct that represents deployed pools.
+     * @param distribution The distribution address.
+     * @param l1Sender The L1 sender address.
+     */
+    struct PoolView {
+        address distribution;
+        address l1Sender;
+    }
+
+    /**
      * The function that initializes the contract.
      */
     function L1Factory_init() external;
@@ -102,4 +104,29 @@ interface IL1Factory {
      * @param l1Params_ The L1 parameters.
      */
     function deploy(IL1Factory.L1Params calldata l1Params_) external;
+
+    /**
+     * The function that predicts the pool addresses.
+     * @param deployer_ The deployer address.
+     * @param protocol_ The protocol name.
+     * @return distribution_ The distribution address.
+     * @return l1Sender_ The L1 sender address.
+     */
+    function predictAddresses(
+        address deployer_,
+        string calldata protocol_
+    ) external view returns (address distribution_, address l1Sender_);
+
+    /**
+     * The function that gets the deployed pools.
+     * @param deployer_ The deployer address.
+     * @param offset_ The offset.
+     * @param limit_ The limit.
+     * @return pools_ The deployed pools.
+     */
+    function deployedAddresses(
+        address deployer_,
+        uint256 offset_,
+        uint256 limit_
+    ) external view returns (PoolView[] memory pools_);
 }
