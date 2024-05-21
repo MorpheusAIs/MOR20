@@ -219,6 +219,7 @@ describe('Integration', () => {
 
       const l1Params: IL1Factory.L1ParamsStruct = {
         isUpgradeable: false,
+        owner: OWNER,
         protocolName: protocolName,
         poolsInfo: [],
         l2TokenReceiver: l2TokenReceiverPredicted,
@@ -226,6 +227,7 @@ describe('Integration', () => {
       };
       const l2Params: IL2Factory.L2ParamsStruct = {
         isUpgradeable: false,
+        owner: OWNER,
         protocolName: protocolName,
         mor20Name: 'MOR20',
         mor20Symbol: 'M20',
@@ -242,7 +244,7 @@ describe('Integration', () => {
       await l2Factory.deploy(l2Params);
 
       const distribution = await ethers.getContractAt('Distribution', distributionPredicted);
-      const MOR20 = await ethers.getContractAt('MOR20', await l2Factory.mor20(OWNER, protocolName));
+      const MOR20 = await ethers.getContractAt('MOR20', await l2Factory.getMor20(OWNER, protocolName));
 
       const pool = getDefaultPool();
       await distribution.createPool(pool);

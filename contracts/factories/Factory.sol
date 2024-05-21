@@ -23,8 +23,8 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
     /**
      * @dev It is used exclusively for storing information about the detached proxies.
      */
-    mapping(address deployer => mapping(string protocol => mapping(string poolType => address))) internal _proxyPools;
-    mapping(address deployer => DynamicSet.BytesSet) internal _protocols;
+    mapping(address deployer => mapping(string protocol => mapping(string poolType => address))) private _proxyPools;
+    mapping(address deployer => DynamicSet.BytesSet) private _protocols;
 
     function __Factory_init() internal onlyInitializing {}
 
@@ -118,6 +118,22 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
     }
 
     /**
+     * @notice The function to get the deployed proxy pool.
+     *
+     * @param deployer_ the deployer address.
+     * @param protocol_ the name of the protocol.
+     * @param poolType_ the type of the pool.
+     * @return pool the deployed proxy pool.
+     */
+    function getProxyPool(
+        address deployer_,
+        string memory protocol_,
+        string memory poolType_
+    ) public view returns (address) {
+        return _proxyPools[deployer_][protocol_][poolType_];
+    }
+
+    /**
      * @notice The function to get implementation of the specific pools.
      *
      * @param poolType_ the type of the pools.
@@ -158,6 +174,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
         _usedSalts[salt_] = true;
 
         address proxy_ = address(new FreezableBeaconProxy{salt: salt_}(beacon_, bytes("")));
+        _proxyPools[_msgSender()][protocol_][poolType_] = proxy_;
 
         emit ProxyDeployed(proxy_, UpgradeableBeacon(beacon_).implementation(), protocol_, poolType_);
 

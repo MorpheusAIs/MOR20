@@ -60,10 +60,12 @@ interface IL1Factory {
 
     /**
      * The struct that represents deployed pools.
+     * @param protocol The protocol name.
      * @param distribution The distribution address.
      * @param l1Sender The L1 sender address.
      */
     struct PoolView {
+        string protocol;
         address distribution;
         address l1Sender;
     }
@@ -124,7 +126,7 @@ interface IL1Factory {
      * @param limit_ The limit.
      * @return pools_ The deployed pools.
      */
-    function deployedAddresses(
+    function getDeployedPools(
         address deployer_,
         uint256 offset_,
         uint256 limit_

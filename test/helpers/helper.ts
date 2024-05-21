@@ -1,9 +1,9 @@
-export enum PoolTypesL1 {
-  DISTRIBUTION,
-  L1_SENDER,
-}
+export const PoolTypesL1 = {
+  DISTRIBUTION: 'DISTRIBUTION',
+  L1_SENDER: 'L1_SENDER',
+};
 
-export enum PoolTypesL2 {
-  L2_MESSAGE_RECEIVER,
-  L2_TOKEN_RECEIVER,
-}
+export const PoolTypesL2 = {
+  L2_MESSAGE_RECEIVER: 'L2_MESSAGE_RECEIVER',
+  L2_TOKEN_RECEIVER: 'L2_TOKEN_RECEIVER',
+};

@@ -49,6 +49,19 @@ interface IFactory {
     function listProtocols(address deployer_, uint256 offset_, uint256 limit_) external view returns (string[] memory);
 
     /**
+     * The function to get the deployed proxy pool.
+     * @param deployer_ the deployer address.
+     * @param protocol_ the name of the protocol.
+     * @param poolType_ the type of the pool.
+     * @return pool the deployed proxy pool.
+     */
+    function getProxyPool(
+        address deployer_,
+        string memory protocol_,
+        string memory poolType_
+    ) external view returns (address);
+
+    /**
      * The function to get the implementation of the specific pools.
      * @param poolType_ The type of the pools.
      * @return The implementation which the pool points to.

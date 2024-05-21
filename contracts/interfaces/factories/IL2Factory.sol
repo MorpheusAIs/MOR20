@@ -51,11 +51,13 @@ interface IL2Factory {
 
     /**
      * The struct that represents deployed pools.
+     * @param protocol The protocol name.
      * @param l2MessageReceiver The L2 message receiver address.
      * @param l2TokenReceiver The L2 token receiver address.
      * @param mor20 The MOR20 address.
      */
     struct PoolView {
+        string protocol;
         address l2MessageReceiver;
         address l2TokenReceiver;
         address mor20;
@@ -103,9 +105,17 @@ interface IL2Factory {
      * @param limit_ The limit.
      * @return pools_ The deployed pools.
      */
-    function deployedAddresses(
+    function getDeployedPools(
         address deployer_,
         uint256 offset_,
         uint256 limit_
     ) external view returns (PoolView[] memory pools_);
+
+    /**
+     * The function to get the MOR20 address.
+     * @param deployer_ The deployer address.
+     * @param protocol_ The protocol name.
+     * @return mor20 The MOR20 address.
+     */
+    function getMor20(address deployer_, string calldata protocol_) external view returns (address);
 }

@@ -1,10 +1,3 @@
-import { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
-import { expect } from 'chai';
-import { ethers } from 'hardhat';
-
-import { PoolTypesL2 } from '../helpers/helper';
-import { Reverter } from '../helpers/reverter';
-
 import {
   IL2Factory,
   L2Factory,
@@ -20,7 +13,14 @@ import {
   MOR20__factory,
   NonfungiblePositionManagerMock,
   SwapRouterMock,
-} from '@/generated-types/ethers';
+} from '@ethers-v6';
+import { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
+import { expect } from 'chai';
+import { ethers } from 'hardhat';
+
+import { PoolTypesL2 } from '../helpers/helper';
+import { Reverter } from '../helpers/reverter';
+
 import { ETHER_ADDR, ZERO_ADDR } from '@/scripts/utils/constants';
 
 describe('L2Factory', () => {
@@ -128,6 +128,7 @@ describe('L2Factory', () => {
   function getL2DefaultParams() {
     const l2Params: IL2Factory.L2ParamsStruct = {
       isUpgradeable: true,
+      owner: OWNER,
       protocolName: 'Mor20',
       mor20Name: 'MOR20',
       mor20Symbol: 'M20',
@@ -252,12 +253,12 @@ describe('L2Factory', () => {
       await l2Factory.deploy(l2Params);
 
       const l2MessageReceiver = l2MessageReceiverFactory.attach(
-        await l2Factory.deployedProxies(OWNER, l2Params.protocolName, PoolTypesL2.L2_MESSAGE_RECEIVER),
+        await l2Factory.getProxyPool(OWNER, l2Params.protocolName, PoolTypesL2.L2_MESSAGE_RECEIVER),
       ) as L2MessageReceiver;
       const l2TokenReceiver = l2TokenReceiverFactory.attach(
-        await l2Factory.deployedProxies(OWNER, l2Params.protocolName, PoolTypesL2.L2_TOKEN_RECEIVER),
+        await l2Factory.getProxyPool(OWNER, l2Params.protocolName, PoolTypesL2.L2_TOKEN_RECEIVER),
       ) as L2TokenReceiver;
-      const MOR = MOR20Factory.attach(await l2Factory.mor20(OWNER, l2Params.protocolName)) as MOR20;
+      const MOR = MOR20Factory.attach(await l2Factory.getMor20(OWNER, l2Params.protocolName)) as MOR20;
 
       expect(await l2MessageReceiver.owner()).to.equal(OWNER);
       expect(await l2TokenReceiver.owner()).to.equal(OWNER);
@@ -314,11 +315,11 @@ describe('L2Factory', () => {
 
       await l2Factory.deploy(l2Params);
 
-      expect(await l2Factory.deployedProxies(OWNER, l2Params.protocolName, PoolTypesL2.L2_MESSAGE_RECEIVER)).to.equal(
+      expect(await l2Factory.getProxyPool(OWNER, l2Params.protocolName, PoolTypesL2.L2_MESSAGE_RECEIVER)).to.equal(
         l2MessageReceiver,
       );
 
-      expect(await l2Factory.deployedProxies(OWNER, l2Params.protocolName, PoolTypesL2.L2_TOKEN_RECEIVER)).to.equal(
+      expect(await l2Factory.getProxyPool(OWNER, l2Params.protocolName, PoolTypesL2.L2_TOKEN_RECEIVER)).to.equal(
         l2TokenReceiver,
       );
     });

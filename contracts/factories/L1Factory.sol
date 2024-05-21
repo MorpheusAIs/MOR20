@@ -104,7 +104,7 @@ contract L1Factory is IL1Factory, Factory {
         l1Sender_ = _predictPoolAddress(deployer_, protocol_, L1_SENDER_POOL);
     }
 
-    function deployedAddresses(
+    function getDeployedPools(
         address deployer_,
         uint256 offset_,
         uint256 limit_
@@ -114,9 +114,13 @@ contract L1Factory is IL1Factory, Factory {
         pools_ = new PoolView[](protocols_.length);
 
         for (uint256 i = 0; i < protocols_.length; i++) {
-            mapping(string => address) storage _pools = _proxyPools[deployer_][protocols_[i]];
+            string memory protocol_ = protocols_[i];
 
-            pools_[i] = PoolView(_pools[DISTRIBUTION_POOL], _pools[L1_SENDER_POOL]);
+            pools_[i] = PoolView({
+                protocol: protocol_,
+                distribution: getProxyPool(deployer_, protocol_, DISTRIBUTION_POOL),
+                l1Sender: getProxyPool(deployer_, protocol_, L1_SENDER_POOL)
+            });
         }
     }
 }

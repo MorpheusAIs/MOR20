@@ -17,7 +17,7 @@ contract L2Factory is IL2Factory, Factory {
     UniswapExternalDeps public uniswapExternalDeps;
     LzExternalDeps public lzExternalDeps;
 
-    mapping(address deployer => mapping(string protocol => address)) public mor20;
+    mapping(address deployer => mapping(string protocol => address)) private _mor20;
 
     constructor() {
         _disableInitializers();
@@ -58,7 +58,7 @@ contract L2Factory is IL2Factory, Factory {
             _msgSender(),
             l2MessageReceiver_
         );
-        mor20[_msgSender()][l2Params_.protocolName] = mor20_;
+        _mor20[_msgSender()][l2Params_.protocolName] = mor20_;
 
         IL2MessageReceiver(l2MessageReceiver_).L2MessageReceiver__init(
             mor20_,
@@ -89,7 +89,7 @@ contract L2Factory is IL2Factory, Factory {
         l2TokenReceiver_ = _predictPoolAddress(deployer_, protocol_, L2_TOKEN_RECEIVER_POOL);
     }
 
-    function deployedAddresses(
+    function getDeployedPools(
         address deployer_,
         uint256 offset_,
         uint256 limit_
@@ -101,13 +101,16 @@ contract L2Factory is IL2Factory, Factory {
         for (uint256 i = 0; i < protocols_.length; i++) {
             string memory protocol_ = protocols_[i];
 
-            mapping(string => address) storage _pools = _proxyPools[deployer_][protocol_];
-
-            pools_[i] = PoolView(
-                _pools[L2_MESSAGE_RECEIVER_POOL],
-                _pools[L2_TOKEN_RECEIVER_POOL],
-                mor20[deployer_][protocol_]
-            );
+            pools_[i] = PoolView({
+                protocol: protocol_,
+                l2MessageReceiver: getProxyPool(deployer_, protocol_, L2_MESSAGE_RECEIVER_POOL),
+                l2TokenReceiver: getProxyPool(deployer_, protocol_, L2_TOKEN_RECEIVER_POOL),
+                mor20: _mor20[deployer_][protocol_]
+            });
         }
+    }
+
+    function getMor20(address deployer_, string calldata protocol_) external view returns (address) {
+        return _mor20[deployer_][protocol_];
     }
 }

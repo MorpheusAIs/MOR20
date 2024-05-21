@@ -1,10 +1,3 @@
-import { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
-import { expect } from 'chai';
-import { ethers } from 'hardhat';
-
-import { PoolTypesL1 } from '../helpers/helper';
-import { Reverter } from '../helpers/reverter';
-
 import {
   Distribution,
   Distribution__factory,
@@ -18,7 +11,14 @@ import {
   LinearDistributionIntervalDecrease,
   StETHMock,
   WStETHMock,
-} from '@/generated-types/ethers';
+} from '@ethers-v6';
+import { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
+import { expect } from 'chai';
+import { ethers } from 'hardhat';
+
+import { PoolTypesL1 } from '../helpers/helper';
+import { Reverter } from '../helpers/reverter';
+
 import { L1FactoryV2 } from '@/generated-types/ethers/contracts/mock/L1FactoryV2';
 import { ZERO_ADDR } from '@/scripts/utils/constants';
 import { wei } from '@/scripts/utils/utils';
@@ -134,6 +134,7 @@ describe('L1Factory', () => {
   function getL1DefaultParams() {
     const l1Params: IL1Factory.L1ParamsStruct = {
       isUpgradeable: true,
+      owner: OWNER,
       protocolName: 'Mor20',
       poolsInfo: [],
       l2TokenReceiver: SECOND,
@@ -294,10 +295,10 @@ describe('L1Factory', () => {
       await l1Factory.deploy(l1Params);
 
       const distribution = distributionFactory.attach(
-        await l1Factory.deployedProxies(OWNER, l1Params.protocolName, PoolTypesL1.DISTRIBUTION),
+        await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.DISTRIBUTION),
       ) as Distribution;
       const l1Sender = l1SenderFactory.attach(
-        await l1Factory.deployedProxies(OWNER, l1Params.protocolName, PoolTypesL1.L1_SENDER),
+        await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.L1_SENDER),
       ) as L1Sender;
 
       expect(await distribution.owner()).to.equal(OWNER);
@@ -347,10 +348,10 @@ describe('L1Factory', () => {
 
       await l1Factory.deploy(l1Params);
 
-      expect(await l1Factory.deployedProxies(OWNER, l1Params.protocolName, PoolTypesL1.DISTRIBUTION)).to.equal(
+      expect(await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.DISTRIBUTION)).to.equal(
         distribution,
       );
-      expect(await l1Factory.deployedProxies(OWNER, l1Params.protocolName, PoolTypesL1.L1_SENDER)).to.equal(l1Sender);
+      expect(await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.L1_SENDER)).to.equal(l1Sender);
     });
   });
 });
