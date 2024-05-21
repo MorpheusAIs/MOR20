@@ -87,8 +87,8 @@ contract L1Factory is IL1Factory, Factory {
             IFreezableBeaconProxy(l1SenderProxy_).freeze();
         }
 
-        IOwnable(distributionProxy_).transferOwnership(_msgSender());
-        IOwnable(l1SenderProxy_).transferOwnership(_msgSender());
+        IOwnable(distributionProxy_).transferOwnership(l1Params_.owner);
+        IOwnable(l1SenderProxy_).transferOwnership(l1Params_.owner);
     }
 
     function predictAddresses(

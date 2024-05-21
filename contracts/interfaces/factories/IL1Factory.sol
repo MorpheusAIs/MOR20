@@ -19,6 +19,7 @@ interface IL1Factory {
      * The struct that represents the parameters for
      * deploying specific L1 contracts.
      * @param isUpgradeable The flag indicating whether the deployed pools are upgradeable.
+     * @param owner The owner address.
      * @param protocolName The protocol name.
      * @param poolsInfo The pools information.
      * @param l2TokenReceiver The L2 token receiver address.
@@ -26,6 +27,7 @@ interface IL1Factory {
      */
     struct L1Params {
         bool isUpgradeable;
+        address owner;
         string protocolName;
         IDistribution.Pool[] poolsInfo;
         address l2TokenReceiver;

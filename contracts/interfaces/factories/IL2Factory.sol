@@ -16,6 +16,7 @@ interface IL2Factory {
      * The struct that represents the parameters for
      * deploying specific L2 contracts.
      * @param isUpgradeable The flag indicating whether the deployed pools are upgradeable.
+     * @param owner The owner address.
      * @param protocolName The protocol name.
      * @param mor20Name The MOR20 name.
      * @param mor20Symbol The MOR20 symbol.
@@ -25,6 +26,7 @@ interface IL2Factory {
      */
     struct L2Params {
         bool isUpgradeable;
+        address owner;
         string protocolName;
         string mor20Name;
         string mor20Symbol;

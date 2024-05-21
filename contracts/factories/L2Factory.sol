@@ -72,8 +72,8 @@ contract L2Factory is IL2Factory, Factory {
             IFreezableBeaconProxy(l2TokenReceiver_).freeze();
         }
 
-        IOwnable(l2MessageReceiver_).transferOwnership(_msgSender());
-        IOwnable(l2TokenReceiver_).transferOwnership(_msgSender());
+        IOwnable(l2MessageReceiver_).transferOwnership(l2Params_.owner);
+        IOwnable(l2TokenReceiver_).transferOwnership(l2Params_.owner);
     }
 
     function predictAddresses(
