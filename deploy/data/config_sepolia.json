@@ -4,8 +4,8 @@
     "treasury": "0x901F2d23823730fb7F2356920e0E273EFdCdFe17"
   },
   "depositTokenExternalDeps": {
-    "token": "0xe6D01D086a844a61641C75f1BCA572e7aa70e154",
-    "wToken": "0xE7d86F503F3dA0DEF5660420F667BF873d3D6A8f"
+    "token": "0x7381E51077f93A3c8F92881691E18BD95706C92A",
+    "wToken": "0xa0f3e69C13cfadb54F062a9ba687aA4C2d1F1913"
   },
   "lzExternalDeps": {
     "endpoint": "0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1",
@@ -22,7 +22,7 @@
     "senderChainId": 10161
   },
   "uniswapExternalDeps": {
-    "router": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
-    "nonfungiblePositionManager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88"
+    "router": "0x65799FB245c079552954EB397d05b93F108034bf",
+    "nonfungiblePositionManager": "0xCcCd9ec07C693e08CCf339a226D0a982eBE83349"
   }
 }
