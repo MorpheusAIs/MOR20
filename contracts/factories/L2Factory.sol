@@ -55,7 +55,7 @@ contract L2Factory is IL2Factory, Factory {
             l2Params_.mor20Name,
             l2Params_.mor20Symbol,
             lzExternalDeps.oftEndpoint,
-            _msgSender(),
+            l2Params_.owner,
             l2MessageReceiver_
         );
         _mor20[_msgSender()][l2Params_.protocolName] = mor20_;

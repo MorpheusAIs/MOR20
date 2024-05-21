@@ -353,6 +353,13 @@ describe('L1Factory', () => {
       );
       expect(await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.L1_SENDER)).to.equal(l1Sender);
     });
+
+    it('should predict zero if empty protocol', async () => {
+      const [distribution, l1Sender] = await l1Factory.predictAddresses(OWNER, '');
+
+      expect(distribution).to.eq(ZERO_ADDR);
+      expect(l1Sender).to.eq(ZERO_ADDR);
+    });
   });
 
   describe('#getDeployedPools', () => {

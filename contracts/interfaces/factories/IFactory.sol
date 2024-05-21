@@ -16,21 +16,21 @@ interface IFactory {
      * @param protocol_ the name of the protocol.
      * @param poolType_ the type of the pool.
      */
-    function freezePool(string calldata protocol_, string calldata poolType_) external;
+    function freezePool(string memory protocol_, string memory poolType_) external;
 
     /**
      * The function to unfreeze the specific pool.
      * @param protocol_ the name of the protocol.
      * @param poolType_ the type of the pool.
      */
-    function unfreezePool(string calldata protocol_, string calldata poolType_) external;
+    function unfreezePool(string memory protocol_, string memory poolType_) external;
 
     /**
      * The function to set the implementation for the specific pool.
      * @param poolTypes_ The types of the pools.
      * @param implementations_ The new implementations pools will point to.
      */
-    function setImplementations(string[] calldata poolTypes_, address[] calldata implementations_) external;
+    function setImplementations(string[] memory poolTypes_, address[] memory implementations_) external;
 
     /**
      * The function to get the number of protocols.
@@ -66,7 +66,7 @@ interface IFactory {
      * @param poolType_ The type of the pools.
      * @return The implementation which the pool points to.
      */
-    function getImplementation(string calldata poolType_) external view returns (address);
+    function getImplementation(string memory poolType_) external view returns (address);
 
     /**
      * The function to get beacon of the specific pools.

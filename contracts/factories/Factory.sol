@@ -47,7 +47,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param protocol_ the name of the protocol.
      * @param poolType_ the type of the pool.
      */
-    function freezePool(string calldata protocol_, string calldata poolType_) public {
+    function freezePool(string memory protocol_, string memory poolType_) public {
         address proxy_ = _proxyPools[_msgSender()][protocol_][poolType_];
 
         require(proxy_ != address(0), "F: pool not found");
@@ -60,7 +60,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param protocol_ the name of the protocol.
      * @param poolType_ the type of the pool.
      */
-    function unfreezePool(string calldata protocol_, string calldata poolType_) public {
+    function unfreezePool(string memory protocol_, string memory poolType_) public {
         address proxy_ = _proxyPools[_msgSender()][protocol_][poolType_];
 
         require(proxy_ != address(0), "F: pool not found");
@@ -74,9 +74,9 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param poolTypes_ The types of the pools.
      * @param implementations_ The new implementations pools will point to.
      */
-    function setImplementations(string[] calldata poolTypes_, address[] calldata implementations_) public onlyOwner {
+    function setImplementations(string[] memory poolTypes_, address[] memory implementations_) public onlyOwner {
         for (uint256 i = 0; i < poolTypes_.length; i++) {
-            string calldata poolType_ = poolTypes_[i];
+            string memory poolType_ = poolTypes_[i];
             address implementation_ = implementations_[i];
 
             if (address(_beacons[poolType_]) == address(0)) {
@@ -93,7 +93,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param deployer_ the address of the deployer.
      * @return protocolsCount the number of protocols.
      */
-    function countProtocols(address deployer_) external view returns (uint256) {
+    function countProtocols(address deployer_) public view returns (uint256) {
         return _protocols[deployer_].length();
     }
 
@@ -139,7 +139,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param poolType_ the type of the pools.
      * @return implementation the implementation which the pool points to.
      */
-    function getImplementation(string calldata poolType_) external view returns (address) {
+    function getImplementation(string memory poolType_) public view returns (address) {
         return UpgradeableBeacon(getBeacon(poolType_)).implementation();
     }
 
@@ -164,8 +164,9 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param poolType_ the type of the pool.
      * @return proxy the proxy address for the `poolType_`.
      */
-    function _deploy2(string calldata protocol_, string memory poolType_) internal returns (address) {
+    function _deploy2(string memory protocol_, string memory poolType_) internal returns (address) {
         require(bytes(protocol_).length != 0, "F: protocol is empty");
+
         bytes32 salt_ = _calculatePoolSalt(_msgSender(), protocol_, poolType_);
 
         address beacon_ = getBeacon(poolType_);
@@ -186,15 +187,19 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      *
      * @param protocol_ the name of the protocol.
      */
-    function _registerProtocol(string calldata protocol_) internal {
+    function _registerProtocol(string memory protocol_) internal {
         _protocols[_msgSender()].add(bytes(protocol_));
     }
 
     function _predictPoolAddress(
         address deployer_,
-        string calldata protocol_,
+        string memory protocol_,
         string memory poolType_
     ) internal view returns (address) {
+        if (bytes(protocol_).length == 0) {
+            return address(0);
+        }
+
         bytes32 salt_ = _calculatePoolSalt(deployer_, protocol_, poolType_);
 
         bytes32 bytecodeHash_ = keccak256(
@@ -206,7 +211,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
 
     function _calculatePoolSalt(
         address sender_,
-        string calldata protocol_,
+        string memory protocol_,
         string memory poolType_
     ) internal pure returns (bytes32) {
         return keccak256(abi.encodePacked(sender_, protocol_, poolType_));
