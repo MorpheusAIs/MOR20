@@ -60,5 +60,5 @@ interface IFactory {
      * @param poolType_ the type of the pools.
      * @return beacon the beacon which the pool points to.
      */
-    function getBeacon(string calldata poolType_) external view returns (address);
+    function getBeacon(string memory poolType_) external view returns (address);
 }

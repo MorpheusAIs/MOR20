@@ -123,7 +123,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param poolType_ the type of the pools.
      * @return implementation the implementation which the pool points to.
      */
-    function getImplementation(string calldata poolType_) public view returns (address) {
+    function getImplementation(string calldata poolType_) external view returns (address) {
         return UpgradeableBeacon(getBeacon(poolType_)).implementation();
     }
 
