@@ -354,4 +354,30 @@ describe('L1Factory', () => {
       expect(await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.L1_SENDER)).to.equal(l1Sender);
     });
   });
+
+  describe('#getDeployedPools', () => {
+    beforeEach(async () => {
+      const { depositTokenExternalDeps, lzExternalDeps, arbExternalDeps } = getL1FactoryParams();
+
+      await l1Factory.setDepositTokenExternalDeps(depositTokenExternalDeps);
+      await l1Factory.setLzExternalDeps(lzExternalDeps);
+      await l1Factory.setArbExternalDeps(arbExternalDeps);
+    });
+
+    it('should predict addresses', async () => {
+      const l1Params = getL1DefaultParams();
+
+      const [distribution, l1Sender] = await l1Factory.predictAddresses(OWNER, l1Params.protocolName);
+
+      await l1Factory.deploy(l1Params);
+
+      expect(await l1Factory.countProtocols(OWNER)).to.equal(1);
+
+      const pools = await l1Factory.getDeployedPools(OWNER, 0, 1);
+
+      expect(pools[0].protocol).to.equal(l1Params.protocolName);
+      expect(pools[0].distribution).to.equal(distribution);
+      expect(pools[0].l1Sender).to.equal(l1Sender);
+    });
+  });
 });

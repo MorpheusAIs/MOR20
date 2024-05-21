@@ -323,5 +323,30 @@ describe('L2Factory', () => {
         l2TokenReceiver,
       );
     });
+
+    describe('#getDeployedPools', () => {
+      beforeEach(async () => {
+        const { lzTokenExternalDeps, uniswapExternalDeps } = getL2FactoryParams();
+
+        await l2Factory.setLzExternalDeps(lzTokenExternalDeps);
+        await l2Factory.setUniswapExternalDeps(uniswapExternalDeps);
+      });
+
+      it('should predict addresses', async () => {
+        const l2Params = getL2DefaultParams();
+
+        const [l2MessageReceiver, l2TokenReceiver] = await l2Factory.predictAddresses(OWNER, l2Params.protocolName);
+
+        await l2Factory.deploy(l2Params);
+
+        expect(await l2Factory.countProtocols(OWNER)).to.equal(1);
+
+        const pools = await l2Factory.getDeployedPools(OWNER, 0, 1);
+
+        expect(pools[0].protocol).to.equal(l2Params.protocolName);
+        expect(pools[0].l2MessageReceiver).to.equal(l2MessageReceiver);
+        expect(pools[0].l2TokenReceiver).to.equal(l2TokenReceiver);
+      });
+    });
   });
 });
