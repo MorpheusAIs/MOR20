@@ -44,7 +44,7 @@ interface IFactory {
      * @param deployer_ the address of the deployer.
      * @param offset_ the offset of the list.
      * @param limit_ the limit of the list.
-     * @return protocols the list of the protocols.
+     * @return the list of the protocols.
      */
     function listProtocols(address deployer_, uint256 offset_, uint256 limit_) external view returns (string[] memory);
 

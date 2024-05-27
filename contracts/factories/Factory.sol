@@ -14,8 +14,8 @@ import {IFactory} from "../interfaces/factories/IFactory.sol";
 import {IFreezableBeaconProxy, FreezableBeaconProxy} from "../proxy/FreezableBeaconProxy.sol";
 
 abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, UUPSUpgradeable {
-    using DynamicSet for DynamicSet.BytesSet;
-    using Paginator for DynamicSet.BytesSet;
+    using DynamicSet for DynamicSet.StringSet;
+    using Paginator for DynamicSet.StringSet;
 
     mapping(string poolType => UpgradeableBeacon) internal _beacons;
     mapping(bytes32 => bool) private _usedSalts;
@@ -24,7 +24,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @dev It is used exclusively for storing information about the detached proxies.
      */
     mapping(address deployer => mapping(string protocol => mapping(string poolType => address))) private _proxyPools;
-    mapping(address deployer => DynamicSet.BytesSet) private _protocols;
+    mapping(address deployer => DynamicSet.StringSet) private _protocols;
 
     function __Factory_init() internal onlyInitializing {}
 
@@ -103,18 +103,10 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param deployer_ the address of the deployer.
      * @param offset_ the offset of the list.
      * @param limit_ the limit of the list.
-     * @return protocols_ the list of the protocols.
+     * @return the list of the protocols.
      */
-    function listProtocols(
-        address deployer_,
-        uint256 offset_,
-        uint256 limit_
-    ) public view returns (string[] memory protocols_) {
-        bytes[] memory bytesProtocols_ = _protocols[deployer_].part(offset_, limit_);
-
-        assembly {
-            protocols_ := bytesProtocols_
-        }
+    function listProtocols(address deployer_, uint256 offset_, uint256 limit_) public view returns (string[] memory) {
+        return _protocols[deployer_].part(offset_, limit_);
     }
 
     /**
@@ -188,7 +180,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param protocol_ the name of the protocol.
      */
     function _registerProtocol(string memory protocol_) internal {
-        _protocols[_msgSender()].add(bytes(protocol_));
+        _protocols[_msgSender()].add(protocol_);
     }
 
     function _predictPoolAddress(
