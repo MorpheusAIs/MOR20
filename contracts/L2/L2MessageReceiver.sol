@@ -7,23 +7,39 @@ import {IMOR20} from "../interfaces/L2/IMOR20.sol";
 import {IL2MessageReceiver} from "../interfaces/L2/IL2MessageReceiver.sol";
 
 contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable {
+    /**
+     * @notice MOR20 token
+     */
     address public rewardToken;
 
+    /**
+     * @notice L2Receiver config
+     */
     Config public config;
 
+    /**
+     * @notice ChainId => ((Sender, Receiver) => (nonce => payload hash))
+     */
     mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedMessages;
 
     constructor() {
         _disableInitializers();
     }
 
-    function L2MessageReceiver__init(address rewardToken_, Config calldata config_) external initializer {
+    /**
+     * @inheritdoc IL2MessageReceiver
+     */
+    function L2MessageReceiver__init(address rewardToken_, Config calldata config_) external override initializer {
         __Ownable_init();
 
         rewardToken = rewardToken_;
         config = config_;
     }
 
+    /**
+     * @notice Update L1Sender address. Only callable for owner
+     * @param lzSender_ New sender address
+     */
     function setLzSender(address lzSender_) external onlyOwner {
         require(lzSender_ != address(0), "L2MR: invalid sender");
 
@@ -41,6 +57,9 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable {
         _blockingLzReceive(senderChainId_, senderAndReceiverAddresses_, nonce_, payload_);
     }
 
+    /**
+     * @inheritdoc IL2MessageReceiver
+     */
     function nonblockingLzReceive(
         uint16 senderChainId_,
         bytes memory senderAndReceiverAddresses_,
@@ -51,6 +70,9 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable {
         _nonblockingLzReceive(senderChainId_, senderAndReceiverAddresses_, payload_);
     }
 
+    /**
+     * @inheritdoc IL2MessageReceiver
+     */
     function retryMessage(
         uint16 senderChainId_,
         bytes memory senderAndReceiverAddresses_,

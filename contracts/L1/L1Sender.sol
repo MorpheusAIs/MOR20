@@ -27,6 +27,9 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
         _disableInitializers();
     }
 
+    /**
+     * @inheritdoc IL1Sender
+     */
     function L1Sender__init(
         address distribution_,
         RewardTokenConfig calldata rewardTokenConfig_,
@@ -39,6 +42,9 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
         _setDepositTokenConfig(depositTokenConfig_);
     }
 
+    /**
+     * @inheritdoc IERC165
+     */
     function supportsInterface(bytes4 interfaceId_) external pure returns (bool) {
         return interfaceId_ == type(IL1Sender).interfaceId || interfaceId_ == type(IERC165).interfaceId;
     }
@@ -70,6 +76,9 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
         IERC20(newToken_).approve(IGatewayRouter(newGateway_).getGateway(newToken_), type(uint256).max);
     }
 
+    /**
+     * @inheritdoc IL1Sender
+     */
     function sendDepositToken(
         uint256 gasLimit_,
         uint256 maxFeePerGas_,
@@ -95,6 +104,9 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
             );
     }
 
+    /**
+     * @inheritdoc IL1Sender
+     */
     function sendMintMessage(address user_, uint256 amount_, address refundTo_) external payable onlyDistribution {
         RewardTokenConfig storage config = rewardTokenConfig;
 

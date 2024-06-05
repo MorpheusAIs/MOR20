@@ -15,18 +15,39 @@ import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 contract Distribution is IDistribution, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
+    /**
+     * @notice Address of token that will be deposited
+     */
     address public depositToken;
+
+    /**
+     * @notice Address of L1MessageSender
+     */
     address public l1Sender;
+
+    /**
+     * @notice Address of fee manager
+     */
     address public feeConfig;
 
-    // Pool storage
+    /**
+     * @notice Array of all created pools
+     */
     Pool[] public pools;
+
+    /**
+     * @notice Pool data by its id
+     */
     mapping(uint256 => PoolData) public poolsData;
 
-    // User storage
+    /**
+     * @notice User storage
+     */
     mapping(address => mapping(uint256 => UserData)) public usersData;
 
-    // Total deposited storage
+    /**
+     * @notice Total deposited storage
+     */
     uint256 public totalDepositedInPublicPools;
 
     /**********************************************************************************************/
@@ -50,6 +71,9 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         _disableInitializers();
     }
 
+    /**
+     * @inheritdoc IDistribution
+     */
     function Distribution_init(
         address depositToken_,
         address l1Sender_,
@@ -70,6 +94,9 @@ contract Distribution is IDistribution, OwnableUpgradeable {
     /**********************************************************************************************/
     /*** Pool management and data retrieval                                                     ***/
     /**********************************************************************************************/
+    /**
+     * @inheritdoc IDistribution
+     */
     function createPool(Pool calldata pool_) public onlyOwner {
         require(pool_.payoutStart > block.timestamp, "DS: invalid payout start value");
 
@@ -79,6 +106,9 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         emit PoolCreated(pools.length - 1, pool_);
     }
 
+    /**
+     * @inheritdoc IDistribution
+     */
     function editPool(uint256 poolId_, Pool calldata pool_) external onlyOwner poolExists(poolId_) {
         _validatePool(pool_);
 
@@ -102,6 +132,9 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         emit PoolEdited(poolId_, pool_);
     }
 
+    /**
+     * @inheritdoc IDistribution
+     */
     function getPeriodReward(uint256 poolId_, uint128 startTime_, uint128 endTime_) public view returns (uint256) {
         if (!_poolExists(poolId_)) {
             return 0;
@@ -127,6 +160,9 @@ contract Distribution is IDistribution, OwnableUpgradeable {
     /**********************************************************************************************/
     /*** User management in private pools                                                       ***/
     /**********************************************************************************************/
+    /**
+     * @inheritdoc IDistribution
+     */
     function manageUsersInPrivatePool(
         uint256 poolId_,
         address[] calldata users_,
@@ -154,10 +190,16 @@ contract Distribution is IDistribution, OwnableUpgradeable {
     /**********************************************************************************************/
     /*** Stake, claim, withdraw                                                                 ***/
     /**********************************************************************************************/
+    /**
+     * @inheritdoc IDistribution
+     */
     function stake(uint256 poolId_, uint256 amount_) external poolExists(poolId_) poolPublic(poolId_) {
         _stake(_msgSender(), poolId_, amount_, _getCurrentPoolRate(poolId_));
     }
 
+    /**
+     * @inheritdoc IDistribution
+     */
     function claim(uint256 poolId_, address receiver_) external payable poolExists(poolId_) {
         address user_ = _msgSender();
 
@@ -185,10 +227,16 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         emit UserClaimed(poolId_, user_, receiver_, pendingRewards_);
     }
 
+    /**
+     * @inheritdoc IDistribution
+     */
     function withdraw(uint256 poolId_, uint256 amount_) external poolExists(poolId_) poolPublic(poolId_) {
         _withdraw(_msgSender(), poolId_, amount_, _getCurrentPoolRate(poolId_));
     }
 
+    /**
+     * @inheritdoc IDistribution
+     */
     function getCurrentUserReward(uint256 poolId_, address user_) external view returns (uint256) {
         if (!_poolExists(poolId_)) {
             return 0;
@@ -316,6 +364,9 @@ contract Distribution is IDistribution, OwnableUpgradeable {
     /*** Bridge                                                                                 ***/
     /**********************************************************************************************/
 
+    /**
+     * @inheritdoc IDistribution
+     */
     function overplus() public view returns (uint256) {
         uint256 depositTokenContractBalance_ = IERC20(depositToken).balanceOf(address(this));
         if (depositTokenContractBalance_ <= totalDepositedInPublicPools) {
@@ -325,6 +376,9 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         return depositTokenContractBalance_ - totalDepositedInPublicPools;
     }
 
+    /**
+     * @inheritdoc IDistribution
+     */
     function bridgeOverplus(
         uint256 gasLimit_,
         uint256 maxFeePerGas_,
