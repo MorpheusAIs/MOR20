@@ -50,6 +50,13 @@ interface IL1Sender is IERC165 {
     function unwrappedDepositToken() external view returns (address);
 
     /**
+     * Updated ZKSync payment contract address and adapter parameters in reward token config
+     * @param zroPaymentAddress_ New ZKSync payment contract
+     * @param adapterParams_ New adapter params
+     */
+    function setRewardTokenLZParams(address zroPaymentAddress_, bytes calldata adapterParams_) external;
+
+    /**
      * The function to send the message of mint of reward token to the L2.
      * @param user_ The user's address to mint reward tokens.
      * @param amount_ The amount of reward tokens to mint.

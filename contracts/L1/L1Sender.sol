@@ -49,31 +49,12 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
         return interfaceId_ == type(IL1Sender).interfaceId || interfaceId_ == type(IERC165).interfaceId;
     }
 
+    /**
+     * @inheritdoc IL1Sender
+     */
     function setRewardTokenLZParams(address zroPaymentAddress_, bytes calldata adapterParams_) external onlyOwner {
         rewardTokenConfig.zroPaymentAddress = zroPaymentAddress_;
         rewardTokenConfig.adapterParams = adapterParams_;
-    }
-
-    function _setDepositTokenConfig(DepositTokenConfig calldata newConfig_) private {
-        require(newConfig_.receiver != address(0), "L1S: invalid receiver");
-
-        _setDepositToken(newConfig_.token);
-        _setDepositTokenGateway(newConfig_.gateway, newConfig_.token);
-
-        depositTokenConfig = newConfig_;
-    }
-
-    function _setDepositToken(address newToken_) private {
-        // Get stETH from wstETH
-        address unwrappedToken_ = IWStETH(newToken_).stETH();
-        // Increase allowance from stETH to wstETH. To exchange stETH for wstETH
-        IERC20(unwrappedToken_).approve(newToken_, type(uint256).max);
-
-        unwrappedDepositToken = unwrappedToken_;
-    }
-
-    function _setDepositTokenGateway(address newGateway_, address newToken_) private {
-        IERC20(newToken_).approve(IGatewayRouter(newGateway_).getGateway(newToken_), type(uint256).max);
     }
 
     /**
@@ -121,5 +102,27 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
             config.zroPaymentAddress, // future parameter
             config.adapterParams // adapterParams (see "Advanced Features")
         );
+    }
+
+    function _setDepositTokenConfig(DepositTokenConfig calldata newConfig_) private {
+        require(newConfig_.receiver != address(0), "L1S: invalid receiver");
+
+        _setDepositToken(newConfig_.token);
+        _setDepositTokenGateway(newConfig_.gateway, newConfig_.token);
+
+        depositTokenConfig = newConfig_;
+    }
+
+    function _setDepositToken(address newToken_) private {
+        // Get stETH from wstETH
+        address unwrappedToken_ = IWStETH(newToken_).stETH();
+        // Increase allowance from stETH to wstETH. To exchange stETH for wstETH
+        IERC20(unwrappedToken_).approve(newToken_, type(uint256).max);
+
+        unwrappedDepositToken = unwrappedToken_;
+    }
+
+    function _setDepositTokenGateway(address newGateway_, address newToken_) private {
+        IERC20(newToken_).approve(IGatewayRouter(newGateway_).getGateway(newToken_), type(uint256).max);
     }
 }

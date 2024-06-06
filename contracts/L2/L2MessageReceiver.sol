@@ -37,8 +37,7 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable {
     }
 
     /**
-     * @notice Update L1Sender address. Only callable for owner
-     * @param lzSender_ New sender address
+     * @inheritdoc IL2MessageReceiver
      */
     function setLzSender(address lzSender_) external onlyOwner {
         require(lzSender_ != address(0), "L2MR: invalid sender");
@@ -46,6 +45,9 @@ contract L2MessageReceiver is IL2MessageReceiver, OwnableUpgradeable {
         config.sender = lzSender_;
     }
 
+    /**
+     * @inheritdoc IL2MessageReceiver
+     */
     function lzReceive(
         uint16 senderChainId_,
         bytes memory senderAndReceiverAddresses_,
