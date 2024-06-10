@@ -51,11 +51,21 @@ interface IL1Factory {
     }
 
     /**
-     * The struct that represents the external dependencies for the Arbitrub contract.
+     * The struct that represents the external dependencies for the Arbitrum contract.
      * @param endpoint The endpoint address.
      */
     struct ArbExternalDeps {
         address endpoint;
+    }
+
+    /**
+     * The struct that represents the external dependencies for the Base contract.
+     * @param endpoint The endpoint address.
+     * @param wTokenL2 The wstETH address on the Base network.
+     */
+    struct BaseExternalDeps {
+        address endpoint;
+        address wTokenL2;
     }
 
     /**
@@ -67,7 +77,8 @@ interface IL1Factory {
     struct PoolView {
         string protocol;
         address distribution;
-        address l1Sender;
+        address l1ArbSender;
+        address l1BaseSender;
     }
 
     /**
@@ -90,34 +101,53 @@ interface IL1Factory {
     ) external;
 
     /**
-     * The function that sets the LZ external dependencies.
+     * The function that sets the LZ external dependencies for the Arbitrum network.
      * @param lzExternalDeps_ The LZ external dependencies.
      */
-    function setLzExternalDeps(IL1Factory.LzExternalDeps calldata lzExternalDeps_) external;
+    function setLzToArbExternalDeps(LzExternalDeps calldata lzExternalDeps_) external;
+
+    /**
+     * The function that sets the LZ external dependencies for the Base network.
+     * @param lzExternalDeps_ The LZ external dependencies.
+     */
+    function setLzToBaseExternalDeps(LzExternalDeps calldata lzExternalDeps_) external;
 
     /**
      * The function that sets the Arbitrum external dependencies.
-     * @param arbExternalDeps_ The Arbitrum external dependencies.
+     * @param externalDeps_ The Arbitrum external dependencies.
      */
-    function setArbExternalDeps(IL1Factory.ArbExternalDeps calldata arbExternalDeps_) external;
+    function setArbExternalDeps(ArbExternalDeps calldata externalDeps_) external;
 
     /**
-     * The function that deploys the L1 contracts.
+     * The function that sets the Base external dependencies.
+     * @param externalDeps_ The Base external dependencies.
+     */
+    function setBaseExternalDeps(BaseExternalDeps calldata externalDeps_) external;
+
+    /**
+     * The function that deploys the L1 contracts with the bridge integration for the Arbitrum network.
      * @param l1Params_ The L1 parameters.
      */
-    function deploy(IL1Factory.L1Params calldata l1Params_) external;
+    function deployArb(L1Params calldata l1Params_) external;
+
+    /**
+     * The function that deploys the L1 contracts with the bridge integration for the Base network.
+     * @param l1Params_ The L1 parameters.
+     */
+    function deployBase(L1Params calldata l1Params_) external;
 
     /**
      * The function that predicts the pool addresses.
      * @param deployer_ The deployer address.
      * @param protocol_ The protocol name.
      * @return distribution_ The distribution address.
-     * @return l1Sender_ The L1 sender address.
+     * @return l1ArbSender_ The L1 sender address for theArbitrum bridge.
+     * @return l1BaseSender_ The L1 sender address for the Base bridge.
      */
     function predictAddresses(
         address deployer_,
         string calldata protocol_
-    ) external view returns (address distribution_, address l1Sender_);
+    ) external view returns (address distribution_, address l1ArbSender_, address l1BaseSender_);
 
     /**
      * The function that gets the deployed pools.
