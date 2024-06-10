@@ -96,9 +96,18 @@ interface IDistribution {
     event UserWithdrawn(uint256 indexed poolId, address indexed user, uint256 amount);
 
     /**
-     * The event that is emitted when the overplus of the deposit tokens is bridged.
+     * The event that is emitted when the overplus of the deposit tokens is bridged to the Arbitrum network.
+     * @param amount The amount of tokens.
+     * @param uniqueId The unique identifier for bridge.
      */
-    event OverplusBridged(uint256 amount, bytes bridgeData_);
+    event OverplusBridgedToArb(uint256 amount, bytes uniqueId);
+
+    /**
+     * The event that is emitted when the overplus of the deposit tokens is bridged to the Base network.
+     * @param amount The amount of tokens.
+     * @param bridgeData_ The additional data for the bridge.
+     */
+    event OverplusBridgedToBase(uint256 amount, bytes bridgeData_);
 
     /**
      * The function to initialize the contract.

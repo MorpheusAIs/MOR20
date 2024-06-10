@@ -340,7 +340,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
             maxSubmissionCost_
         );
 
-        emit OverplusBridged(overplus_, bridgeMessageId_);
+        emit OverplusBridgedToArb(overplus_, bridgeMessageId_);
 
         return bridgeMessageId_;
     }
@@ -350,7 +350,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
 
         IL1BaseSender(l1Sender).sendDepositToken(gasLimit_, data_);
 
-        emit OverplusBridged(overplus_, "");
+        emit OverplusBridgedToBase(overplus_, data_);
     }
 
     function _beforeBridgeOverplus() private returns (uint256) {

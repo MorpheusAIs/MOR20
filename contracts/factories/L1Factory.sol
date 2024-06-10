@@ -81,12 +81,12 @@ contract L1Factory is IL1Factory, Factory {
         _registerProtocol(l1Params_.protocolName);
 
         address distributionProxy_ = _deploy2(l1Params_.protocolName, DISTRIBUTION_POOL);
-        address l1BaseSenderProxy_ = _deploy2(l1Params_.protocolName, L1_ARB_SENDER_POOL);
+        address l1ArbSenderProxy_ = _deploy2(l1Params_.protocolName, L1_ARB_SENDER_POOL);
 
-        _setupDistribution(l1Params_, distributionProxy_, l1BaseSenderProxy_);
-        _setupL1ArbSender(l1Params_, lzToArbExternalDeps, distributionProxy_, l1BaseSenderProxy_);
-        _freezeProxy(l1Params_.isUpgradeable, distributionProxy_, l1BaseSenderProxy_);
-        _transferProxyOwnership(l1Params_.owner, distributionProxy_, l1BaseSenderProxy_);
+        _setupDistribution(l1Params_, distributionProxy_, l1ArbSenderProxy_);
+        _setupL1ArbSender(l1Params_, lzToArbExternalDeps, distributionProxy_, l1ArbSenderProxy_);
+        _freezeProxy(l1Params_.isUpgradeable, distributionProxy_, l1ArbSenderProxy_);
+        _transferProxyOwnership(l1Params_.owner, distributionProxy_, l1ArbSenderProxy_);
     }
 
     function deployBase(L1Params calldata l1Params_) external whenNotPaused {

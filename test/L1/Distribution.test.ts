@@ -1672,7 +1672,7 @@ describe('Distribution', () => {
 
       const bridgeMessageId = await distribution.bridgeOverplusToArb.staticCall(1, 1, 1);
       const tx = await distribution.bridgeOverplusToArb(1, 1, 1);
-      await expect(tx).to.emit(distribution, 'OverplusBridged').withArgs(overplus, bridgeMessageId);
+      await expect(tx).to.emit(distribution, 'OverplusBridgedToArb').withArgs(overplus, bridgeMessageId);
       await expect(tx).to.changeTokenBalance(depositToken, distribution, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
       await expect(tx).to.changeTokenBalance(depositToken, OWNER, fee);
@@ -1694,7 +1694,7 @@ describe('Distribution', () => {
 
       const bridgeMessageId = await distribution.bridgeOverplusToArb.staticCall(1, 1, 1);
       const tx = await distribution.bridgeOverplusToArb(1, 1, 1);
-      await expect(tx).to.emit(distribution, 'OverplusBridged').withArgs(overplus, bridgeMessageId);
+      await expect(tx).to.emit(distribution, 'OverplusBridgedToArb').withArgs(overplus, bridgeMessageId);
       await expect(tx).to.changeTokenBalance(depositToken, distribution, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
       await expect(tx).to.changeTokenBalance(depositToken, OWNER, fee);
@@ -1713,7 +1713,7 @@ describe('Distribution', () => {
 
       const bridgeMessageId = await distribution.bridgeOverplusToArb.staticCall(1, 1, 1);
       const tx = await distribution.bridgeOverplusToArb(1, 1, 1);
-      await expect(tx).to.emit(distribution, 'OverplusBridged').withArgs(overplus, bridgeMessageId);
+      await expect(tx).to.emit(distribution, 'OverplusBridgedToArb').withArgs(overplus, bridgeMessageId);
       await expect(tx).to.changeTokenBalance(depositToken, distribution, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
       await expect(tx).to.changeTokenBalance(depositToken, OWNER, 0);
@@ -1751,10 +1751,15 @@ describe('Distribution', () => {
       overplus -= fee;
 
       const tx = await distributionBase.bridgeOverplusToBase(1, '0x');
-      await expect(tx).to.emit(distributionBase, 'OverplusBridged').withArgs(overplus, '0x');
+      await expect(tx).to.emit(distributionBase, 'OverplusBridgedToBase').withArgs(overplus, '0x');
       await expect(tx).to.changeTokenBalance(depositToken, distributionBase, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
       await expect(tx).to.changeTokenBalance(depositToken, OWNER, fee);
+    });
+    it('should revert if caller is not owner', async () => {
+      await expect(distributionBase.connect(SECOND).bridgeOverplusToBase(1, '0x')).to.be.revertedWith(
+        'Ownable: caller is not the owner',
+      );
     });
   });
 });

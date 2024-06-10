@@ -259,10 +259,17 @@ describe('L1Factory', () => {
       expect(actualLzExternalDeps.adapterParams).to.equal(lzExternalDeps.adapterParams);
       expect(actualLzExternalDeps.destinationChainId).to.equal(lzExternalDeps.destinationChainId);
     });
-    it('should revert if called by non-owner', async () => {
+    it('should revert if called by non-owner: Arb', async () => {
       const { lzExternalDeps } = getL1FactoryParams();
 
       await expect(l1Factory.connect(SECOND).setLzToArbExternalDeps(lzExternalDeps)).to.be.revertedWith(
+        'Ownable: caller is not the owner',
+      );
+    });
+    it('should revert if called by non-owner: Base', async () => {
+      const { lzExternalDeps } = getL1FactoryParams();
+
+      await expect(l1Factory.connect(SECOND).setLzToBaseExternalDeps(lzExternalDeps)).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });
