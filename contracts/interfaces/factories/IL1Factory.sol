@@ -72,7 +72,8 @@ interface IL1Factory {
      * The struct that represents deployed pools.
      * @param protocol The protocol name.
      * @param distribution The distribution address.
-     * @param l1Sender The L1 sender address.
+     * @param l1ArbSender The L1 sender address for the Arbitrum bridge.
+     * @param l1BaseSender The L1 sender address for the Base bridge.
      */
     struct PoolView {
         string protocol;

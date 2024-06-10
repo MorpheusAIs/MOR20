@@ -1,6 +1,5 @@
 import { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { Typed } from 'ethers';
 import { ethers } from 'hardhat';
 
 import {
@@ -94,7 +93,7 @@ describe('L1BaseSender', () => {
 
     rewardToken = await Mor.deploy('MOR', 'MOR', lZEndpointMockOFT, OWNER, l2MessageReceiver);
 
-    const rewardTokenConfig: Typed | IL1Sender.RewardTokenConfigStruct = {
+    const rewardTokenConfig: IL1Sender.RewardTokenConfigStruct = {
       gateway: lZEndpointMockL1,
       receiver: l2MessageReceiver,
       receiverChainId: receiverChainId,
@@ -130,7 +129,7 @@ describe('L1BaseSender', () => {
   });
 
   describe('initialization', () => {
-    let rewardTokenConfig: Typed | IL1Sender.RewardTokenConfigStruct;
+    let rewardTokenConfig: IL1Sender.RewardTokenConfigStruct;
     let depositTokenConfig: IL1BaseSender.DepositTokenConfigStruct;
 
     before(async () => {
