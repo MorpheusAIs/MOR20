@@ -1,6 +1,7 @@
 export const PoolTypesL1 = {
   DISTRIBUTION: 'DISTRIBUTION',
-  L1_SENDER: 'L1_SENDER',
+  L1_ARB_SENDER: 'L1_ARB_SENDER',
+  L1_BASE_SENDER: 'L1_BASE_SENDER',
 };
 
 export const PoolTypesL2 = {

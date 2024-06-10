@@ -8,8 +8,11 @@ import {
   FeeConfig,
   GatewayRouterMock,
   IDistribution,
-  IL1Sender,
-  L1Sender,
+  IL1ArbSender,
+  IL1BaseSender,
+  L1ArbSender,
+  L1BaseSender,
+  L1ERC20TokenBridgeMock,
   L2MessageReceiver,
   LZEndpointMock,
   LayerZeroEndpointV2Mock,
@@ -38,6 +41,7 @@ describe('Distribution', () => {
 
   let distributionFactory: Distribution__factory;
   let distribution: Distribution;
+  let distributionBase: Distribution;
 
   let lib: LinearDistributionIntervalDecrease;
 
@@ -50,7 +54,8 @@ describe('Distribution', () => {
   let lZEndpointMockOFT: LayerZeroEndpointV2Mock;
 
   let feeConfig: FeeConfig;
-  let l1Sender: L1Sender;
+  let l1ArbSender: L1ArbSender;
+  let l1BaseSender: L1BaseSender;
   let l2MessageReceiver: L2MessageReceiver;
   let l2TokenReceiver: L2TokenReceiver;
 
@@ -64,11 +69,13 @@ describe('Distribution', () => {
       MORFactory,
       stETHMockFactory,
       wstETHMockFactory,
-      l1SenderFactory,
+      l1ArbSenderFactory,
+      l1BaseSenderFactory,
       LZEndpointMock,
       L2MessageReceiver,
       L2TokenReceiver,
-      gatewayRouterMock,
+      GatewayRouterMock,
+      BaseGatewayMock,
       SwapRouterMock,
       NonfungiblePositionManagerMock,
       LZEndpointMockOFT,
@@ -79,11 +86,13 @@ describe('Distribution', () => {
       ethers.getContractFactory('MOR20'),
       ethers.getContractFactory('StETHMock'),
       ethers.getContractFactory('WStETHMock'),
-      ethers.getContractFactory('L1Sender'),
+      ethers.getContractFactory('L1ArbSender'),
+      ethers.getContractFactory('L1BaseSender'),
       ethers.getContractFactory('LZEndpointMock'),
       ethers.getContractFactory('L2MessageReceiver'),
       ethers.getContractFactory('L2TokenReceiver'),
       ethers.getContractFactory('GatewayRouterMock'),
+      ethers.getContractFactory('L1ERC20TokenBridgeMock'),
       ethers.getContractFactory('SwapRouterMock'),
       ethers.getContractFactory('NonfungiblePositionManagerMock'),
       ethers.getContractFactory('LayerZeroEndpointV2Mock'),
@@ -91,11 +100,13 @@ describe('Distribution', () => {
     ]);
 
     let gatewayRouter: GatewayRouterMock;
+    let baseGateway: L1ERC20TokenBridgeMock;
     let swapRouter: SwapRouterMock;
     let nonfungiblePositionManager: NonfungiblePositionManagerMock;
     let l2TokenReceiverImplementation: L2TokenReceiver;
     let l2MessageReceiverImplementation: L2MessageReceiver;
-    let l1SenderImplementation: L1Sender;
+    let l1ArbSenderImplementation: L1ArbSender;
+    let l1BaseSenderImplementation: L1BaseSender;
     let feeConfigImplementation: FeeConfig;
     // START deploy contracts without deps
     [
@@ -104,11 +115,13 @@ describe('Distribution', () => {
       lZEndpointMockSender,
       lZEndpointMockReceiver,
       gatewayRouter,
+      baseGateway,
       swapRouter,
       nonfungiblePositionManager,
       l2TokenReceiverImplementation,
       l2MessageReceiverImplementation,
-      l1SenderImplementation,
+      l1ArbSenderImplementation,
+      l1BaseSenderImplementation,
       lZEndpointMockOFT,
       feeConfigImplementation,
     ] = await Promise.all([
@@ -116,12 +129,14 @@ describe('Distribution', () => {
       stETHMockFactory.deploy(),
       LZEndpointMock.deploy(senderChainId),
       LZEndpointMock.deploy(receiverChainId),
-      gatewayRouterMock.deploy(),
+      GatewayRouterMock.deploy(),
+      BaseGatewayMock.deploy(),
       SwapRouterMock.deploy(),
       NonfungiblePositionManagerMock.deploy(),
       L2TokenReceiver.deploy(),
       L2MessageReceiver.deploy(),
-      l1SenderFactory.deploy(),
+      l1ArbSenderFactory.deploy(),
+      l1BaseSenderFactory.deploy(),
       LZEndpointMockOFT.deploy(receiverChainId, OWNER),
       feeConfigFactory.deploy(),
     ]);
@@ -132,6 +147,7 @@ describe('Distribution', () => {
       },
     });
     const distributionImplementation = await distributionFactory.deploy();
+    const distributionBaseImplementation = await distributionFactory.deploy();
     // END
 
     lZEndpointMockOFT = await LZEndpointMockOFT.deploy(receiverChainId, OWNER);
@@ -165,24 +181,40 @@ describe('Distribution', () => {
     // START deploy distribution contract
     const distributionProxy = await ERC1967ProxyFactory.deploy(await distributionImplementation.getAddress(), '0x');
     distribution = distributionFactory.attach(await distributionProxy.getAddress()) as Distribution;
+
+    const distributionBaseProxy = await ERC1967ProxyFactory.deploy(
+      await distributionBaseImplementation.getAddress(),
+      '0x',
+    );
+    distributionBase = distributionFactory.attach(await distributionBaseProxy.getAddress()) as Distribution;
     // END
 
-    const rewardTokenConfig: IL1Sender.RewardTokenConfigStruct = {
+    const rewardTokenConfig = {
       gateway: lZEndpointMockSender,
       receiver: l2MessageReceiver,
       receiverChainId: receiverChainId,
       zroPaymentAddress: ZERO_ADDR,
       adapterParams: '0x',
     };
-    const depositTokenConfig: IL1Sender.DepositTokenConfigStruct = {
+    const arbDepositTokenConfig: IL1ArbSender.DepositTokenConfigStruct = {
       token: wstETH,
       gateway: gatewayRouter,
       receiver: l2TokenReceiver,
     };
+    const baseDepositTokenConfig: IL1BaseSender.DepositTokenConfigStruct = {
+      gateway: baseGateway,
+      l1Token: wstETH,
+      l2Token: wstETH,
+      receiver: l2TokenReceiver,
+    };
 
-    const l1SenderProxy = await ERC1967ProxyFactory.deploy(l1SenderImplementation, '0x');
-    l1Sender = l1SenderFactory.attach(l1SenderProxy) as L1Sender;
-    await l1Sender.L1Sender__init(distribution, rewardTokenConfig, depositTokenConfig);
+    const l1ArbSenderProxy = await ERC1967ProxyFactory.deploy(l1ArbSenderImplementation, '0x');
+    l1ArbSender = l1ArbSenderFactory.attach(l1ArbSenderProxy) as L1ArbSender;
+    await l1ArbSender.L1ArbSender__init(distribution, rewardTokenConfig, arbDepositTokenConfig);
+
+    const l1BaseSenderProxy = await ERC1967ProxyFactory.deploy(l1BaseSenderImplementation, '0x');
+    l1BaseSender = l1BaseSenderFactory.attach(l1BaseSenderProxy) as L1BaseSender;
+    await l1BaseSender.L1BaseSender__init(distributionBase, rewardTokenConfig, baseDepositTokenConfig);
 
     // Deploy reward token
     rewardToken = await MORFactory.deploy('MOR', 'MOR', lZEndpointMockOFT, OWNER, l2MessageReceiver);
@@ -190,20 +222,24 @@ describe('Distribution', () => {
 
     await l2MessageReceiver.L2MessageReceiver__init(rewardToken, {
       gateway: lZEndpointMockReceiver,
-      sender: l1Sender,
+      sender: l1ArbSender,
       senderChainId: senderChainId,
     });
 
     await lZEndpointMockSender.setDestLzEndpoint(l2MessageReceiver, lZEndpointMockReceiver);
 
-    await distribution.Distribution_init(depositToken, l1Sender, feeConfig, []);
+    await distribution.Distribution_init(depositToken, l1ArbSender, feeConfig, []);
+    await distributionBase.Distribution_init(depositToken, l1BaseSender, feeConfig, []);
 
     await Promise.all([depositToken.mint(OWNER.address, wei(1000)), depositToken.mint(SECOND.address, wei(1000))]);
     await Promise.all([
       depositToken.approve(distribution, wei(1000)),
       depositToken.connect(SECOND).approve(distribution, wei(1000)),
+      depositToken.approve(distributionBase, wei(1000)),
+      depositToken.connect(SECOND).approve(distributionBase, wei(1000)),
+      l1ArbSender.transferOwnership(distribution),
+      l1BaseSender.transferOwnership(distributionBase),
     ]);
-    await l1Sender.transferOwnership(distribution);
 
     await reverter.snapshot();
   });
@@ -217,7 +253,9 @@ describe('Distribution', () => {
 
         const distribution = await distributionFactory.deploy();
 
-        await expect(distribution.Distribution_init(depositToken, l1Sender, feeConfig, [])).to.be.revertedWith(reason);
+        await expect(distribution.Distribution_init(depositToken, l1ArbSender, feeConfig, [])).to.be.revertedWith(
+          reason,
+        );
       });
     });
 
@@ -242,7 +280,7 @@ describe('Distribution', () => {
 
         const distribution = distributionFactory.attach(await distributionProxy.getAddress()) as Distribution;
 
-        await distribution.Distribution_init(depositToken, l1Sender, feeConfig, [pool1, pool2]);
+        await distribution.Distribution_init(depositToken, l1ArbSender, feeConfig, [pool1, pool2]);
 
         const pool1Data: IDistribution.PoolStruct = await distribution.pools(0);
         expect(_comparePoolStructs(pool1, pool1Data)).to.be.true;
@@ -253,7 +291,9 @@ describe('Distribution', () => {
       it('should revert if try to call init function twice', async () => {
         const reason = 'Initializable: contract is already initialized';
 
-        await expect(distribution.Distribution_init(depositToken, l1Sender, feeConfig, [])).to.be.rejectedWith(reason);
+        await expect(distribution.Distribution_init(depositToken, l1ArbSender, feeConfig, [])).to.be.rejectedWith(
+          reason,
+        );
       });
     });
   });
@@ -1578,7 +1618,7 @@ describe('Distribution', () => {
     });
   });
 
-  describe('#bridgeOverplus', () => {
+  describe('#bridgeOverplusToArb', () => {
     beforeEach(async () => {
       await depositToken.mint(OWNER, wei(100));
       await _getRewardTokenFromPool(distribution, wei(100), OWNER);
@@ -1600,8 +1640,8 @@ describe('Distribution', () => {
       const fee = (overplus * (await feeConfig.baseFee())) / wei(1, 25);
       overplus -= fee;
 
-      const bridgeMessageId = await distribution.bridgeOverplus.staticCall(1, 1, 1);
-      const tx = await distribution.bridgeOverplus(1, 1, 1);
+      const bridgeMessageId = await distribution.bridgeOverplusToArb.staticCall(1, 1, 1);
+      const tx = await distribution.bridgeOverplusToArb(1, 1, 1);
       await expect(tx).to.emit(distribution, 'OverplusBridged').withArgs(overplus, bridgeMessageId);
       await expect(tx).to.changeTokenBalance(depositToken, distribution, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
@@ -1622,8 +1662,8 @@ describe('Distribution', () => {
       const fee = (overplus * wei(0.5, 25)) / wei(1, 25);
       overplus -= fee;
 
-      const bridgeMessageId = await distribution.bridgeOverplus.staticCall(1, 1, 1);
-      const tx = await distribution.bridgeOverplus(1, 1, 1);
+      const bridgeMessageId = await distribution.bridgeOverplusToArb.staticCall(1, 1, 1);
+      const tx = await distribution.bridgeOverplusToArb(1, 1, 1);
       await expect(tx).to.emit(distribution, 'OverplusBridged').withArgs(overplus, bridgeMessageId);
       await expect(tx).to.changeTokenBalance(depositToken, distribution, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
@@ -1641,20 +1681,50 @@ describe('Distribution', () => {
       const overplus = await distribution.overplus();
       expect(overplus).to.eq(wei(1));
 
-      const bridgeMessageId = await distribution.bridgeOverplus.staticCall(1, 1, 1);
-      const tx = await distribution.bridgeOverplus(1, 1, 1);
+      const bridgeMessageId = await distribution.bridgeOverplusToArb.staticCall(1, 1, 1);
+      const tx = await distribution.bridgeOverplusToArb(1, 1, 1);
       await expect(tx).to.emit(distribution, 'OverplusBridged').withArgs(overplus, bridgeMessageId);
       await expect(tx).to.changeTokenBalance(depositToken, distribution, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
       await expect(tx).to.changeTokenBalance(depositToken, OWNER, 0);
     });
     it('should revert if caller is not owner', async () => {
-      await expect(distribution.connect(SECOND).bridgeOverplus(1, 1, 1)).to.be.revertedWith(
+      await expect(distribution.connect(SECOND).bridgeOverplusToArb(1, 1, 1)).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });
     it('should revert if overplus is <= 0', async () => {
-      await expect(distribution.bridgeOverplus(1, 1, 1)).to.be.revertedWith('DS: overplus is zero');
+      await expect(distribution.bridgeOverplusToArb(1, 1, 1)).to.be.revertedWith('DS: overplus is zero');
+    });
+  });
+
+  describe('#bridgeOverplusToBase', () => {
+    beforeEach(async () => {
+      await depositToken.mint(OWNER, wei(100));
+      await _getRewardTokenFromPool(distributionBase, wei(100), OWNER);
+
+      const pool = getDefaultPool();
+
+      await distributionBase.createPool(pool);
+    });
+    it('should bridge overplus with basic fee', async () => {
+      const l2TokenReceiverAddress = await l2TokenReceiver.getAddress();
+
+      await distributionBase.stake(1, wei(1));
+
+      await depositToken.setTotalPooledEther((await depositToken.totalPooledEther()) * 2n);
+
+      let overplus = await distributionBase.overplus();
+      expect(overplus).to.eq(wei(1));
+
+      const fee = (overplus * (await feeConfig.baseFee())) / wei(1, 25);
+      overplus -= fee;
+
+      const tx = await distributionBase.bridgeOverplusToBase(1, '0x');
+      await expect(tx).to.emit(distributionBase, 'OverplusBridged').withArgs(overplus, '0x');
+      await expect(tx).to.changeTokenBalance(depositToken, distributionBase, wei(-1));
+      expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
+      await expect(tx).to.changeTokenBalance(depositToken, OWNER, fee);
     });
   });
 });
@@ -1708,5 +1778,5 @@ const _comparePoolStructs = (a: IDistribution.PoolStruct, b: IDistribution.PoolS
   );
 };
 
-// npx hardhat test "test/Distribution.test.ts"
-// npx hardhat coverage --solcoverjs ./.solcover.ts --testfiles "test/Distribution.test.ts"
+// npx hardhat test "test/L1/Distribution.test.ts"
+// npx hardhat coverage --solcoverjs ./.solcover.ts --testfiles "test/L1/Distribution.test.ts"

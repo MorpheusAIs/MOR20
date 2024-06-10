@@ -132,7 +132,7 @@ describe('Factory', () => {
 
   describe('deploy2', () => {
     beforeEach(async () => {
-      const L1SenderFactory = await ethers.getContractFactory('L1Sender');
+      const L1SenderFactory = await ethers.getContractFactory('L1ArbSender');
       const L1SenderImplementation = await L1SenderFactory.deploy();
 
       await factory.setImplementations(['pool0'], [L1SenderImplementation]);

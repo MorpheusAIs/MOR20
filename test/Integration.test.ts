@@ -72,7 +72,7 @@ describe('Integration', () => {
       ethers.getContractFactory('ERC1967Proxy'),
 
       ethers.getContractFactory('LinearDistributionIntervalDecrease'),
-      ethers.getContractFactory('L1Sender'),
+      ethers.getContractFactory('L1ArbSender'),
       ethers.getContractFactory('StETHMock'),
       ethers.getContractFactory('WStETHMock'),
       ethers.getContractFactory('GatewayRouterMock'),
@@ -142,9 +142,11 @@ describe('Integration', () => {
     l1Factory = L1Factory.attach(l1FactoryProxy) as L1Factory;
     await l1Factory.L1Factory_init();
 
+    // Set test impl for `l1BaseSenderImplementation`
+    const l1BaseSenderImplementation = l1SenderImplementation;
     await l1Factory.setImplementations(
-      [PoolTypesL1.DISTRIBUTION, PoolTypesL1.L1_SENDER],
-      [distributionImplementation, l1SenderImplementation],
+      [PoolTypesL1.DISTRIBUTION, PoolTypesL1.L1_ARB_SENDER, PoolTypesL1.L1_BASE_SENDER],
+      [distributionImplementation, l1SenderImplementation, l1BaseSenderImplementation],
     );
 
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImplementation, '0x');
@@ -181,7 +183,7 @@ describe('Integration', () => {
     };
 
     await l1Factory.setDepositTokenExternalDeps(depositTokenExternalDeps);
-    await l1Factory.setLzExternalDeps(lzExternalDeps);
+    await l1Factory.setLzToArbExternalDeps(lzExternalDeps);
     await l1Factory.setArbExternalDeps(arbExternalDeps);
     await l1Factory.setFeeConfig(feeConfig);
 
@@ -240,7 +242,7 @@ describe('Integration', () => {
         secondSwapFee: 3000,
       };
 
-      await l1Factory.deploy(l1Params);
+      await l1Factory.deployArb(l1Params);
       await l2Factory.deploy(l2Params);
 
       const distribution = await ethers.getContractAt('Distribution', distributionPredicted);
@@ -258,7 +260,7 @@ describe('Integration', () => {
       const overplus = await distribution.overplus();
       expect(overplus).to.be.eq(wei(1));
 
-      let tx = await distribution.bridgeOverplus(1, 1, 1);
+      let tx = await distribution.bridgeOverplusToArb(1, 1, 1);
       await expect(tx).to.changeTokenBalances(l1StEth, [distributionPredicted, OWNER], [wei(-1), wei(0.1)]);
       // we made an assumption that the token address is l1WstEth
       await expect(tx).to.changeTokenBalance(l1WstEth, l2TokenReceiverPredicted, wei(0.9));
@@ -278,3 +280,5 @@ describe('Integration', () => {
     });
   });
 });
+
+// npx hardhat test "test/Integration.test.ts"

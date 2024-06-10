@@ -98,7 +98,7 @@ interface IDistribution {
     /**
      * The event that is emitted when the overplus of the deposit tokens is bridged.
      */
-    event OverplusBridged(uint256 amount, bytes uniqueId);
+    event OverplusBridged(uint256 amount, bytes bridgeData_);
 
     /**
      * The function to initialize the contract.
@@ -180,17 +180,24 @@ interface IDistribution {
     function overplus() external view returns (uint256);
 
     /**
-     * The function to bridge the overplus of the staked deposit tokens.
+     * The function to bridge the overplus of the staked deposit tokens to the Arbitrum network.
      * @param gasLimit_ The gas limit.
      * @param maxFeePerGas_ The max fee per gas.
      * @param maxSubmissionCost_ The max submission cost.
      * @return The unique identifier for withdrawal.
      */
-    function bridgeOverplus(
+    function bridgeOverplusToArb(
         uint256 gasLimit_,
         uint256 maxFeePerGas_,
         uint256 maxSubmissionCost_
     ) external payable returns (bytes memory);
+
+    /**
+     * The function to bridge the overplus of the staked deposit tokens to the Base network.
+     * @param gasLimit_ The gas limit.
+     * @param data_ The additional data for the bridge.
+     */
+    function bridgeOverplusToBase(uint24 gasLimit_, bytes memory data_) external;
 
     /**
      * The function to get the address of deposit token.

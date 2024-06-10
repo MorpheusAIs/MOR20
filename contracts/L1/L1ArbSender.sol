@@ -8,10 +8,10 @@ import {IGatewayRouter} from "@arbitrum/token-bridge-contracts/contracts/tokenbr
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {IWStETH} from "../interfaces/tokens/IWStETH.sol";
-import {IL1Sender, IERC165} from "../interfaces/L1/IL1Sender.sol";
+import {IWstETH} from "../interfaces/tokens/IWstETH.sol";
+import {IL1ArbSender, IERC165} from "../interfaces/L1/IL1ArbSender.sol";
 
-contract L1Sender is IL1Sender, OwnableUpgradeable {
+contract L1ArbSender is IL1ArbSender, OwnableUpgradeable {
     address public unwrappedDepositToken;
     address public distribution;
 
@@ -27,7 +27,7 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
         _disableInitializers();
     }
 
-    function L1Sender__init(
+    function L1ArbSender__init(
         address distribution_,
         RewardTokenConfig calldata rewardTokenConfig_,
         DepositTokenConfig calldata depositTokenConfig_
@@ -40,7 +40,7 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
     }
 
     function supportsInterface(bytes4 interfaceId_) external pure returns (bool) {
-        return interfaceId_ == type(IL1Sender).interfaceId || interfaceId_ == type(IERC165).interfaceId;
+        return interfaceId_ == type(IL1ArbSender).interfaceId || interfaceId_ == type(IERC165).interfaceId;
     }
 
     function setRewardTokenLZParams(address zroPaymentAddress_, bytes calldata adapterParams_) external onlyOwner {
@@ -59,7 +59,7 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
 
     function _setDepositToken(address newToken_) private {
         // Get stETH from wstETH
-        address unwrappedToken_ = IWStETH(newToken_).stETH();
+        address unwrappedToken_ = IWstETH(newToken_).stETH();
         // Increase allowance from stETH to wstETH. To exchange stETH for wstETH
         IERC20(unwrappedToken_).approve(newToken_, type(uint256).max);
 
@@ -80,7 +80,7 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
         // Get current stETH balance
         uint256 amountUnwrappedToken_ = IERC20(unwrappedDepositToken).balanceOf(address(this));
         // Wrap all stETH to wstETH
-        uint256 amount_ = IWStETH(config.token).wrap(amountUnwrappedToken_);
+        uint256 amount_ = IWstETH(config.token).wrap(amountUnwrappedToken_);
 
         bytes memory data_ = abi.encode(maxSubmissionCost_, "");
 
