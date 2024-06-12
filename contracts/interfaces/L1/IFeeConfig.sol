@@ -10,7 +10,7 @@ interface IFeeConfig {
      * @param treasury_ The treasury address.
      * @param baseFee_ The base fee.
      */
-    function __FeeConfig_init(address treasury_, uint256 baseFee_) external;
+    function FeeConfig_init(address treasury_, uint256 baseFee_) external;
 
     /**
      * The function that returns the treasury address.

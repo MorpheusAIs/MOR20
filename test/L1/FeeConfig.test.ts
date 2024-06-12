@@ -28,7 +28,7 @@ describe('FeeConfig', () => {
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImpl, '0x');
     feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
 
-    await feeConfig.__FeeConfig_init(OWNER, wei(0.1, 25));
+    await feeConfig.FeeConfig_init(OWNER, wei(0.1, 25));
 
     await reverter.snapshot();
   });
@@ -36,11 +36,11 @@ describe('FeeConfig', () => {
   afterEach(reverter.revert);
 
   describe('initialization', () => {
-    describe('#__FeeConfig_init', () => {
+    describe('#FeeConfig_init', () => {
       it('should revert if try to call init function twice', async () => {
         const reason = 'Initializable: contract is already initialized';
 
-        await expect(feeConfig.__FeeConfig_init(SECOND, wei(0.1, 25))).to.be.rejectedWith(reason);
+        await expect(feeConfig.FeeConfig_init(SECOND, wei(0.1, 25))).to.be.rejectedWith(reason);
       });
       it('should revert if `baseFee` is > 1', async () => {
         const [feeConfigFactory, ERC1967ProxyFactory] = await Promise.all([
@@ -52,7 +52,7 @@ describe('FeeConfig', () => {
         const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImpl, '0x');
         const feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
 
-        await expect(feeConfig.__FeeConfig_init(SECOND, wei(1.1, 25))).to.be.revertedWith('FC: invalid base fee');
+        await expect(feeConfig.FeeConfig_init(SECOND, wei(1.1, 25))).to.be.revertedWith('FC: invalid base fee');
       });
     });
   });

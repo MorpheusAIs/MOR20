@@ -140,7 +140,7 @@ describe('Distribution', () => {
 
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImplementation, '0x');
     feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
-    await feeConfig.__FeeConfig_init(OWNER, wei(0.1, 25));
+    await feeConfig.FeeConfig_init(OWNER, wei(0.1, 25));
 
     const l2MessageReceiverProxy = await ERC1967ProxyFactory.deploy(l2MessageReceiverImplementation, '0x');
     l2MessageReceiver = L2MessageReceiver.attach(l2MessageReceiverProxy) as L2MessageReceiver;

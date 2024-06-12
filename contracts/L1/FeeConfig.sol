@@ -13,7 +13,7 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable {
 
     mapping(address => uint256) public fees;
 
-    function __FeeConfig_init(address treasury_, uint256 baseFee_) external initializer {
+    function FeeConfig_init(address treasury_, uint256 baseFee_) external initializer {
         __Ownable_init();
 
         require(baseFee_ <= PRECISION, "FC: invalid base fee");
