@@ -86,8 +86,8 @@ abstract contract L1Factory is IL1Factory, Factory {
             return;
         }
 
-        IFreezableBeaconProxy(distributionProxy_).freeze();
-        IFreezableBeaconProxy(l1SenderProxy_).freeze();
+        IFreezableBeaconProxy(distributionProxy_).freezeProxy_();
+        IFreezableBeaconProxy(l1SenderProxy_).freezeProxy_();
     }
 
     function _transferProxyOwnership(address owner_, address distributionProxy_, address l1SenderProxy_) internal {
