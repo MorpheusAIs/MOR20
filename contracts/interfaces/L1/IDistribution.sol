@@ -116,13 +116,6 @@ interface IDistribution {
     function createPool(Pool calldata pool_) external;
 
     /**
-     * The function to edit the pool's data.
-     * @param poolId The pool's id.
-     * @param pool_ The new pool's data.
-     */
-    function editPool(uint256 poolId, Pool calldata pool_) external;
-
-    /**
      * The function to calculate the total pool's reward for the specified period.
      * @param poolId_ The pool's id.
      * @param startTime_ The start timestamp.

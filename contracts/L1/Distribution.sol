@@ -75,32 +75,6 @@ abstract contract Distribution is IDistribution, OwnableUpgradeable {
         emit PoolCreated(pools.length - 1, pool_);
     }
 
-    function editPool(uint256 poolId_, Pool calldata pool_) external onlyOwner poolExists(poolId_) {
-        _validatePool(pool_);
-
-        Pool storage pool = pools[poolId_];
-        require(pool.isPublic == pool_.isPublic, "DS: invalid pool type");
-        if (pool.payoutStart <= block.timestamp) {
-            require(pool.payoutStart == pool_.payoutStart, "DS: invalid PS value");
-            require(pool.decreaseInterval == pool_.decreaseInterval, "DS: invalid DI value");
-            require(pool.withdrawLockPeriod == pool_.withdrawLockPeriod, "DS: invalid WLP value");
-            require(pool.withdrawLockPeriodAfterStake == pool_.withdrawLockPeriodAfterStake, "DS: invalid WLPAS value");
-            require(pool.initialReward == pool_.initialReward, "DS: invalid IR value");
-            require(pool.rewardDecrease == pool_.rewardDecrease, "DS: invalid RD value");
-        }
-
-        PoolData storage poolData = poolsData[poolId_];
-        uint256 currentPoolRate_ = _getCurrentPoolRate(poolId_);
-
-        // Update pool data
-        poolData.rate = currentPoolRate_;
-        poolData.lastUpdate = uint128(block.timestamp);
-
-        pools[poolId_] = pool_;
-
-        emit PoolEdited(poolId_, pool_);
-    }
-
     function getPeriodReward(uint256 poolId_, uint128 startTime_, uint128 endTime_) public view returns (uint256) {
         if (!_poolExists(poolId_)) {
             return 0;

@@ -114,6 +114,11 @@ const config: HardhatUserConfig = {
       accounts: privateKey(),
       gasMultiplier: 1.1,
     },
+    base_sepolia: {
+      url: `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
+      accounts: privateKey(),
+      gasMultiplier: 1.1,
+    },
   },
   solidity: {
     version: '0.8.20',
@@ -139,6 +144,7 @@ const config: HardhatUserConfig = {
       arbitrumOne: `${process.env.ARBITRUM_KEY}`,
       arbitrumGoerli: `${process.env.ETHERSCAN_KEY}`,
       arbitrum_sepolia: `${process.env.ARBITRUM_KEY}`,
+      base_sepolia: `${process.env.BASESCAN_KEY}`,
     },
     customChains: [
       {
@@ -147,6 +153,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api-sepolia.arbiscan.io/api',
           browserURL: 'https://sepolia.arbiscan.io/',
+        },
+      },
+      {
+        network: 'base_sepolia',
+        chainId: 84532,
+        urls: {
+          apiURL: 'https://api-sepolia.basescan.org/api',
+          browserURL: 'https://sepolia.basescan.org/',
         },
       },
     ],
@@ -177,6 +191,9 @@ const config: HardhatUserConfig = {
     discriminateTypes: true,
     dontOverrideCompile: forceTypechain(),
   },
+  // sourcify: {
+  //   enabled: true,
+  // },
 };
 
 export default config;
