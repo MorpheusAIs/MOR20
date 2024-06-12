@@ -11,8 +11,6 @@ import {LinearDistributionIntervalDecrease} from "../libs/LinearDistributionInte
 import {IDistribution} from "../interfaces/L1/IDistribution.sol";
 import {IFeeConfig} from "../interfaces/L1/IFeeConfig.sol";
 import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
-import {IL1ArbSender} from "../interfaces/L1/IL1ArbSender.sol";
-import {IL1BaseSender} from "../interfaces/L1/IL1BaseSender.sol";
 
 abstract contract Distribution is IDistribution, OwnableUpgradeable {
     using SafeERC20 for IERC20;

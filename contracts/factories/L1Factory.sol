@@ -51,7 +51,7 @@ abstract contract L1Factory is IL1Factory, Factory {
 
     function predictAddresses(
         address deployer_,
-        string memory protocol_
+        string calldata protocol_
     ) external view returns (address distribution_, address l1Sender_) {
         distribution_ = _predictPoolAddress(deployer_, protocol_, DISTRIBUTION_POOL, getL2Network());
         l1Sender_ = _predictPoolAddress(deployer_, protocol_, L1_SENDER_POOL, getL2Network());
@@ -81,18 +81,18 @@ abstract contract L1Factory is IL1Factory, Factory {
         return "";
     }
 
-    function _freezeProxy(bool isUpgradeable_, address distributionProxy_, address l1XSenderProxy_) internal {
+    function _freezeProxy(bool isUpgradeable_, address distributionProxy_, address l1SenderProxy_) internal {
         if (isUpgradeable_) {
             return;
         }
 
         IFreezableBeaconProxy(distributionProxy_).freeze();
-        IFreezableBeaconProxy(l1XSenderProxy_).freeze();
+        IFreezableBeaconProxy(l1SenderProxy_).freeze();
     }
 
-    function _transferProxyOwnership(address owner_, address distributionProxy_, address l1XSenderProxy_) internal {
+    function _transferProxyOwnership(address owner_, address distributionProxy_, address l1SenderProxy_) internal {
         IOwnable(distributionProxy_).transferOwnership(owner_);
-        IOwnable(l1XSenderProxy_).transferOwnership(owner_);
+        IOwnable(l1SenderProxy_).transferOwnership(owner_);
     }
 
     uint256[50] private __gap;
