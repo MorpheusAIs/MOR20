@@ -25,8 +25,8 @@ contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy, Context {
     /**
      * The function to freeze the implementation.
      */
-    function freeze() external onlyOwner {
-        require(!isFrozen(), "FBP: already frozen");
+    function freezeProxy_() external onlyOwner {
+        require(!isProxyFrozen_(), "FBP: already frozen");
 
         StorageSlot.getAddressSlot(_FREEZABLE_BEACON_PROXY_SLOT).value = _implementation();
     }
@@ -34,8 +34,8 @@ contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy, Context {
     /**
      * The function to unfreeze the implementation.
      */
-    function unfreeze() external onlyOwner {
-        require(isFrozen(), "FBP: not frozen");
+    function unfreezeProxy_() external onlyOwner {
+        require(isProxyFrozen_(), "FBP: not frozen");
 
         delete StorageSlot.getAddressSlot(_FREEZABLE_BEACON_PROXY_SLOT).value;
     }
@@ -44,7 +44,7 @@ contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy, Context {
      * The function to check if the implementation is frozen.
      * @return The boolean value to indicating if the implementation is frozen.
      */
-    function isFrozen() public view returns (bool) {
+    function isProxyFrozen_() public view returns (bool) {
         return StorageSlot.getAddressSlot(_FREEZABLE_BEACON_PROXY_SLOT).value != address(0);
     }
 
@@ -57,7 +57,7 @@ contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy, Context {
     }
 
     function _implementation() internal view override returns (address) {
-        if (isFrozen()) {
+        if (isProxyFrozen_()) {
             return StorageSlot.getAddressSlot(_FREEZABLE_BEACON_PROXY_SLOT).value;
         }
 

@@ -40,18 +40,18 @@ describe('FreezableBeaconProxy', () => {
 
   afterEach(reverter.revert);
 
-  describe('freeze', () => {
+  describe('freezeProxy_', () => {
     it('should not freeze if not owner', async () => {
-      await expect(beaconProxy.connect(SECOND).freeze()).to.be.revertedWith('FBP: caller is not the owner');
+      await expect(beaconProxy.connect(SECOND).freezeProxy_()).to.be.revertedWith('FBP: caller is not the owner');
     });
 
     it('should not freeze if already frozen', async () => {
-      await beaconProxy.freeze();
-      await expect(beaconProxy.freeze()).to.be.revertedWith('FBP: already frozen');
+      await beaconProxy.freezeProxy_();
+      await expect(beaconProxy.freezeProxy_()).to.be.revertedWith('FBP: already frozen');
     });
 
     it('should not freeze if all conditions are met', async () => {
-      await beaconProxy.freeze();
+      await beaconProxy.freezeProxy_();
 
       await beacon.upgradeTo(poolV2);
 
@@ -59,23 +59,23 @@ describe('FreezableBeaconProxy', () => {
     });
   });
 
-  describe('unfreeze', () => {
+  describe('unfreezeProxy_', () => {
     it('should not freeze if not owner', async () => {
-      await expect(beaconProxy.connect(SECOND).unfreeze()).to.be.revertedWith('FBP: caller is not the owner');
+      await expect(beaconProxy.connect(SECOND).unfreezeProxy_()).to.be.revertedWith('FBP: caller is not the owner');
     });
 
     it('should not freeze if not frozen', async () => {
-      await expect(beaconProxy.unfreeze()).to.be.revertedWith('FBP: not frozen');
+      await expect(beaconProxy.unfreezeProxy_()).to.be.revertedWith('FBP: not frozen');
     });
 
     it('should not freeze if all conditions are met', async () => {
-      await beaconProxy.freeze();
+      await beaconProxy.freezeProxy_();
 
       await beacon.upgradeTo(poolV2);
 
       expect(await beaconProxy.implementation()).to.eq(await poolV1.getAddress());
 
-      await beaconProxy.unfreeze();
+      await beaconProxy.unfreezeProxy_();
 
       expect(await beaconProxy.implementation()).to.eq(await poolV2.getAddress());
 
@@ -85,17 +85,17 @@ describe('FreezableBeaconProxy', () => {
     });
   });
 
-  describe('isFrozen', () => {
+  describe('isProxyFrozen_', () => {
     it('should properly check if frozen', async () => {
-      expect(await beaconProxy.isFrozen()).to.be.false;
+      expect(await beaconProxy.isProxyFrozen_()).to.be.false;
 
-      await beaconProxy.freeze();
+      await beaconProxy.freezeProxy_();
 
-      expect(await beaconProxy.isFrozen()).to.be.true;
+      expect(await beaconProxy.isProxyFrozen_()).to.be.true;
 
-      await beaconProxy.unfreeze();
+      await beaconProxy.unfreezeProxy_();
 
-      expect(await beaconProxy.isFrozen()).to.be.false;
+      expect(await beaconProxy.isProxyFrozen_()).to.be.false;
     });
   });
 });
