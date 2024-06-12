@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {PRECISION} from "@solarity/solidity-lib/utils/Globals.sol";
 
 import {IFeeConfig} from "../interfaces/L1/IFeeConfig.sol";
 
-contract FeeConfig is IFeeConfig, OwnableUpgradeable {
+contract FeeConfig is IFeeConfig, OwnableUpgradeable, UUPSUpgradeable {
     address public treasury;
     uint256 public baseFee;
 
@@ -52,4 +53,6 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable {
 
         return (fee_, treasury);
     }
+
+    function _authorizeUpgrade(address) internal view override onlyOwner {}
 }
