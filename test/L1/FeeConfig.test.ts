@@ -100,14 +100,18 @@ describe('FeeConfig', () => {
       await feeConfig.setBaseFee(wei(0.2, 25));
 
       expect(await feeConfig.baseFee()).to.be.equal(wei(0.2, 25));
+
+      await feeConfig.setBaseFee(wei(1, 25));
+
+      expect(await feeConfig.baseFee()).to.be.equal(wei(1, 25));
     });
     it('should revert if not called by the owner', async () => {
       await expect(feeConfig.connect(SECOND).setBaseFee(wei(0.1, 25))).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });
-    it('should revert if fee is >= 1', async () => {
-      await expect(feeConfig.setBaseFee(wei(1, 25))).to.be.revertedWith('FC: invalid base fee');
+    it('should revert if fee is > 1', async () => {
+      await expect(feeConfig.setBaseFee(wei(1.1, 25))).to.be.revertedWith('FC: invalid base fee');
     });
   });
 

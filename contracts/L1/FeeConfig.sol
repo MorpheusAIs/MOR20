@@ -35,7 +35,7 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable {
     }
 
     function setBaseFee(uint256 baseFee_) external onlyOwner {
-        require(baseFee_ < PRECISION, "FC: invalid base fee");
+        require(baseFee_ <= PRECISION, "FC: invalid base fee");
 
         baseFee = baseFee_;
     }
