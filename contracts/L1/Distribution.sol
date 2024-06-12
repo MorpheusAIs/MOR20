@@ -46,16 +46,12 @@ abstract contract Distribution is IDistribution, OwnableUpgradeable {
     /*** Init                                                                                   ***/
     /**********************************************************************************************/
 
-    constructor() {
-        _disableInitializers();
-    }
-
-    function Distribution_init(
+    function __Distribution_init(
         address depositToken_,
         address l1Sender_,
         address feeConfig_,
         Pool[] calldata poolsInfo_
-    ) external initializer {
+    ) internal onlyInitializing {
         __Ownable_init();
 
         for (uint256 i; i < poolsInfo_.length; ++i) {
@@ -346,5 +342,5 @@ abstract contract Distribution is IDistribution, OwnableUpgradeable {
         return overplus_;
     }
 
-    uint256[50] private __gap;
+    uint256[44] private __gap;
 }

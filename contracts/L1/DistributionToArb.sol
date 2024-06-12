@@ -7,6 +7,19 @@ import {IDistributionToArb} from "../interfaces/L1/IDistributionToArb.sol";
 import {IL1ArbSender} from "../interfaces/L1/IL1ArbSender.sol";
 
 contract DistributionToArb is IDistributionToArb, Distribution {
+    constructor() {
+        _disableInitializers();
+    }
+
+    function DistributionToArb_init(
+        address depositToken_,
+        address l1Sender_,
+        address feeConfig_,
+        Pool[] calldata poolsInfo_
+    ) external initializer {
+        __Distribution_init(depositToken_, l1Sender_, feeConfig_, poolsInfo_);
+    }
+
     function bridgeOverplus(
         uint256 gasLimit_,
         uint256 maxFeePerGas_,

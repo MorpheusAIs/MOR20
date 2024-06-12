@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {L1Factory, IL1Factory} from "./L1Factory.sol";
 
-import {IDistribution} from "../interfaces/L1/IDistribution.sol";
+import {IDistributionToBase} from "../interfaces/L1/IDistributionToBase.sol";
 import {IL1FactoryToBase} from "../interfaces/factories/IL1FactoryToBase.sol";
 import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 import {IL1BaseSender} from "../interfaces/L1/IL1BaseSender.sol";
@@ -32,7 +32,7 @@ contract L1FactoryToBase is IL1FactoryToBase, L1Factory {
         address distributionProxy_ = _deploy2(l1Params_.protocolName, DISTRIBUTION_POOL, getL2Network());
         address l1SenderProxy_ = _deploy2(l1Params_.protocolName, L1_SENDER_POOL, getL2Network());
 
-        IDistribution(distributionProxy_).Distribution_init(
+        IDistributionToBase(distributionProxy_).DistributionToBase_init(
             depositTokenExternalDeps.token,
             l1SenderProxy_,
             feeConfig,

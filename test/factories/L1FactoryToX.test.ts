@@ -115,7 +115,7 @@ describe('L1Factory', () => {
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImpl, '0x');
     feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
 
-    await feeConfig.__FeeConfig_init(OWNER, wei(0.1, 25));
+    await feeConfig.FeeConfig_init(OWNER, wei(0.1, 25));
 
     distributionToArbFactory = await ethers.getContractFactory('DistributionToArb', {
       libraries: {

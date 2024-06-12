@@ -110,20 +110,6 @@ interface IDistribution {
     event OverplusBridgedToBase(uint256 amount, bytes bridgeData_);
 
     /**
-     * The function to initialize the contract.
-     * @param depositToken_ The address of deposit token.
-     * @param l1Sender_ The address of bridge contract.
-     * @param feeConfig_ The address of fee config contract.
-     * @param poolsInfo_ The array of initial pools.
-     */
-    function Distribution_init(
-        address depositToken_,
-        address l1Sender_,
-        address feeConfig_,
-        Pool[] calldata poolsInfo_
-    ) external;
-
-    /**
      * The function to create a new pool.
      * @param pool_ The pool's data.
      */

@@ -8,6 +8,20 @@ import {IDistribution} from "./IDistribution.sol";
  */
 interface IDistributionToBase is IDistribution {
     /**
+     * The function to initialize the contract.
+     * @param depositToken_ The address of deposit token.
+     * @param l1Sender_ The address of bridge contract.
+     * @param feeConfig_ The address of fee config contract.
+     * @param poolsInfo_ The array of initial pools.
+     */
+    function DistributionToBase_init(
+        address depositToken_,
+        address l1Sender_,
+        address feeConfig_,
+        Pool[] calldata poolsInfo_
+    ) external;
+
+    /**
      * The function to bridge the overplus of the staked deposit tokens to the Base network.
      * @param gasLimit_ The gas limit.
      * @param data_ The additional data for the bridge.

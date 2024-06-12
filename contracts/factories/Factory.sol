@@ -191,5 +191,5 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
 
     function _authorizeUpgrade(address) internal view override onlyOwner {}
 
-    uint256[46] __gap;
+    uint256[49] private __gap;
 }

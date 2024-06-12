@@ -236,8 +236,8 @@ describe('Distribution', () => {
 
     await lZEndpointMockSender.setDestLzEndpoint(l2MessageReceiver, lZEndpointMockReceiver);
 
-    await distribution.Distribution_init(depositToken, l1ArbSender, feeConfig, []);
-    await distributionBase.Distribution_init(depositToken, l1BaseSender, feeConfig, []);
+    await distribution.DistributionToArb_init(depositToken, l1ArbSender, feeConfig, []);
+    await distributionBase.DistributionToBase_init(depositToken, l1BaseSender, feeConfig, []);
 
     await Promise.all([depositToken.mint(OWNER.address, wei(1000)), depositToken.mint(SECOND.address, wei(1000))]);
     await Promise.all([
@@ -261,13 +261,13 @@ describe('Distribution', () => {
 
         const distribution = await distributionFactory.deploy();
 
-        await expect(distribution.Distribution_init(depositToken, l1ArbSender, feeConfig, [])).to.be.revertedWith(
+        await expect(distribution.DistributionToArb_init(depositToken, l1ArbSender, feeConfig, [])).to.be.revertedWith(
           reason,
         );
       });
     });
 
-    describe('#Distribution_init', () => {
+    describe('#DistributionToArb_init', () => {
       it('should set correct data after creation', async () => {
         const depositToken_ = await distribution.depositToken();
         expect(depositToken_).to.eq(await depositToken.getAddress());
@@ -286,9 +286,9 @@ describe('Distribution', () => {
           await ethers.getContractFactory('ERC1967Proxy')
         ).deploy(await distributionFactory.deploy(), '0x');
 
-        const distribution = distributionFactory.attach(await distributionProxy.getAddress()) as Distribution;
+        const distribution = distributionFactory.attach(await distributionProxy.getAddress()) as DistributionToArb;
 
-        await distribution.Distribution_init(depositToken, l1ArbSender, feeConfig, [pool1, pool2]);
+        await distribution.DistributionToArb_init(depositToken, l1ArbSender, feeConfig, [pool1, pool2]);
 
         const pool1Data: IDistribution.PoolStruct = await distribution.pools(0);
         expect(_comparePoolStructs(pool1, pool1Data)).to.be.true;
@@ -299,7 +299,7 @@ describe('Distribution', () => {
       it('should revert if try to call init function twice', async () => {
         const reason = 'Initializable: contract is already initialized';
 
-        await expect(distribution.Distribution_init(depositToken, l1ArbSender, feeConfig, [])).to.be.rejectedWith(
+        await expect(distribution.DistributionToArb_init(depositToken, l1ArbSender, feeConfig, [])).to.be.rejectedWith(
           reason,
         );
       });

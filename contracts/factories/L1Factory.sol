@@ -95,5 +95,5 @@ abstract contract L1Factory is IL1Factory, Factory {
         IOwnable(l1SenderProxy_).transferOwnership(owner_);
     }
 
-    uint256[50] private __gap;
+    uint256[45] private __gap;
 }
