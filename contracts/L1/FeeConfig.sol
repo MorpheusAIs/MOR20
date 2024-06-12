@@ -13,6 +13,10 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable {
 
     mapping(address => uint256) public fees;
 
+    constructor() {
+        _disableInitializers();
+    }
+
     function FeeConfig_init(address treasury_, uint256 baseFee_) external initializer {
         __Ownable_init();
 
