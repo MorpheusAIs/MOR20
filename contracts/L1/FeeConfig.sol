@@ -21,10 +21,8 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable, UUPSUpgradeable {
     function FeeConfig_init(address treasury_, uint256 baseFee_) external initializer {
         __Ownable_init();
 
-        require(baseFee_ <= PRECISION, "FC: invalid base fee");
-
+        setBaseFee(baseFee_);
         treasury = treasury_;
-        baseFee = baseFee_;
     }
 
     function setFee(address sender_, uint256 fee_) external onlyOwner {
@@ -39,7 +37,7 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable, UUPSUpgradeable {
         treasury = treasury_;
     }
 
-    function setBaseFee(uint256 baseFee_) external onlyOwner {
+    function setBaseFee(uint256 baseFee_) public onlyOwner {
         require(baseFee_ <= PRECISION, "FC: invalid base fee");
 
         baseFee = baseFee_;

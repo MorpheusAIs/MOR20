@@ -153,3 +153,6 @@ describe('FeeConfig', () => {
     });
   });
 });
+
+// npx hardhat test "test/L1/FeeConfig.test.ts"
+// npx hardhat coverage --solcoverjs ./.solcover.ts --testfiles "test/L1/FeeConfig.test.ts"

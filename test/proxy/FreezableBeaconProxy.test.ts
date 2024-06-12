@@ -33,7 +33,7 @@ describe('FreezableBeaconProxy', () => {
     beaconProxy = await FreezableBeaconProxy.deploy(beacon, '0x');
 
     const proxy = PoolMockV1.attach(beaconProxy) as PoolMockV1;
-    await proxy.__PoolMockV1_init();
+    await proxy.PoolMockV1_init();
 
     await reverter.snapshot();
   });
