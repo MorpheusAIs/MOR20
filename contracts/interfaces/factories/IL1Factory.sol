@@ -106,9 +106,4 @@ interface IL1Factory {
         uint256 offset_,
         uint256 limit_
     ) external view returns (PoolView[] memory pools_);
-
-    /**
-     * The function indicates the bridge implementation for a particular network.
-     */
-    function getL2Network() external pure returns (string memory);
 }

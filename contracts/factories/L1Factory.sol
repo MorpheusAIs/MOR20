@@ -53,8 +53,8 @@ abstract contract L1Factory is IL1Factory, Factory {
         address deployer_,
         string calldata protocol_
     ) external view returns (address distribution_, address l1Sender_) {
-        distribution_ = _predictPoolAddress(deployer_, protocol_, DISTRIBUTION_POOL, getL2Network());
-        l1Sender_ = _predictPoolAddress(deployer_, protocol_, L1_SENDER_POOL, getL2Network());
+        distribution_ = _predictPoolAddress(deployer_, protocol_, DISTRIBUTION_POOL);
+        l1Sender_ = _predictPoolAddress(deployer_, protocol_, L1_SENDER_POOL);
     }
 
     function getDeployedPools(
@@ -77,7 +77,7 @@ abstract contract L1Factory is IL1Factory, Factory {
         }
     }
 
-    function getL2Network() public pure virtual returns (string memory) {
+    function getL2Network() public pure virtual override returns (string memory) {
         return "";
     }
 

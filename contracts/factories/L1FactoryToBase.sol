@@ -29,8 +29,8 @@ contract L1FactoryToBase is IL1FactoryToBase, L1Factory {
     function deploy(L1Params calldata l1Params_) external whenNotPaused {
         _registerProtocol(l1Params_.protocolName);
 
-        address distributionProxy_ = _deploy2(l1Params_.protocolName, DISTRIBUTION_POOL, getL2Network());
-        address l1SenderProxy_ = _deploy2(l1Params_.protocolName, L1_SENDER_POOL, getL2Network());
+        address distributionProxy_ = _deploy2(l1Params_.protocolName, DISTRIBUTION_POOL);
+        address l1SenderProxy_ = _deploy2(l1Params_.protocolName, L1_SENDER_POOL);
 
         IDistributionToBase(distributionProxy_).DistributionToBase_init(
             depositTokenExternalDeps.token,
@@ -60,7 +60,7 @@ contract L1FactoryToBase is IL1FactoryToBase, L1Factory {
         _transferProxyOwnership(l1Params_.owner, distributionProxy_, l1SenderProxy_);
     }
 
-    function getL2Network() public pure override(IL1Factory, L1Factory) returns (string memory) {
+    function getL2Network() public pure override(L1Factory) returns (string memory) {
         return "BASE";
     }
 }
