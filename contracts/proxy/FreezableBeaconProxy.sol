@@ -6,29 +6,26 @@ import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 
 import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
+import {IOwnable} from "../interfaces/utils/IOwnable.sol";
 
 /**
  * The FreezableBeaconProxy is a beacon proxy contract with freeze/unfreeze features.
  * When the FreezableBeaconProxy is being frozen, the actual implementation is stored in the storage slot.
  */
 contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy, Context {
-    modifier onlyFactory() {
-        _onlyFactory();
+    modifier onlyOwner() {
+        _onlyOwner();
         _;
     }
 
     bytes32 private constant _FREEZABLE_BEACON_PROXY_SLOT = keccak256("freezable.beacon.proxy.slot");
 
-    address private immutable _FACTORY;
-
-    constructor(address beacon_, bytes memory data_) payable BeaconProxy(beacon_, data_) {
-        _FACTORY = _msgSender();
-    }
+    constructor(address beacon_, bytes memory data_) payable BeaconProxy(beacon_, data_) {}
 
     /**
      * The function to freeze the implementation.
      */
-    function freeze() external onlyFactory {
+    function freeze() external onlyOwner {
         require(!isFrozen(), "FBP: already frozen");
 
         StorageSlot.getAddressSlot(_FREEZABLE_BEACON_PROXY_SLOT).value = _implementation();
@@ -37,7 +34,7 @@ contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy, Context {
     /**
      * The function to unfreeze the implementation.
      */
-    function unfreeze() external onlyFactory {
+    function unfreeze() external onlyOwner {
         require(isFrozen(), "FBP: not frozen");
 
         delete StorageSlot.getAddressSlot(_FREEZABLE_BEACON_PROXY_SLOT).value;
@@ -67,7 +64,7 @@ contract FreezableBeaconProxy is IFreezableBeaconProxy, BeaconProxy, Context {
         return IBeacon(_getBeacon()).implementation();
     }
 
-    function _onlyFactory() internal view {
-        require(_msgSender() == _FACTORY, "FBP: not factory");
+    function _onlyOwner() internal view {
+        require(IOwnable(address(this)).owner() == _msgSender(), "FBP: caller is not the owner");
     }
 }

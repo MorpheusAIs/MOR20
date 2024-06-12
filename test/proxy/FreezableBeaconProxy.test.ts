@@ -6,7 +6,7 @@ import { Reverter } from '../helpers/reverter';
 
 import { FreezableBeaconProxy, PoolMockV1, PoolMockV2, UpgradeableBeacon } from '@/generated-types/ethers';
 
-describe('Factory', () => {
+describe('FreezableBeaconProxy', () => {
   const reverter = new Reverter();
 
   let SECOND: SignerWithAddress;
@@ -32,14 +32,17 @@ describe('Factory', () => {
     beacon = await UpgradeableBeacon.deploy(poolV1);
     beaconProxy = await FreezableBeaconProxy.deploy(beacon, '0x');
 
+    const proxy = PoolMockV1.attach(beaconProxy) as PoolMockV1;
+    await proxy.__PoolMockV1_init();
+
     await reverter.snapshot();
   });
 
   afterEach(reverter.revert);
 
   describe('freeze', () => {
-    it('should not freeze if not factory', async () => {
-      await expect(beaconProxy.connect(SECOND).freeze()).to.be.revertedWith('FBP: not factory');
+    it('should not freeze if not owner', async () => {
+      await expect(beaconProxy.connect(SECOND).freeze()).to.be.revertedWith('FBP: caller is not the owner');
     });
 
     it('should not freeze if already frozen', async () => {
@@ -57,8 +60,8 @@ describe('Factory', () => {
   });
 
   describe('unfreeze', () => {
-    it('should not freeze if not factory', async () => {
-      await expect(beaconProxy.connect(SECOND).unfreeze()).to.be.revertedWith('FBP: not factory');
+    it('should not freeze if not owner', async () => {
+      await expect(beaconProxy.connect(SECOND).unfreeze()).to.be.revertedWith('FBP: caller is not the owner');
     });
 
     it('should not freeze if not frozen', async () => {
