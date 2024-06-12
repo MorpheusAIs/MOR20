@@ -71,7 +71,7 @@ const pools = [
 export const configEthToBase = {
   // FACTORY
   feeConfig: {
-    baseFee: '350000000000000000000000000', // 0.35%
+    baseFee: '3500000000000000000000000', // 0.35%
     // https://etherscan.io/address/0x47176B2Af9885dC6C4575d4eFd63895f7Aaa4790
     treasury: '0x47176B2Af9885dC6C4575d4eFd63895f7Aaa4790', // Distribution contract address
   },

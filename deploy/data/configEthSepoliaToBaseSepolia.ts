@@ -1,5 +1,5 @@
-const deployerAddress = '---'; // TODO
-const payoutStart = new Date().getTime() / 1000 + 60 * 10; // now + 10 minutes
+const deployerAddress = '0x19ec1E4b714990620edf41fE28e9a1552953a7F4'; // Custom address
+const payoutStart = Math.round(new Date().getTime() / 1000 + 60 * 10); // now + 10 minutes
 
 // https://sepolia.etherscan.io/address/0x384D86Aca164370F1Fa4f9cF96708A5b556027e4#code
 const stEthL1 = '0x384D86Aca164370F1Fa4f9cF96708A5b556027e4';
@@ -21,59 +21,59 @@ const pools = [
     minimalStake: '10000000000000000', // 0.01 stETH
     isPublic: true,
   },
-  {
-    // 'Community',
-    payoutStart,
-    decreaseInterval: 60 * 60 * 2, // 2 hours
-    withdrawLockPeriod: 60 * 60 * 1, // 1 hour
-    claimLockPeriod: 60 * 10, // 10 minutes
-    withdrawLockPeriodAfterStake: 60 * 5, // 5 minutes
-    initialReward: '84013800000000000000000', // 84013.8 SPACE
-    rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
-    minimalStake: '10000000000000000', // 0.01 stETH
-    isPublic: false,
-  },
-  {
-    // 'Developers',
-    payoutStart,
-    decreaseInterval: 86400, // 1 day
-    withdrawLockPeriod: 604800, // 7 days
-    claimLockPeriod: 7776000, // 90 days
-    withdrawLockPeriodAfterStake: 604800, // 7 days
-    initialReward: '84013800000000000000000', // 84013.8 SPACE
-    rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
-    minimalStake: '10000000000000000', // 0.01 stETH
-    isPublic: false,
-  },
-  {
-    // 'Team',
-    payoutStart,
-    decreaseInterval: 86400, // 1 day
-    withdrawLockPeriod: 604800, // 7 days
-    claimLockPeriod: 7776000, // 90 days
-    withdrawLockPeriodAfterStake: 604800, // 7 days
-    initialReward: '84013800000000000000000', // 84013.8 SPACE
-    rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
-    minimalStake: '10000000000000000', // 0.01 stETH
-    isPublic: false,
-  },
-  {
-    // 'Users',
-    payoutStart,
-    decreaseInterval: 86400, // 1 day
-    withdrawLockPeriod: 604800, // 7 days
-    claimLockPeriod: 7776000, // 90 days
-    withdrawLockPeriodAfterStake: 604800, // 7 days
-    initialReward: '84013800000000000000000', // 84013.8 SPACE
-    rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
-    minimalStake: '10000000000000000', // 0.01 stETH
-    isPublic: false,
-  },
+  // {
+  //   // 'Community',
+  //   payoutStart,
+  //   decreaseInterval: 60 * 60 * 2, // 2 hours
+  //   withdrawLockPeriod: 60 * 60 * 1, // 1 hour
+  //   claimLockPeriod: 60 * 10, // 10 minutes
+  //   withdrawLockPeriodAfterStake: 60 * 5, // 5 minutes
+  //   initialReward: '84013800000000000000000', // 84013.8 SPACE
+  //   rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
+  //   minimalStake: '10000000000000000', // 0.01 stETH
+  //   isPublic: false,
+  // },
+  // {
+  //   // 'Developers',
+  //   payoutStart,
+  //   decreaseInterval: 86400, // 1 day
+  //   withdrawLockPeriod: 604800, // 7 days
+  //   claimLockPeriod: 7776000, // 90 days
+  //   withdrawLockPeriodAfterStake: 604800, // 7 days
+  //   initialReward: '84013800000000000000000', // 84013.8 SPACE
+  //   rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
+  //   minimalStake: '10000000000000000', // 0.01 stETH
+  //   isPublic: false,
+  // },
+  // {
+  //   // 'Team',
+  //   payoutStart,
+  //   decreaseInterval: 86400, // 1 day
+  //   withdrawLockPeriod: 604800, // 7 days
+  //   claimLockPeriod: 7776000, // 90 days
+  //   withdrawLockPeriodAfterStake: 604800, // 7 days
+  //   initialReward: '84013800000000000000000', // 84013.8 SPACE
+  //   rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
+  //   minimalStake: '10000000000000000', // 0.01 stETH
+  //   isPublic: false,
+  // },
+  // {
+  //   // 'Users',
+  //   payoutStart,
+  //   decreaseInterval: 86400, // 1 day
+  //   withdrawLockPeriod: 604800, // 7 days
+  //   claimLockPeriod: 7776000, // 90 days
+  //   withdrawLockPeriodAfterStake: 604800, // 7 days
+  //   initialReward: '84013800000000000000000', // 84013.8 SPACE
+  //   rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
+  //   minimalStake: '10000000000000000', // 0.01 stETH
+  //   isPublic: false,
+  // },
 ];
 
 export const configEthSepoliaToBaseSepolia = {
   feeConfig: {
-    baseFee: '350000000000000000000000000', // 0.35%
+    baseFee: '3500000000000000000000000', // 0.35%
     treasury: '0x19ec1E4b714990620edf41fE28e9a1552953a7F4', // Custom address
   },
   depositTokenExternalDeps: {
@@ -108,8 +108,8 @@ export const configEthSepoliaToBaseSepolia = {
     owner: deployerAddress, // TODO
     protocolName: 'Nounspace',
     poolsInfo: pools,
-    l2TokenReceiver: '---', // TODO
-    l2MessageReceiver: '---', // TODO
+    l2TokenReceiver: '', // TODO
+    l2MessageReceiver: '', // TODO
   },
   l2Params: {
     isUpgradeable: true,
@@ -117,7 +117,7 @@ export const configEthSepoliaToBaseSepolia = {
     protocolName: 'Nounspace',
     mor20Name: 'Nounspace',
     mor20Symbol: 'SPACE',
-    l1Sender: '---', // TODO
+    l1Sender: '', // TODO
     firstSwapParams_: {
       tokenIn: wstEthL2,
       // https://basescan.org/address/0x4200000000000000000000000000000000000006
