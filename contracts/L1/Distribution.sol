@@ -84,10 +84,13 @@ contract Distribution is IDistribution, OwnableUpgradeable {
 
         Pool storage pool = pools[poolId_];
         require(pool.isPublic == pool_.isPublic, "DS: invalid pool type");
-        if (pool_.payoutStart > block.timestamp) {
-            require(pool.payoutStart == pool_.payoutStart, "DS: invalid payout start value");
+        if (pool.payoutStart <= block.timestamp) {
+            require(pool.payoutStart == pool_.payoutStart, "DS: invalid PS value");
+            require(pool.decreaseInterval == pool_.decreaseInterval, "DS: invalid DI value");
             require(pool.withdrawLockPeriod == pool_.withdrawLockPeriod, "DS: invalid WLP value");
             require(pool.withdrawLockPeriodAfterStake == pool_.withdrawLockPeriodAfterStake, "DS: invalid WLPAS value");
+            require(pool.initialReward == pool_.initialReward, "DS: invalid IR value");
+            require(pool.rewardDecrease == pool_.rewardDecrease, "DS: invalid RD value");
         }
 
         PoolData storage poolData = poolsData[poolId_];
