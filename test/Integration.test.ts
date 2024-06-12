@@ -10,8 +10,11 @@ import { Reverter } from './helpers/reverter';
 import {
   FeeConfig,
   IL1Factory,
+  IL1FactoryToArb,
+  IL1FactoryToBase,
   IL2Factory,
-  L1Factory,
+  L1FactoryToArb,
+  L1FactoryToBase,
   L2Factory,
   LZEndpointMock,
   WETHMock,
@@ -28,7 +31,8 @@ describe('Integration', () => {
 
   let OWNER: SignerWithAddress;
 
-  let l1Factory: L1Factory;
+  let l1FactoryToArb: L1FactoryToArb;
+  let l1FactoryToBase: L1FactoryToBase;
   let l2Factory: L2Factory;
 
   let l2Weth: WETHMock;
@@ -40,7 +44,8 @@ describe('Integration', () => {
 
   let depositTokenExternalDeps: IL1Factory.DepositTokenExternalDepsStruct;
   let lzExternalDeps: IL1Factory.LzExternalDepsStruct;
-  let arbExternalDeps: IL1Factory.ArbExternalDepsStruct;
+  let arbExternalDeps: IL1FactoryToArb.ArbExternalDepsStruct;
+  let baseExternalDeps: IL1FactoryToBase.BaseExternalDepsStruct;
 
   let lzTokenExternalDeps: IL2Factory.LzExternalDepsStruct;
   let uniswapExternalDeps: IL2Factory.UniswapExternalDepsStruct;
@@ -49,14 +54,17 @@ describe('Integration', () => {
     [OWNER] = await ethers.getSigners();
 
     const [
-      L1Factory,
+      L1FactoryToArb,
+      L1FactoryToBase,
       ERC1967ProxyFactory,
 
       LinearDistributionIntervalDecreaseFactory,
-      L1SenderFactory,
+      L1ArbSenderFactory,
+      L1BaseSenderFactory,
       StEthMockFactory,
       WstEthMockFactory,
       GatewayRouterMockFactory,
+      L1ERC20TokenBridgeMock,
       FeeConfigFactory,
       LZEndpointMockFactory,
 
@@ -68,14 +76,17 @@ describe('Integration', () => {
       L2TokenReceiverFactory,
       WETHMockFactory,
     ] = await Promise.all([
-      ethers.getContractFactory('L1Factory'),
+      ethers.getContractFactory('L1FactoryToArb'),
+      ethers.getContractFactory('L1FactoryToBase'),
       ethers.getContractFactory('ERC1967Proxy'),
 
       ethers.getContractFactory('LinearDistributionIntervalDecrease'),
       ethers.getContractFactory('L1ArbSender'),
+      ethers.getContractFactory('L1BaseSender'),
       ethers.getContractFactory('StETHMock'),
       ethers.getContractFactory('WStETHMock'),
       ethers.getContractFactory('GatewayRouterMock'),
+      ethers.getContractFactory('L1ERC20TokenBridgeMock'),
       ethers.getContractFactory('FeeConfig'),
       ethers.getContractFactory('LZEndpointMock'),
 
@@ -90,10 +101,12 @@ describe('Integration', () => {
 
     const [
       linearDistributionIntervalDecrease,
-      l1SenderImplementation,
+      l1ArbSenderImplementation,
+      l1BaseSenderImplementation,
       l1StEth,
       l2StEth,
       gatewayRouterMock,
+      baseGateway,
       feeConfigImplementation,
       l1LzEndpointMock,
 
@@ -107,10 +120,12 @@ describe('Integration', () => {
       l2WethMock,
     ] = await Promise.all([
       LinearDistributionIntervalDecreaseFactory.deploy(),
-      L1SenderFactory.deploy(),
+      L1ArbSenderFactory.deploy(),
+      L1BaseSenderFactory.deploy(),
       StEthMockFactory.deploy(),
       StEthMockFactory.deploy(),
       GatewayRouterMockFactory.deploy(),
+      L1ERC20TokenBridgeMock.deploy(),
       FeeConfigFactory.deploy(),
       LZEndpointMockFactory.deploy(senderChainId),
 
@@ -127,26 +142,42 @@ describe('Integration', () => {
     l1LzEndpoint = l1LzEndpointMock;
     l2LzEndpoint = l2LzEndpointMock;
 
-    const distributionFactory = await ethers.getContractFactory('Distribution', {
+    const distributionFactoryToArb = await ethers.getContractFactory('DistributionToArb', {
       libraries: {
         LinearDistributionIntervalDecrease: linearDistributionIntervalDecrease,
       },
     });
-    const distributionImplementation = await distributionFactory.deploy();
+    const distributionToArbImplementation = await distributionFactoryToArb.deploy();
+
+    const distributionFactoryToBase = await ethers.getContractFactory('DistributionToBase', {
+      libraries: {
+        LinearDistributionIntervalDecrease: linearDistributionIntervalDecrease,
+      },
+    });
+    const distributionToBaseImplementation = await distributionFactoryToBase.deploy();
 
     l1WstEth = await WstEthMockFactory.deploy(l1StEth);
     l2WstEth = await WstEthMockFactory.deploy(l2StEth);
 
-    const l1FactoryImpl = await L1Factory.deploy();
-    const l1FactoryProxy = await ERC1967ProxyFactory.deploy(l1FactoryImpl, '0x');
-    l1Factory = L1Factory.attach(l1FactoryProxy) as L1Factory;
-    await l1Factory.L1Factory_init();
+    const l1FactoryToArbImpl = await L1FactoryToArb.deploy();
+    const l1FactoryToArbProxy = await ERC1967ProxyFactory.deploy(l1FactoryToArbImpl, '0x');
+    l1FactoryToArb = L1FactoryToArb.attach(l1FactoryToArbProxy) as L1FactoryToArb;
+    await l1FactoryToArb.L1FactoryToArb_init();
+
+    const l1FactoryToBaseImpl = await L1FactoryToBase.deploy();
+    const l1FactoryToBaseProxy = await ERC1967ProxyFactory.deploy(l1FactoryToBaseImpl, '0x');
+    l1FactoryToBase = L1FactoryToBase.attach(l1FactoryToBaseProxy) as L1FactoryToBase;
+    await l1FactoryToBase.L1FactoryToBase_init();
 
     // Set test impl for `l1BaseSenderImplementation`
-    const l1BaseSenderImplementation = l1SenderImplementation;
-    await l1Factory.setImplementations(
-      [PoolTypesL1.DISTRIBUTION, PoolTypesL1.L1_ARB_SENDER, PoolTypesL1.L1_BASE_SENDER],
-      [distributionImplementation, l1SenderImplementation, l1BaseSenderImplementation],
+    await l1FactoryToArb.setImplementations(
+      [PoolTypesL1.DISTRIBUTION, PoolTypesL1.L1_SENDER],
+      [distributionToArbImplementation, l1ArbSenderImplementation],
+    );
+
+    await l1FactoryToBase.setImplementations(
+      [PoolTypesL1.DISTRIBUTION, PoolTypesL1.L1_SENDER],
+      [distributionToBaseImplementation, l1BaseSenderImplementation],
     );
 
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImplementation, '0x');
@@ -181,11 +212,20 @@ describe('Integration', () => {
     arbExternalDeps = {
       endpoint: gatewayRouterMock,
     };
+    baseExternalDeps = {
+      endpoint: baseGateway,
+      wTokenL2: l1WstEth,
+    };
 
-    await l1Factory.setDepositTokenExternalDeps(depositTokenExternalDeps);
-    await l1Factory.setLzToArbExternalDeps(lzExternalDeps);
-    await l1Factory.setArbExternalDeps(arbExternalDeps);
-    await l1Factory.setFeeConfig(feeConfig);
+    await l1FactoryToArb.setDepositTokenExternalDeps(depositTokenExternalDeps);
+    await l1FactoryToArb.setLzExternalDeps(lzExternalDeps);
+    await l1FactoryToArb.setArbExternalDeps(arbExternalDeps);
+    await l1FactoryToArb.setFeeConfig(feeConfig);
+
+    await l1FactoryToBase.setDepositTokenExternalDeps(depositTokenExternalDeps);
+    await l1FactoryToBase.setLzExternalDeps(lzExternalDeps);
+    await l1FactoryToBase.setBaseExternalDeps(baseExternalDeps);
+    await l1FactoryToBase.setFeeConfig(feeConfig);
 
     lzTokenExternalDeps = {
       endpoint: l2LzEndpoint,
@@ -209,17 +249,17 @@ describe('Integration', () => {
   describe('Should deploy L1 and L2', () => {
     const protocolName = 'Mor20';
 
-    it('should deploy correctly', async () => {
+    it('should deploy correctly for Arbitrum', async () => {
       const [l2MessageReceiverPredicted, l2TokenReceiverPredicted] = await l2Factory.predictAddresses(
         OWNER,
         protocolName,
       );
 
-      const [distributionPredicted, l1SenderPredicted] = await l1Factory.predictAddresses(OWNER, protocolName);
+      const [distributionPredicted, l1SenderPredicted] = await l1FactoryToArb.predictAddresses(OWNER, protocolName);
 
       await l1LzEndpoint.setDestLzEndpoint(l2MessageReceiverPredicted, l2LzEndpoint);
 
-      const l1Params: IL1Factory.L1ParamsStruct = {
+      const l1Params = {
         isUpgradeable: false,
         owner: OWNER,
         protocolName: protocolName,
@@ -242,16 +282,16 @@ describe('Integration', () => {
         secondSwapFee: 3000,
       };
 
-      await l1Factory.deployArb(l1Params);
+      await l1FactoryToArb.deploy(l1Params);
       await l2Factory.deploy(l2Params);
 
-      const distribution = await ethers.getContractAt('Distribution', distributionPredicted);
+      const distribution = await ethers.getContractAt('DistributionToArb', distributionPredicted);
       const MOR20 = await ethers.getContractAt('MOR20', await l2Factory.getMor20(OWNER, protocolName));
 
       const pool = getDefaultPool();
       await distribution.createPool(pool);
 
-      const l1StEth = await ethers.getContractAt('StETHMock', (await l1Factory.depositTokenExternalDeps()).token);
+      const l1StEth = await ethers.getContractAt('StETHMock', (await l1FactoryToArb.depositTokenExternalDeps()).token);
       await l1StEth.approve(distribution, wei(1));
       await distribution.stake(0, wei(1));
 
@@ -260,7 +300,77 @@ describe('Integration', () => {
       const overplus = await distribution.overplus();
       expect(overplus).to.be.eq(wei(1));
 
-      let tx = await distribution.bridgeOverplusToArb(1, 1, 1);
+      let tx = await distribution.bridgeOverplus(1, 1, 1);
+      await expect(tx).to.changeTokenBalances(l1StEth, [distributionPredicted, OWNER], [wei(-1), wei(0.1)]);
+      // we made an assumption that the token address is l1WstEth
+      await expect(tx).to.changeTokenBalance(l1WstEth, l2TokenReceiverPredicted, wei(0.9));
+      expect(await distribution.overplus()).to.be.eq(0);
+
+      await setNextTime(2 * oneDay);
+
+      tx = await distribution.withdraw(0, wei(1));
+      await expect(tx).to.changeTokenBalances(l1StEth, [distributionPredicted, OWNER], [wei(-1), wei(1)]);
+
+      const reward = await distribution.getCurrentUserReward(0, OWNER);
+      expect(reward).to.equal(wei(100));
+
+      await distribution.claim(0, OWNER, { value: wei(0.1) });
+
+      expect(await MOR20.balanceOf(OWNER)).to.be.eq(reward);
+    });
+
+    it('should deploy correctly for Base', async () => {
+      const [l2MessageReceiverPredicted, l2TokenReceiverPredicted] = await l2Factory.predictAddresses(
+        OWNER,
+        protocolName,
+      );
+
+      const [distributionPredicted, l1SenderPredicted] = await l1FactoryToBase.predictAddresses(OWNER, protocolName);
+
+      await l1LzEndpoint.setDestLzEndpoint(l2MessageReceiverPredicted, l2LzEndpoint);
+
+      const l1Params = {
+        isUpgradeable: false,
+        owner: OWNER,
+        protocolName: protocolName,
+        poolsInfo: [],
+        l2TokenReceiver: l2TokenReceiverPredicted,
+        l2MessageReceiver: l2MessageReceiverPredicted,
+      };
+      const l2Params: IL2Factory.L2ParamsStruct = {
+        isUpgradeable: false,
+        owner: OWNER,
+        protocolName: protocolName,
+        mor20Name: 'MOR20',
+        mor20Symbol: 'M20',
+        l1Sender: l1SenderPredicted,
+        firstSwapParams_: {
+          tokenIn: l2WstEth,
+          tokenOut: l2Weth,
+          fee: 100,
+        },
+        secondSwapFee: 3000,
+      };
+
+      await l1FactoryToBase.deploy(l1Params);
+      await l2Factory.deploy(l2Params);
+
+      const distribution = await ethers.getContractAt('DistributionToBase', distributionPredicted);
+      const MOR20 = await ethers.getContractAt('MOR20', await l2Factory.getMor20(OWNER, protocolName));
+
+      const pool = getDefaultPool();
+      await distribution.createPool(pool);
+
+      const l1StEth = await ethers.getContractAt('StETHMock', (await l1FactoryToBase.depositTokenExternalDeps()).token);
+      await l1StEth.approve(distribution, wei(1));
+      await distribution.stake(0, wei(1));
+
+      await l1StEth.setTotalPooledEther((await l1StEth.totalPooledEther()) * 2n);
+
+      const overplus = await distribution.overplus();
+      expect(overplus).to.be.eq(wei(1));
+
+      let tx = await distribution.bridgeOverplus(1, '0x');
       await expect(tx).to.changeTokenBalances(l1StEth, [distributionPredicted, OWNER], [wei(-1), wei(0.1)]);
       // we made an assumption that the token address is l1WstEth
       await expect(tx).to.changeTokenBalance(l1WstEth, l2TokenReceiverPredicted, wei(0.9));

@@ -20,8 +20,8 @@ contract L1FactoryToBase is IL1FactoryToBase, L1Factory {
     }
 
     function setBaseExternalDeps(BaseExternalDeps calldata externalDeps_) external onlyOwner {
-        require(externalDeps_.endpoint != address(0), "L1F: invalid Base endpoint");
-        require(externalDeps_.wTokenL2 != address(0), "L1F: invalid wToken address");
+        require(externalDeps_.endpoint != address(0), "L1FTB: invalid Base endpoint");
+        require(externalDeps_.wTokenL2 != address(0), "L1FTB: invalid wToken address");
 
         baseExternalDeps = externalDeps_;
     }

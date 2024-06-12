@@ -4,7 +4,9 @@ import { ethers } from 'hardhat';
 
 import {
   Distribution,
-  Distribution__factory,
+  DistributionToArb,
+  DistributionToArb__factory,
+  DistributionToBase,
   FeeConfig,
   GatewayRouterMock,
   IDistribution,
@@ -39,9 +41,9 @@ describe('Distribution', () => {
   let OWNER: SignerWithAddress;
   let SECOND: SignerWithAddress;
 
-  let distributionFactory: Distribution__factory;
-  let distribution: Distribution;
-  let distributionBase: Distribution;
+  let distributionFactory: DistributionToArb__factory;
+  let distribution: DistributionToArb;
+  let distributionBase: DistributionToBase;
 
   let lib: LinearDistributionIntervalDecrease;
 
@@ -141,13 +143,19 @@ describe('Distribution', () => {
       feeConfigFactory.deploy(),
     ]);
 
-    distributionFactory = await ethers.getContractFactory('Distribution', {
+    distributionFactory = await ethers.getContractFactory('DistributionToArb', {
       libraries: {
         LinearDistributionIntervalDecrease: await lib.getAddress(),
       },
     });
     const distributionImplementation = await distributionFactory.deploy();
-    const distributionBaseImplementation = await distributionFactory.deploy();
+
+    const distributionToBaseFactory = await ethers.getContractFactory('DistributionToBase', {
+      libraries: {
+        LinearDistributionIntervalDecrease: await lib.getAddress(),
+      },
+    });
+    const distributionBaseImplementation = await distributionToBaseFactory.deploy();
     // END
 
     lZEndpointMockOFT = await LZEndpointMockOFT.deploy(receiverChainId, OWNER);
@@ -180,13 +188,13 @@ describe('Distribution', () => {
 
     // START deploy distribution contract
     const distributionProxy = await ERC1967ProxyFactory.deploy(await distributionImplementation.getAddress(), '0x');
-    distribution = distributionFactory.attach(await distributionProxy.getAddress()) as Distribution;
+    distribution = distributionFactory.attach(await distributionProxy.getAddress()) as DistributionToArb;
 
     const distributionBaseProxy = await ERC1967ProxyFactory.deploy(
       await distributionBaseImplementation.getAddress(),
       '0x',
     );
-    distributionBase = distributionFactory.attach(await distributionBaseProxy.getAddress()) as Distribution;
+    distributionBase = distributionToBaseFactory.attach(await distributionBaseProxy.getAddress()) as DistributionToBase;
     // END
 
     const rewardTokenConfig = {
@@ -1640,8 +1648,8 @@ describe('Distribution', () => {
       const fee = (overplus * (await feeConfig.baseFee())) / wei(1, 25);
       overplus -= fee;
 
-      const bridgeMessageId = await distribution.bridgeOverplusToArb.staticCall(1, 1, 1);
-      const tx = await distribution.bridgeOverplusToArb(1, 1, 1);
+      const bridgeMessageId = await distribution.bridgeOverplus.staticCall(1, 1, 1);
+      const tx = await distribution.bridgeOverplus(1, 1, 1);
       await expect(tx).to.emit(distribution, 'OverplusBridgedToArb').withArgs(overplus, bridgeMessageId);
       await expect(tx).to.changeTokenBalance(depositToken, distribution, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
@@ -1662,8 +1670,8 @@ describe('Distribution', () => {
       const fee = (overplus * wei(0.5, 25)) / wei(1, 25);
       overplus -= fee;
 
-      const bridgeMessageId = await distribution.bridgeOverplusToArb.staticCall(1, 1, 1);
-      const tx = await distribution.bridgeOverplusToArb(1, 1, 1);
+      const bridgeMessageId = await distribution.bridgeOverplus.staticCall(1, 1, 1);
+      const tx = await distribution.bridgeOverplus(1, 1, 1);
       await expect(tx).to.emit(distribution, 'OverplusBridgedToArb').withArgs(overplus, bridgeMessageId);
       await expect(tx).to.changeTokenBalance(depositToken, distribution, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
@@ -1681,20 +1689,20 @@ describe('Distribution', () => {
       const overplus = await distribution.overplus();
       expect(overplus).to.eq(wei(1));
 
-      const bridgeMessageId = await distribution.bridgeOverplusToArb.staticCall(1, 1, 1);
-      const tx = await distribution.bridgeOverplusToArb(1, 1, 1);
+      const bridgeMessageId = await distribution.bridgeOverplus.staticCall(1, 1, 1);
+      const tx = await distribution.bridgeOverplus(1, 1, 1);
       await expect(tx).to.emit(distribution, 'OverplusBridgedToArb').withArgs(overplus, bridgeMessageId);
       await expect(tx).to.changeTokenBalance(depositToken, distribution, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
       await expect(tx).to.changeTokenBalance(depositToken, OWNER, 0);
     });
     it('should revert if caller is not owner', async () => {
-      await expect(distribution.connect(SECOND).bridgeOverplusToArb(1, 1, 1)).to.be.revertedWith(
+      await expect(distribution.connect(SECOND).bridgeOverplus(1, 1, 1)).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });
     it('should revert if overplus is <= 0', async () => {
-      await expect(distribution.bridgeOverplusToArb(1, 1, 1)).to.be.revertedWith('DS: overplus is zero');
+      await expect(distribution.bridgeOverplus(1, 1, 1)).to.be.revertedWith('DS: overplus is zero');
     });
   });
 
@@ -1720,14 +1728,14 @@ describe('Distribution', () => {
       const fee = (overplus * (await feeConfig.baseFee())) / wei(1, 25);
       overplus -= fee;
 
-      const tx = await distributionBase.bridgeOverplusToBase(1, '0x');
+      const tx = await distributionBase.bridgeOverplus(1, '0x');
       await expect(tx).to.emit(distributionBase, 'OverplusBridgedToBase').withArgs(overplus, '0x');
       await expect(tx).to.changeTokenBalance(depositToken, distributionBase, wei(-1));
       expect(await wstETH.balanceOf(l2TokenReceiverAddress)).to.eq(overplus);
       await expect(tx).to.changeTokenBalance(depositToken, OWNER, fee);
     });
     it('should revert if caller is not owner', async () => {
-      await expect(distributionBase.connect(SECOND).bridgeOverplusToBase(1, '0x')).to.be.revertedWith(
+      await expect(distributionBase.connect(SECOND).bridgeOverplus(1, '0x')).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });
@@ -1735,7 +1743,11 @@ describe('Distribution', () => {
 });
 
 // @dev: should be called before other pool creation
-const _getRewardTokenFromPool = async (distribution: Distribution, amount: bigint, user: SignerWithAddress) => {
+const _getRewardTokenFromPool = async (
+  distribution: DistributionToArb | DistributionToBase,
+  amount: bigint,
+  user: SignerWithAddress,
+) => {
   const poolId = await _getNextPoolId(distribution);
   const pool: IDistribution.PoolStruct = {
     initialReward: amount,
@@ -1754,7 +1766,7 @@ const _getRewardTokenFromPool = async (distribution: Distribution, amount: bigin
   await distribution.connect(user).withdraw(poolId, wei(1));
 };
 
-const _getNextPoolId = async (distribution: Distribution) => {
+const _getNextPoolId = async (distribution: DistributionToArb | DistributionToBase) => {
   let poolId = 0;
 
   // eslint-disable-next-line no-constant-condition

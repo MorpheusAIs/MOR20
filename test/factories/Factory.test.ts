@@ -162,3 +162,6 @@ describe('Factory', () => {
     });
   });
 });
+
+// npx hardhat test "test/factories/Factory.test.ts"
+// npx hardhat coverage --solcoverjs ./.solcover.ts --testfiles "test/factories/Factory.test.ts"

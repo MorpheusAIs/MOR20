@@ -11,7 +11,7 @@ import { wei } from '@/scripts/utils/utils';
 // @dev See txs https://etherscan.io/tx/0xf53b69bd170a9376b314f29326b63519c52e4c42c5c6d2db6183d55d2281ecf0 and
 // https://basescan.org/tx/0xf9df3b1dce1b5323ffbddfeab0e0b0fcee0e8314ab66fe5fc4c4199a625c3173 as successful example
 
-describe('L1Sender Fork', () => {
+describe('L1ArbSender Fork', () => {
   const reverter = new Reverter();
 
   let OWNER: SignerWithAddress;

@@ -17,7 +17,7 @@ import {
 import { ZERO_ADDR } from '@/scripts/utils/constants';
 import { wei } from '@/scripts/utils/utils';
 
-describe('L1Sender Fork', () => {
+describe('L1ArbSender Fork', () => {
   const reverter = new Reverter();
 
   let OWNER: SignerWithAddress;
