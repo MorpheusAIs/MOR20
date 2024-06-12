@@ -58,7 +58,7 @@ contract L1FactoryToArb is IL1FactoryToArb, L1Factory {
         _transferProxyOwnership(l1Params_.owner, distributionProxy_, l1SenderProxy_);
     }
 
-    function getL2Network() public pure override(L1Factory) returns (string memory) {
+    function getL2Network() public pure override returns (string memory) {
         return "ARB";
     }
 }

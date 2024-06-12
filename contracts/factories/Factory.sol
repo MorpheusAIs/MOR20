@@ -126,9 +126,7 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
     /**
      * The function indicates the bridge implementation for a particular network.
      */
-    function getL2Network() public pure virtual returns (string memory) {
-        return "";
-    }
+    function getL2Network() public pure virtual returns (string memory);
 
     /**
      * @notice The function to deploy new `ERC1967Proxy`.

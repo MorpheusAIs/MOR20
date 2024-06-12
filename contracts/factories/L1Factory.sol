@@ -77,10 +77,6 @@ abstract contract L1Factory is IL1Factory, Factory {
         }
     }
 
-    function getL2Network() public pure virtual override returns (string memory) {
-        return "";
-    }
-
     function _freezeProxy(bool isUpgradeable_, address distributionProxy_, address l1SenderProxy_) internal {
         if (isUpgradeable_) {
             return;

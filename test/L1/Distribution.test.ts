@@ -295,12 +295,31 @@ describe('Distribution', () => {
         const pool2Data: IDistribution.PoolStruct = await distribution.pools(1);
         expect(_comparePoolStructs(pool2, pool2Data)).to.be.true;
       });
-      it('should revert if try to call init function twice', async () => {
+      it('should revert if try to call init function twice - Arb', async () => {
         const reason = 'Initializable: contract is already initialized';
 
         await expect(distribution.DistributionToArb_init(depositToken, l1ArbSender, feeConfig, [])).to.be.rejectedWith(
           reason,
         );
+      });
+      it('should revert if try to call init function twice - Base', async () => {
+        const reason = 'Initializable: contract is already initialized';
+
+        await expect(
+          distributionBase.DistributionToBase_init(depositToken, l1ArbSender, feeConfig, []),
+        ).to.be.rejectedWith(reason);
+      });
+      it('should revert if call init function incorrect', async () => {
+        const reason = 'Initializable: contract is not initializing';
+
+        const DistributionMock = await ethers.getContractFactory('DistributionMock', {
+          libraries: {
+            LinearDistributionIntervalDecrease: await lib.getAddress(),
+          },
+        });
+        const distribution = await DistributionMock.deploy();
+
+        await expect(distribution.mockInit(depositToken, l1ArbSender, feeConfig, [])).to.be.rejectedWith(reason);
       });
     });
   });

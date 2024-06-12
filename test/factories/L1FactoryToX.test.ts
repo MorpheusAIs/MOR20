@@ -188,6 +188,21 @@ describe('L1Factory', () => {
     return l1Params;
   }
 
+  describe('UUPS proxy functionality', () => {
+    describe('#L1FactoryToX_init', () => {
+      it('should revert if try to call init function twice - Arb', async () => {
+        const reason = 'Initializable: contract is already initialized';
+
+        await expect(l1FactoryToArb.L1FactoryToArb_init()).to.be.rejectedWith(reason);
+      });
+      it('should revert if try to call init function twice - Base', async () => {
+        const reason = 'Initializable: contract is already initialized';
+
+        await expect(l1FactoryToBase.L1FactoryToBase_init()).to.be.rejectedWith(reason);
+      });
+    });
+  });
+
   describe('#setArbExternalDeps', () => {
     it('should set Arbitrum external deps', async () => {
       const { arbExternalDeps } = getL1FactoryParams();

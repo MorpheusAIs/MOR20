@@ -147,6 +147,14 @@ describe('L1Factory', () => {
             'Ownable: caller is not the owner',
           );
         });
+        it('should revert if call init function incorrect', async () => {
+          const reason = 'Initializable: contract is not initializing';
+
+          const L1FactoryMockFactory = await ethers.getContractFactory('L1FactoryMock');
+          const l1Factory = await L1FactoryMockFactory.deploy();
+
+          await expect(l1Factory.mockInit()).to.be.rejectedWith(reason);
+        });
       });
     });
   });
