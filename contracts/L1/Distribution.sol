@@ -14,7 +14,7 @@ import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 import {IL1ArbSender} from "../interfaces/L1/IL1ArbSender.sol";
 import {IL1BaseSender} from "../interfaces/L1/IL1BaseSender.sol";
 
-contract Distribution is IDistribution, OwnableUpgradeable {
+abstract contract Distribution is IDistribution, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
     address public depositToken;
@@ -330,33 +330,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         return depositTokenContractBalance_ - totalDepositedInPublicPools;
     }
 
-    function bridgeOverplusToArb(
-        uint256 gasLimit_,
-        uint256 maxFeePerGas_,
-        uint256 maxSubmissionCost_
-    ) external payable onlyOwner returns (bytes memory) {
-        uint256 overplus_ = _beforeBridgeOverplus();
-
-        bytes memory bridgeMessageId_ = IL1ArbSender(l1Sender).sendDepositToken{value: msg.value}(
-            gasLimit_,
-            maxFeePerGas_,
-            maxSubmissionCost_
-        );
-
-        emit OverplusBridgedToArb(overplus_, bridgeMessageId_);
-
-        return bridgeMessageId_;
-    }
-
-    function bridgeOverplusToBase(uint24 gasLimit_, bytes memory data_) external onlyOwner {
-        uint256 overplus_ = _beforeBridgeOverplus();
-
-        IL1BaseSender(l1Sender).sendDepositToken(gasLimit_, data_);
-
-        emit OverplusBridgedToBase(overplus_, data_);
-    }
-
-    function _beforeBridgeOverplus() private returns (uint256) {
+    function _bridgeOverplus() internal returns (uint256) {
         uint256 overplus_ = overplus();
         require(overplus_ > 0, "DS: overplus is zero");
 
@@ -373,4 +347,6 @@ contract Distribution is IDistribution, OwnableUpgradeable {
 
         return overplus_;
     }
+
+    uint256[50] private __gap;
 }

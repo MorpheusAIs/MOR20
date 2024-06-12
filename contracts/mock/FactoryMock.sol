@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 import {Factory} from "../factories/Factory.sol";
 
 contract FactoryMock is Factory {
+    string public constant NETWORK = "DEFAULT";
+
     function Factory_init() external initializer {
         __Pausable_init();
         __Ownable_init();
@@ -16,6 +18,6 @@ contract FactoryMock is Factory {
     }
 
     function deploy2(string calldata protocol_, string calldata poolType_) external returns (address) {
-        return _deploy2(protocol_, poolType_);
+        return _deploy2(protocol_, poolType_, NETWORK);
     }
 }

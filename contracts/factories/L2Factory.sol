@@ -11,6 +11,7 @@ import {Factory} from "./Factory.sol";
 import {MOR20Deployer} from "../libs/MOR20Deployer.sol";
 
 contract L2Factory is IL2Factory, Factory {
+    string public constant NETWORK = "DEFAULT";
     string public constant L2_MESSAGE_RECEIVER_POOL = "L2_MESSAGE_RECEIVER";
     string public constant L2_TOKEN_RECEIVER_POOL = "L2_TOKEN_RECEIVER";
 
@@ -48,8 +49,8 @@ contract L2Factory is IL2Factory, Factory {
     function deploy(L2Params calldata l2Params_) external whenNotPaused {
         _registerProtocol(l2Params_.protocolName);
 
-        address l2MessageReceiver_ = _deploy2(l2Params_.protocolName, L2_MESSAGE_RECEIVER_POOL);
-        address l2TokenReceiver_ = _deploy2(l2Params_.protocolName, L2_TOKEN_RECEIVER_POOL);
+        address l2MessageReceiver_ = _deploy2(l2Params_.protocolName, L2_MESSAGE_RECEIVER_POOL, NETWORK);
+        address l2TokenReceiver_ = _deploy2(l2Params_.protocolName, L2_TOKEN_RECEIVER_POOL, NETWORK);
 
         address mor20_ = MOR20Deployer.deployMOR20(
             l2Params_.mor20Name,
@@ -85,8 +86,8 @@ contract L2Factory is IL2Factory, Factory {
         address deployer_,
         string calldata protocol_
     ) external view returns (address l2MessageReceiver_, address l2TokenReceiver_) {
-        l2MessageReceiver_ = _predictPoolAddress(deployer_, protocol_, L2_MESSAGE_RECEIVER_POOL);
-        l2TokenReceiver_ = _predictPoolAddress(deployer_, protocol_, L2_TOKEN_RECEIVER_POOL);
+        l2MessageReceiver_ = _predictPoolAddress(deployer_, protocol_, L2_MESSAGE_RECEIVER_POOL, NETWORK);
+        l2TokenReceiver_ = _predictPoolAddress(deployer_, protocol_, L2_TOKEN_RECEIVER_POOL, NETWORK);
     }
 
     function getDeployedPools(

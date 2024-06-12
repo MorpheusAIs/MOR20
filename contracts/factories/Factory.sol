@@ -132,10 +132,14 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
      * @param poolType_ the type of the pool.
      * @return proxy the proxy address for the `poolType_`.
      */
-    function _deploy2(string memory protocol_, string memory poolType_) internal returns (address) {
+    function _deploy2(
+        string memory protocol_,
+        string memory poolType_,
+        string memory network_
+    ) internal returns (address) {
         require(bytes(protocol_).length != 0, "F: protocol is empty");
 
-        bytes32 salt_ = _calculatePoolSalt(_msgSender(), protocol_, poolType_);
+        bytes32 salt_ = _calculatePoolSalt(_msgSender(), protocol_, poolType_, network_);
 
         address beacon_ = getBeacon(poolType_);
 
@@ -162,13 +166,14 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
     function _predictPoolAddress(
         address deployer_,
         string memory protocol_,
-        string memory poolType_
+        string memory poolType_,
+        string memory network_
     ) internal view returns (address) {
         if (bytes(protocol_).length == 0) {
             return address(0);
         }
 
-        bytes32 salt_ = _calculatePoolSalt(deployer_, protocol_, poolType_);
+        bytes32 salt_ = _calculatePoolSalt(deployer_, protocol_, poolType_, network_);
 
         bytes32 bytecodeHash_ = keccak256(
             abi.encodePacked(type(FreezableBeaconProxy).creationCode, abi.encode(getBeacon(poolType_), bytes("")))
@@ -180,9 +185,10 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
     function _calculatePoolSalt(
         address sender_,
         string memory protocol_,
-        string memory poolType_
+        string memory poolType_,
+        string memory network_
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(sender_, protocol_, poolType_));
+        return keccak256(abi.encodePacked(sender_, protocol_, poolType_, network_));
     }
 
     function _authorizeUpgrade(address) internal view override onlyOwner {}
