@@ -3,7 +3,6 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 import {
-  Distribution,
   DistributionToArb,
   DistributionToArb__factory,
   DistributionToBase,
