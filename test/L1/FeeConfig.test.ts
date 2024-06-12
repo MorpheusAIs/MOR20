@@ -42,6 +42,18 @@ describe('FeeConfig', () => {
 
         await expect(feeConfig.__FeeConfig_init(SECOND, wei(0.1, 25))).to.be.rejectedWith(reason);
       });
+      it('should revert if `baseFee` is > 1', async () => {
+        const [feeConfigFactory, ERC1967ProxyFactory] = await Promise.all([
+          ethers.getContractFactory('FeeConfig'),
+          ethers.getContractFactory('ERC1967Proxy'),
+        ]);
+
+        const feeConfigImpl = await feeConfigFactory.deploy();
+        const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImpl, '0x');
+        const feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
+
+        await expect(feeConfig.__FeeConfig_init(SECOND, wei(1.1, 25))).to.be.revertedWith('FC: invalid base fee');
+      });
     });
   });
 
