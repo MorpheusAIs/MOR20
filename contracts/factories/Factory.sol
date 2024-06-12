@@ -26,6 +26,8 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
     mapping(address deployer => mapping(string protocol => mapping(string poolType => address))) private _proxyPools;
     mapping(address deployer => DynamicSet.StringSet) private _protocols;
 
+    uint256[46] __gap;
+
     function __Factory_init() internal onlyInitializing {}
 
     /**
