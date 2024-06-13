@@ -29,7 +29,7 @@ const pools = [
     withdrawLockPeriodAfterStake: 604800, // 7 days
     initialReward: '84013800000000000000000', // 84013.8 SPACE
     rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
-    minimalStake: '0', // 0.01 stETH
+    minimalStake: '0', // 0 stETH
     isPublic: false,
   },
   {
@@ -109,7 +109,8 @@ export const configEthToBase = {
   },
   l1Params: {
     isUpgradeable: true,
-    owner: '0x201295fd6A833259E852E59551724d2d81456c6c',
+    // owner: '0x201295fd6A833259E852E59551724d2d81456c6c',
+    owner: '0x040EF6Fb6592A70291954E2a6a1a8F320FF10626',
     protocolName: 'Nounspace',
     poolsInfo: pools,
     l2TokenReceiver: '---', // TODO
@@ -117,7 +118,8 @@ export const configEthToBase = {
   },
   l2Params: {
     isUpgradeable: true,
-    owner: '0xa2654e8df46466b7bffD0CB97FB7dDEAb8D3f015',
+    // owner: '0xa2654e8df46466b7bffD0CB97FB7dDEAb8D3f015',
+    owner: '0x040EF6Fb6592A70291954E2a6a1a8F320FF10626',
     protocolName: 'Nounspace',
     mor20Name: 'Nounspace',
     mor20Symbol: 'SPACE',

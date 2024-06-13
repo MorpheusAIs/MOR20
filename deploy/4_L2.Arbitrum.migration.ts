@@ -44,4 +44,5 @@ module.exports = async function (deployer: Deployer) {
   );
 };
 
-// npx hardhat migrate --network localhost --only 2
+// npx hardhat migrate --network localhost --only 4
+// npx hardhat migrate --network arbitrum_sepolia --only 4 --verify

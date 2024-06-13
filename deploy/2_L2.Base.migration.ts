@@ -1,6 +1,6 @@
 import { Deployer, Reporter } from '@solarity/hardhat-migrate';
 
-import { configEthSepoliaToBaseSepolia } from './data';
+import { configEthToBase } from './data';
 
 import {
   ERC1967Proxy__factory,
@@ -24,7 +24,7 @@ const deployImplementations = async (deployer: Deployer) => {
 };
 
 module.exports = async function (deployer: Deployer) {
-  const { lzExternalDepsForL2, uniswapExternalDeps } = configEthSepoliaToBaseSepolia;
+  const { lzExternalDepsForL2, uniswapExternalDeps } = configEthToBase;
 
   const { l2MessageReceiverImpl, l2TokenReceiverImpl, l2Factory } = await deployImplementations(deployer);
 
@@ -45,3 +45,4 @@ module.exports = async function (deployer: Deployer) {
 };
 
 // npx hardhat migrate --network localhost --only 2
+// npx hardhat migrate --network base_sepolia --only 2 --verify

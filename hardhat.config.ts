@@ -34,7 +34,6 @@ const config: HardhatUserConfig = {
       initialDate: '1970-01-01T00:00:00Z',
       // forking: {
       //   url: `https://eth-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
-      //   blockNumber: 19842819,
       // },
       // forking: {
       //   url: `https://arbitrum-sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
@@ -114,8 +113,18 @@ const config: HardhatUserConfig = {
       accounts: privateKey(),
       gasMultiplier: 1.1,
     },
+    base: {
+      url: `https://base-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
+      accounts: privateKey(),
+      gasMultiplier: 1.1,
+    },
     base_sepolia: {
       url: `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_KEY}`,
+      accounts: privateKey(),
+      gasMultiplier: 1.1,
+    },
+    optimism_sepolia: {
+      url: `https://optimism-sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts: privateKey(),
       gasMultiplier: 1.1,
     },
@@ -144,7 +153,9 @@ const config: HardhatUserConfig = {
       arbitrumOne: `${process.env.ARBITRUM_KEY}`,
       arbitrumGoerli: `${process.env.ETHERSCAN_KEY}`,
       arbitrum_sepolia: `${process.env.ARBITRUM_KEY}`,
+      base: `${process.env.BASESCAN_KEY}`,
       base_sepolia: `${process.env.BASESCAN_KEY}`,
+      optimistic_sepolia: `${process.env.OPTIMISTICSCAN_KEY}`,
     },
     customChains: [
       {
@@ -161,6 +172,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api-sepolia.basescan.org/api',
           browserURL: 'https://sepolia.basescan.org/',
+        },
+      },
+      {
+        network: 'optimistic_sepolia',
+        chainId: 11155420,
+        urls: {
+          apiURL: 'https://api-sepolia-optimistic.etherscan.io/api',
+          browserURL: 'https://sepolia-optimistic.etherscan.io/',
         },
       },
     ],

@@ -88,8 +88,7 @@ export const configEthSepoliaToArbitrumSepolia = {
     destinationChainId: 10231,
   },
   arbitrumExternalDeps: {
-    endpoint: '0xcE18836b233C83325Cc8848CA4487e94C6288264', // Deployed L1ERC20TokenBridgeMock
-    wTokenL2: wstEthL2,
+    endpoint: '0xcE18836b233C83325Cc8848CA4487e94C6288264',
   },
   // https://docs.layerzero.network/v1/developers/evm/technical-reference/testnet/testnet-addresses - Endpoint
   // https://docs.layerzero.network/v2/developers/evm/technical-reference/deployed-contracts - OFT endpoint

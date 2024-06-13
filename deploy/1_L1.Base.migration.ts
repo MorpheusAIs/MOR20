@@ -1,6 +1,6 @@
 import { Deployer, Reporter } from '@solarity/hardhat-migrate';
 
-import { configEthSepoliaToBaseSepolia } from './data/configEthSepoliaToBaseSepolia';
+import { configEthToBase } from './data/configEthToBase';
 
 import {
   DistributionToBase__factory,
@@ -31,7 +31,7 @@ const deployImplementations = async (deployer: Deployer) => {
 };
 
 module.exports = async function (deployer: Deployer) {
-  const { lzExternalDepsForL1, baseExternalDeps, feeConfig, depositTokenExternalDeps } = configEthSepoliaToBaseSepolia;
+  const { lzExternalDepsForL1, baseExternalDeps, feeConfig, depositTokenExternalDeps } = configEthToBase;
 
   const { distributionToBaseImpl, l1BaseSenderImpl, feeConfig: fee, l1Factory } = await deployImplementations(deployer);
 
@@ -56,3 +56,4 @@ module.exports = async function (deployer: Deployer) {
 };
 
 // npx hardhat migrate --network localhost --only 1
+// npx hardhat migrate --network sepolia --only 1 --verify

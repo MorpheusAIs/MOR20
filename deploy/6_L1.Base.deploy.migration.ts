@@ -1,16 +1,16 @@
 import { Deployer, Reporter } from '@solarity/hardhat-migrate';
 
-import { configEthSepoliaToBaseSepolia } from './data/configEthSepoliaToBaseSepolia';
+import { configEthToBase } from './data/configEthToBase';
 
 import { IL1Factory, L1FactoryToBase__factory } from '@/generated-types/ethers';
 
-const l1FactoryAddress = '0x5081a39b8A5f0E35a8D959395a630b68B74Dd30f';
+const l1FactoryAddress = '0x890BfA255E6EE8DB5c67aB32dc600B14EBc4546c';
 
-const l2MessageReceiver = '0x4826533B4897376654Bb4d4AD88B7faFD0C98528';
-const l2TokenReceiver = '0x6480af441A4aCb209753E7aD97f2aF2FFAe9A3bB';
+const l2MessageReceiver = '0x2f1C55b06FE644C8b4213dCaBC12aa44e5D6635B';
+const l2TokenReceiver = '0x17fA243D84fbffC4c8A78B886EdD574c0102bFb3';
 
 module.exports = async function (deployer: Deployer) {
-  const { l1Params } = configEthSepoliaToBaseSepolia;
+  const { l1Params } = configEthToBase;
   l1Params.l2MessageReceiver = l2MessageReceiver;
   l1Params.l2TokenReceiver = l2TokenReceiver;
 
@@ -34,3 +34,4 @@ module.exports = async function (deployer: Deployer) {
 };
 
 // npx hardhat migrate --network localhost --only 6
+// npx hardhat migrate --network sepolia --only 6 --verify

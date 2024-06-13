@@ -56,4 +56,5 @@ module.exports = async function (deployer: Deployer) {
   );
 };
 
-// npx hardhat migrate --network localhost --only 1
+// npx hardhat migrate --network localhost --only 3
+// npx hardhat migrate --sepolia --only 3 --verify
