@@ -3,15 +3,14 @@ pragma solidity ^0.8.20;
 
 import {ILayerZeroEndpoint} from "@layerzerolabs/lz-evm-sdk-v1-0.7/contracts/interfaces/ILayerZeroEndpoint.sol";
 
-import {IGatewayRouter} from "@arbitrum/token-bridge-contracts/contracts/tokenbridge/libraries/gateway/IGatewayRouter.sol";
-
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {IWStETH} from "../interfaces/tokens/IWStETH.sol";
-import {IL1Sender, IERC165} from "../interfaces/L1/IL1Sender.sol";
+import {IWstETH} from "../interfaces/tokens/IWstETH.sol";
+import {IL1BaseSender, IERC165} from "../interfaces/L1/IL1BaseSender.sol";
+import {IL1ERC20TokenBridge} from "../interfaces/bridges/IL1ERC20TokenBridge.sol";
 
-contract L1Sender is IL1Sender, OwnableUpgradeable {
+contract L1BaseSender is IL1BaseSender, OwnableUpgradeable {
     address public unwrappedDepositToken;
     address public distribution;
 
@@ -27,7 +26,7 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
         _disableInitializers();
     }
 
-    function L1Sender__init(
+    function L1BaseSender__init(
         address distribution_,
         RewardTokenConfig calldata rewardTokenConfig_,
         DepositTokenConfig calldata depositTokenConfig_
@@ -40,7 +39,7 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
     }
 
     function supportsInterface(bytes4 interfaceId_) external pure returns (bool) {
-        return interfaceId_ == type(IL1Sender).interfaceId || interfaceId_ == type(IERC165).interfaceId;
+        return interfaceId_ == type(IL1BaseSender).interfaceId || interfaceId_ == type(IERC165).interfaceId;
     }
 
     function setRewardTokenLZParams(address zroPaymentAddress_, bytes calldata adapterParams_) external onlyOwner {
@@ -51,15 +50,15 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
     function _setDepositTokenConfig(DepositTokenConfig calldata newConfig_) private {
         require(newConfig_.receiver != address(0), "L1S: invalid receiver");
 
-        _setDepositToken(newConfig_.token);
-        _setDepositTokenGateway(newConfig_.gateway, newConfig_.token);
+        _setDepositToken(newConfig_.l1Token);
+        _setDepositTokenGateway(newConfig_.gateway, newConfig_.l1Token);
 
         depositTokenConfig = newConfig_;
     }
 
     function _setDepositToken(address newToken_) private {
         // Get stETH from wstETH
-        address unwrappedToken_ = IWStETH(newToken_).stETH();
+        address unwrappedToken_ = IWstETH(newToken_).stETH();
         // Increase allowance from stETH to wstETH. To exchange stETH for wstETH
         IERC20(unwrappedToken_).approve(newToken_, type(uint256).max);
 
@@ -67,32 +66,25 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
     }
 
     function _setDepositTokenGateway(address newGateway_, address newToken_) private {
-        IERC20(newToken_).approve(IGatewayRouter(newGateway_).getGateway(newToken_), type(uint256).max);
+        IERC20(newToken_).approve(newGateway_, type(uint256).max);
     }
 
-    function sendDepositToken(
-        uint256 gasLimit_,
-        uint256 maxFeePerGas_,
-        uint256 maxSubmissionCost_
-    ) external payable onlyDistribution returns (bytes memory) {
+    function sendDepositToken(uint32 gasLimit_, bytes calldata data_) external onlyDistribution {
         DepositTokenConfig storage config = depositTokenConfig;
 
         // Get current stETH balance
         uint256 amountUnwrappedToken_ = IERC20(unwrappedDepositToken).balanceOf(address(this));
         // Wrap all stETH to wstETH
-        uint256 amount_ = IWStETH(config.token).wrap(amountUnwrappedToken_);
+        uint256 amount_ = IWstETH(config.l1Token).wrap(amountUnwrappedToken_);
 
-        bytes memory data_ = abi.encode(maxSubmissionCost_, "");
-
-        return
-            IGatewayRouter(config.gateway).outboundTransfer{value: msg.value}(
-                config.token,
-                config.receiver,
-                amount_,
-                gasLimit_,
-                maxFeePerGas_,
-                data_
-            );
+        IL1ERC20TokenBridge(config.gateway).depositERC20To(
+            config.l1Token,
+            config.l2Token,
+            config.receiver,
+            amount_,
+            gasLimit_,
+            data_
+        );
     }
 
     function sendMintMessage(address user_, uint256 amount_, address refundTo_) external payable onlyDistribution {

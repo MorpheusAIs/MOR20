@@ -3,6 +3,7 @@ import { BigNumberish } from 'ethers';
 import { readFileSync } from 'fs';
 
 import { IL1Factory, IL2Factory } from '@/generated-types/ethers';
+import { IL1FactoryToArb } from '@/generated-types/ethers/contracts/interfaces/factories/IL1FactoryToArb';
 import { ZERO_ADDR } from '@/scripts/utils/constants';
 
 type FeeConfig = {
@@ -15,7 +16,7 @@ export type Config = {
 
   depositTokenExternalDeps: IL1Factory.DepositTokenExternalDepsStruct;
   lzExternalDeps: IL1Factory.LzExternalDepsStruct;
-  arbExternalDeps: IL1Factory.ArbExternalDepsStruct;
+  arbExternalDeps: IL1FactoryToArb.ArbExternalDepsStruct;
 
   lzTokenExternalDeps: IL2Factory.LzExternalDepsStruct;
   uniswapExternalDeps: IL2Factory.UniswapExternalDepsStruct;
@@ -106,7 +107,7 @@ function validateLzExternalDeps(lzExternalDeps: IL1Factory.LzExternalDepsStruct)
   }
 }
 
-function validateArbExternalDeps(arbExternalDeps: IL1Factory.ArbExternalDepsStruct) {
+function validateArbExternalDeps(arbExternalDeps: IL1FactoryToArb.ArbExternalDepsStruct) {
   if (arbExternalDeps === undefined) {
     throw new Error(`Invalid arbExternalDeps.`);
   }

@@ -12,7 +12,7 @@ import {IDistribution} from "../interfaces/L1/IDistribution.sol";
 import {IFeeConfig} from "../interfaces/L1/IFeeConfig.sol";
 import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 
-contract Distribution is IDistribution, OwnableUpgradeable {
+abstract contract Distribution is IDistribution, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
     address public depositToken;
@@ -46,16 +46,12 @@ contract Distribution is IDistribution, OwnableUpgradeable {
     /*** Init                                                                                   ***/
     /**********************************************************************************************/
 
-    constructor() {
-        _disableInitializers();
-    }
-
-    function Distribution_init(
+    function __Distribution_init(
         address depositToken_,
         address l1Sender_,
         address feeConfig_,
         Pool[] calldata poolsInfo_
-    ) external initializer {
+    ) internal onlyInitializing {
         __Ownable_init();
 
         for (uint256 i; i < poolsInfo_.length; ++i) {
@@ -302,11 +298,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         return depositTokenContractBalance_ - totalDepositedInPublicPools;
     }
 
-    function bridgeOverplus(
-        uint256 gasLimit_,
-        uint256 maxFeePerGas_,
-        uint256 maxSubmissionCost_
-    ) external payable onlyOwner returns (bytes memory) {
+    function _bridgeOverplus() internal returns (uint256) {
         uint256 overplus_ = overplus();
         require(overplus_ > 0, "DS: overplus is zero");
 
@@ -321,14 +313,8 @@ contract Distribution is IDistribution, OwnableUpgradeable {
 
         IERC20(depositToken).safeTransfer(l1Sender, overplus_);
 
-        bytes memory bridgeMessageId_ = IL1Sender(l1Sender).sendDepositToken{value: msg.value}(
-            gasLimit_,
-            maxFeePerGas_,
-            maxSubmissionCost_
-        );
-
-        emit OverplusBridged(overplus_, bridgeMessageId_);
-
-        return bridgeMessageId_;
+        return overplus_;
     }
+
+    uint256[44] private __gap;
 }

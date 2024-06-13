@@ -4,11 +4,11 @@ pragma solidity ^0.8.20;
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 import {TransferHelper} from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 import {IL2TokenReceiver, IERC165, IERC721Receiver} from "../interfaces/L2/IL2TokenReceiver.sol";
 import {INonfungiblePositionManager} from "../interfaces/uniswap-v3/INonfungiblePositionManager.sol";
+import {IV3SwapRouter} from "../interfaces/uniswap-v3/IV3SwapRouter.sol";
 
 contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
     address public router;
@@ -73,20 +73,21 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
         uint160 sqrtPriceLimitX96_,
         bool isUseFirstSwapParams_
     ) external onlyOwner returns (uint256) {
+        require(block.timestamp <= deadline_, "L2TR: Transaction too old");
+
         SwapParams memory params_ = _getSwapParams(isUseFirstSwapParams_);
 
-        ISwapRouter.ExactInputSingleParams memory swapParams_ = ISwapRouter.ExactInputSingleParams({
+        IV3SwapRouter.ExactInputSingleParams memory swapParams_ = IV3SwapRouter.ExactInputSingleParams({
             tokenIn: params_.tokenIn,
             tokenOut: params_.tokenOut,
             fee: params_.fee,
             recipient: address(this),
-            deadline: deadline_,
             amountIn: amountIn_,
             amountOutMinimum: amountOutMinimum_,
             sqrtPriceLimitX96: sqrtPriceLimitX96_
         });
 
-        uint256 amountOut_ = ISwapRouter(router).exactInputSingle(swapParams_);
+        uint256 amountOut_ = IV3SwapRouter(router).exactInputSingle(swapParams_);
 
         emit TokensSwapped(params_.tokenIn, params_.tokenOut, amountIn_, amountOut_, amountOutMinimum_);
 

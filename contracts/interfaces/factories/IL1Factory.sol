@@ -51,14 +51,6 @@ interface IL1Factory {
     }
 
     /**
-     * The struct that represents the external dependencies for the Arbitrub contract.
-     * @param endpoint The endpoint address.
-     */
-    struct ArbExternalDeps {
-        address endpoint;
-    }
-
-    /**
      * The struct that represents deployed pools.
      * @param protocol The protocol name.
      * @param distribution The distribution address.
@@ -69,11 +61,6 @@ interface IL1Factory {
         address distribution;
         address l1Sender;
     }
-
-    /**
-     * The function that initializes the contract.
-     */
-    function L1Factory_init() external;
 
     /**
      * The function to get fee config address.
@@ -93,19 +80,7 @@ interface IL1Factory {
      * The function that sets the LZ external dependencies.
      * @param lzExternalDeps_ The LZ external dependencies.
      */
-    function setLzExternalDeps(IL1Factory.LzExternalDeps calldata lzExternalDeps_) external;
-
-    /**
-     * The function that sets the Arbitrum external dependencies.
-     * @param arbExternalDeps_ The Arbitrum external dependencies.
-     */
-    function setArbExternalDeps(IL1Factory.ArbExternalDeps calldata arbExternalDeps_) external;
-
-    /**
-     * The function that deploys the L1 contracts.
-     * @param l1Params_ The L1 parameters.
-     */
-    function deploy(IL1Factory.L1Params calldata l1Params_) external;
+    function setLzExternalDeps(LzExternalDeps calldata lzExternalDeps_) external;
 
     /**
      * The function that predicts the pool addresses.

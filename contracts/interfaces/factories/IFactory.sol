@@ -60,4 +60,9 @@ interface IFactory {
      * @return beacon the beacon which the pool points to.
      */
     function getBeacon(string memory poolType_) external view returns (address);
+
+    /**
+     * The function indicates the bridge implementation for a particular network.
+     */
+    function getL2Network() external pure returns (string memory);
 }

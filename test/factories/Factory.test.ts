@@ -132,7 +132,7 @@ describe('Factory', () => {
 
   describe('deploy2', () => {
     beforeEach(async () => {
-      const L1SenderFactory = await ethers.getContractFactory('L1Sender');
+      const L1SenderFactory = await ethers.getContractFactory('L1ArbSender');
       const L1SenderImplementation = await L1SenderFactory.deploy();
 
       await factory.setImplementations(['pool0'], [L1SenderImplementation]);
@@ -162,3 +162,6 @@ describe('Factory', () => {
     });
   });
 });
+
+// npx hardhat test "test/factories/Factory.test.ts"
+// npx hardhat coverage --solcoverjs ./.solcover.ts --testfiles "test/factories/Factory.test.ts"

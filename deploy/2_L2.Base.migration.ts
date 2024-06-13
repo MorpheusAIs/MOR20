@@ -1,6 +1,6 @@
 import { Deployer, Reporter } from '@solarity/hardhat-migrate';
 
-import { parseConfig } from './helpers/config-parser';
+import { configEthToBase } from './data';
 
 import {
   ERC1967Proxy__factory,
@@ -10,9 +10,7 @@ import {
 } from '@/generated-types/ethers';
 import { PoolTypesL2 } from '@/test/helpers/helper';
 
-module.exports = async function (deployer: Deployer) {
-  const config = parseConfig(await deployer.getChainId());
-
+const deployImplementations = async (deployer: Deployer) => {
   const l2MessageReceiverImpl = await deployer.deploy(L2MessageReceiver__factory);
   const l2TokenReceiverImpl = await deployer.deploy(L2TokenReceiver__factory);
 
@@ -22,10 +20,17 @@ module.exports = async function (deployer: Deployer) {
   });
   const l2Factory = await deployer.deployed(L2Factory__factory, await l2FactoryProxy.getAddress());
 
-  await l2Factory.L2Factory_init();
+  return { l2MessageReceiverImpl, l2TokenReceiverImpl, l2Factory };
+};
 
-  await l2Factory.setLzExternalDeps(config.lzTokenExternalDeps);
-  await l2Factory.setUniswapExternalDeps(config.uniswapExternalDeps);
+module.exports = async function (deployer: Deployer) {
+  const { lzExternalDepsForL2, uniswapExternalDeps } = configEthToBase;
+
+  const { l2MessageReceiverImpl, l2TokenReceiverImpl, l2Factory } = await deployImplementations(deployer);
+
+  await l2Factory.L2Factory_init();
+  await l2Factory.setLzExternalDeps(lzExternalDepsForL2);
+  await l2Factory.setUniswapExternalDeps(uniswapExternalDeps);
 
   await l2Factory.setImplementations(
     [PoolTypesL2.L2_MESSAGE_RECEIVER, PoolTypesL2.L2_TOKEN_RECEIVER],
@@ -33,8 +38,11 @@ module.exports = async function (deployer: Deployer) {
   );
 
   Reporter.reportContracts(
-    ['l2Factory', await l2Factory.getAddress()],
-    ['L2MessageReceiverImpl', await l2MessageReceiverImpl.getAddress()],
-    ['L2TokenReceiverImpl', await l2TokenReceiverImpl.getAddress()],
+    ['L2 Factory', await l2Factory.getAddress()],
+    ['L2 Message Receiver Implementation', await l2MessageReceiverImpl.getAddress()],
+    ['L2 Token Receiver Implementation', await l2TokenReceiverImpl.getAddress()],
   );
 };
+
+// npx hardhat migrate --network localhost --only 2
+// npx hardhat migrate --network base_sepolia --only 2 --verify

@@ -218,6 +218,9 @@ describe('L2TokenReceiver', () => {
         'Ownable: caller is not the owner',
       );
     });
+    it('should revert if time is expired', async () => {
+      await expect(l2TokenReceiver.swap(1, 0, 0, 0, false)).to.be.revertedWith('L2TR: Transaction too old');
+    });
   });
 
   describe('#increaseLiquidityCurrentRange', () => {

@@ -26,7 +26,7 @@ describe('L2TokenReceiver Fork', () => {
 
   let l2TokenReceiver: L2TokenReceiver;
 
-  const router = '0xE592427A0AEce92De3Edee1F18E0157C05861564';
+  const router = '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45';
   const nonfungiblePositionManagerAddress = '0xC36442b4a4522E871399CD717aBDD847Ab11FE88';
 
   const l1LzEndpointV2Address = '0x1a44076050125825900e736c501f859c50fe728c';

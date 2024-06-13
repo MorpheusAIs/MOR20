@@ -113,4 +113,8 @@ contract L2Factory is IL2Factory, Factory {
     function getMor20(address deployer_, string calldata protocol_) external view returns (address) {
         return _mor20[deployer_][protocol_];
     }
+
+    function getL2Network() public pure virtual override returns (string memory) {
+        return "";
+    }
 }

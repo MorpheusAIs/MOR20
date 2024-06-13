@@ -239,6 +239,12 @@ describe('L2Factory', () => {
     });
   });
 
+  describe('#getL2Network', () => {
+    it('should return an empty string', async () => {
+      expect(await l2Factory.getL2Network()).to.equal('');
+    });
+  });
+
   describe('#deploy', () => {
     beforeEach(async () => {
       const { lzTokenExternalDeps, uniswapExternalDeps } = getL2FactoryParams();
