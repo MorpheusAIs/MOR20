@@ -1,3 +1,5 @@
+import { wei } from '@/scripts/utils/utils';
+
 // https://etherscan.io/address/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84
 const stEthL1 = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84';
 // https://etherscan.io/address/0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0
@@ -8,7 +10,7 @@ const wstEthL2 = '0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452';
 const pools = [
   {
     // 'Capital Providers',
-    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
+    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
     claimLockPeriod: 7776000, // 90 days
@@ -20,50 +22,50 @@ const pools = [
   },
   {
     // 'Community',
-    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
+    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
-    claimLockPeriod: 7776000, // 90 days
+    claimLockPeriod: 7344000, // 85 days
     withdrawLockPeriodAfterStake: 604800, // 7 days
     initialReward: '84013800000000000000000', // 84013.8 SPACE
     rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
-    minimalStake: '10000000000000000', // 0.01 stETH
+    minimalStake: '0', // 0.01 stETH
     isPublic: false,
   },
   {
     // 'Developers',
-    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
+    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
-    claimLockPeriod: 7776000, // 90 days
+    claimLockPeriod: 7344000, // 85 days
     withdrawLockPeriodAfterStake: 604800, // 7 days
     initialReward: '84013800000000000000000', // 84013.8 SPACE
     rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
-    minimalStake: '10000000000000000', // 0.01 stETH
+    minimalStake: '0', // 0 stETH
     isPublic: false,
   },
   {
     // 'Team',
-    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
+    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
     claimLockPeriod: 7776000, // 90 days
     withdrawLockPeriodAfterStake: 604800, // 7 days
     initialReward: '84013800000000000000000', // 84013.8 SPACE
     rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
-    minimalStake: '10000000000000000', // 0.01 stETH
+    minimalStake: '0', // 0 stETH
     isPublic: false,
   },
   {
     // 'Users',
-    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
+    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
-    claimLockPeriod: 7776000, // 90 days
+    claimLockPeriod: 7344000, // 85 days
     withdrawLockPeriodAfterStake: 604800, // 7 days
     initialReward: '84013800000000000000000', // 84013.8 SPACE
     rewardDecrease: '14558684330869400000', // 72.793421654347 * 0.2 = 14.5586843308694 SPACE
-    minimalStake: '10000000000000000', // 0.01 stETH
+    minimalStake: '0', // 0 stETH
     isPublic: false,
   },
 ];
@@ -107,7 +109,7 @@ export const configEthToBase = {
   },
   l1Params: {
     isUpgradeable: true,
-    owner: '???',
+    owner: '0x201295fd6A833259E852E59551724d2d81456c6c',
     protocolName: 'Nounspace',
     poolsInfo: pools,
     l2TokenReceiver: '---', // TODO
@@ -115,7 +117,7 @@ export const configEthToBase = {
   },
   l2Params: {
     isUpgradeable: true,
-    owner: '???',
+    owner: '0xa2654e8df46466b7bffD0CB97FB7dDEAb8D3f015',
     protocolName: 'Nounspace',
     mor20Name: 'Nounspace',
     mor20Symbol: 'SPACE',
@@ -133,23 +135,23 @@ export const configEthToBase = {
   nonAutomatedUsers: [
     {
       poolId: 1, // Community
-      users: ['???'],
-      amount: ['???'],
+      users: ['0x201295fd6A833259E852E59551724d2d81456c6c'],
+      amount: [wei(1, 25)],
     },
     {
       poolId: 2, // Developers
-      users: ['???'],
-      amount: ['???'],
+      users: ['0x36677C978D6e4Cf617cb67cb40A40dAB96D044Af'],
+      amount: [wei(1, 25)],
     },
     {
       poolId: 3, // Team
-      users: ['???'],
-      amount: ['???'],
+      users: ['0x7FeDcE2d4479576cE8C2aEcf9D045aEB3b37b145'],
+      amount: [wei(1, 25)],
     },
     {
       poolId: 4, // Users
-      users: ['???'],
-      amount: ['???'],
+      users: ['0xDe7f2A208cC3fB7522b3AeFF8Ee6352eCC84e33f'],
+      amount: [wei(1, 25)],
     },
   ],
 };
