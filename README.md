@@ -20,3 +20,6 @@ Mor.org is one of the most popular Morpheus community websites has added a page 
 For all those that want to do a Fair Launch for their project, these are known as the MOR20 Smart Contracts.
 There is a sign up form for those that want to contact developers directly or receive more information when the Smart Contracts are updated.
 https://mor.org/MOR20
+
+## MOR20 Audit
+[MOR20-audit-final.pdf](https://github.com/user-attachments/files/15831583/MOR20-audit-final.pdf)
