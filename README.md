@@ -48,8 +48,6 @@ MOR20 contracts are deployed using the `Mor20FactoryL1` and `Mor20FactoryL2` fac
 
 These methods can be called in any order; however, before calling either method, the deployer should know the counterfactual deployment addresses of the second method, which can be calculated using `predictMor20Address`.
 
-For in-depth deployment guidance, see the [Deployment Guide](/Deployment%20Guide.md)
-
 
 ## Links
 - [MOR20 website](https://mor.org/MOR20)
