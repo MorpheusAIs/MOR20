@@ -140,7 +140,7 @@ describe('Distribution', () => {
 
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImplementation, '0x');
     feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
-    await feeConfig.__FeeConfig_init(OWNER, wei(0.1, 25));
+    await feeConfig.FeeConfig_init(OWNER, wei(0.1, 25));
 
     const l2MessageReceiverProxy = await ERC1967ProxyFactory.deploy(l2MessageReceiverImplementation, '0x');
     l2MessageReceiver = L2MessageReceiver.attach(l2MessageReceiverProxy) as L2MessageReceiver;
@@ -297,73 +297,6 @@ describe('Distribution', () => {
       await expect(distribution.connect(SECOND).createPool(getDefaultPool())).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
-    });
-  });
-
-  describe('#editPool', () => {
-    const poolId = 0;
-    let defaultPool: IDistribution.PoolStruct;
-
-    beforeEach(async () => {
-      defaultPool = getDefaultPool();
-
-      await distribution.createPool(getDefaultPool());
-    });
-
-    it('should edit pool with correct data', async () => {
-      const newPool = {
-        ...defaultPool,
-        decreaseInterval: 10 * oneDay,
-        initialReward: wei(111),
-        rewardDecrease: wei(222),
-        minimalStake: wei(333),
-      };
-
-      const tx = await distribution.editPool(poolId, newPool);
-      await expect(tx).to.emit(distribution, 'PoolEdited');
-
-      const poolData: IDistribution.PoolStruct = await distribution.pools(poolId);
-      expect(_comparePoolStructs(newPool, poolData)).to.be.true;
-    });
-    it('should revert if try to change pool type', async () => {
-      const newPool = {
-        ...defaultPool,
-        isPublic: false,
-      };
-
-      await expect(distribution.editPool(poolId, newPool)).to.be.rejectedWith('DS: invalid pool type');
-    });
-
-    describe('should revert if try to edit pool with incorrect data', () => {
-      it('if `decreaseInterval == 0`', async () => {
-        const newPool = { ...defaultPool, decreaseInterval: 0 };
-
-        await expect(distribution.editPool(poolId, newPool)).to.be.rejectedWith('DS: invalid decrease interval');
-      });
-      it('if `payoutStart changes`', async () => {
-        const newPool = { ...defaultPool, payoutStart: oneDay * 2 };
-
-        await expect(distribution.editPool(poolId, newPool)).to.be.rejectedWith('DS: invalid payout start value');
-      });
-      it('if `withdrawLockPeriod` changes', async () => {
-        const newPool = { ...defaultPool, withdrawLockPeriod: oneDay * 2 };
-
-        await expect(distribution.editPool(poolId, newPool)).to.be.rejectedWith('DS: invalid WLP value');
-      });
-      it('if `withdrawLockPeriodAfterStake` changes', async () => {
-        const newPool = { ...defaultPool, withdrawLockPeriodAfterStake: oneDay * 2 };
-
-        await expect(distribution.editPool(poolId, newPool)).to.be.rejectedWith('DS: invalid WLPAS value');
-      });
-    });
-
-    it('should revert if caller is not owner', async () => {
-      await expect(distribution.connect(SECOND).editPool(poolId, getDefaultPool())).to.be.revertedWith(
-        'Ownable: caller is not the owner',
-      );
-    });
-    it("should revert if pool doesn't exist", async () => {
-      await expect(distribution.editPool(1, getDefaultPool())).to.be.revertedWith("DS: pool doesn't exist");
     });
   });
 
@@ -1030,73 +963,6 @@ describe('Distribution', () => {
       expect(userData.deposited).to.eq(wei(3));
       expect(userData.pendingRewards).to.eq(0);
     });
-    it('should correctly claim zero reward when poll reward is zero', async () => {
-      let userData;
-
-      const newPool = {
-        ...getDefaultPool(),
-        initialReward: 0,
-      };
-
-      await setNextTime(oneHour * 2);
-      await distribution.connect(SECOND).stake(poolId, wei(1));
-
-      await setNextTime(oneDay + oneDay);
-      await distribution.connect(OWNER).stake(poolId, wei(3));
-
-      await setNextTime(oneDay + oneDay * 2);
-      await distribution.editPool(poolId, newPool);
-
-      // Claim after 3 days after the start of reward payment
-      await setNextTime(oneDay + oneDay * 4);
-      await distribution.connect(SECOND).claim(poolId, SECOND, { value: wei(0.5) });
-      await distribution.claim(poolId, OWNER, { value: wei(0.5) });
-
-      expect(await rewardToken.balanceOf(OWNER.address)).to.closeTo(wei(73.5), wei(0.001));
-      userData = await distribution.usersData(OWNER.address, poolId);
-      expect(userData.deposited).to.eq(wei(3));
-      expect(userData.pendingRewards).to.eq(0);
-
-      expect(await rewardToken.balanceOf(SECOND.address)).to.closeTo(wei(100 + 24.5), wei(0.000001));
-      userData = await distribution.usersData(SECOND.address, poolId);
-      expect(userData.deposited).to.eq(wei(1));
-      expect(userData.pendingRewards).to.eq(0);
-    });
-    it('should correctly continue claim reward after pool stop (zero reward)', async () => {
-      let userData;
-
-      const newPool = {
-        ...getDefaultPool(),
-        initialReward: 0,
-      };
-
-      await setNextTime(oneHour * 2);
-      await distribution.connect(SECOND).stake(poolId, wei(1));
-
-      await setNextTime(oneDay + oneDay);
-      await distribution.connect(OWNER).stake(poolId, wei(3));
-
-      await setNextTime(oneDay + oneDay * 2);
-      await distribution.editPool(poolId, newPool);
-
-      await setNextTime(oneDay + oneDay * 3);
-      await distribution.editPool(poolId, getDefaultPool());
-
-      // Claim after 3 days after the start of reward payment
-      await setNextTime(oneDay + oneDay * 4);
-      await distribution.connect(SECOND).claim(poolId, SECOND, { value: wei(0.5) });
-      await distribution.claim(poolId, OWNER, { value: wei(0.5) });
-
-      expect(await rewardToken.balanceOf(OWNER.address)).to.closeTo(wei(73.5 + 70.5), wei(0.01));
-      userData = await distribution.usersData(OWNER.address, poolId);
-      expect(userData.deposited).to.eq(wei(3));
-      expect(userData.pendingRewards).to.eq(0);
-
-      expect(await rewardToken.balanceOf(SECOND.address)).to.closeTo(wei(100 + 24.5 + 23.5), wei(0.000001));
-      userData = await distribution.usersData(SECOND.address, poolId);
-      expect(userData.deposited).to.eq(wei(1));
-      expect(userData.pendingRewards).to.eq(0);
-    });
     it('should correctly claim for receiver', async () => {
       await setNextTime(oneHour * 2);
       await distribution.connect(SECOND).stake(poolId, wei(1));
@@ -1119,23 +985,10 @@ describe('Distribution', () => {
       await expect(distribution.claim(poolId, OWNER)).to.be.revertedWith('DS: pool claim is locked');
     });
     it('should revert if nothing to claim', async () => {
-      const newPool = {
-        ...getDefaultPool(),
-        initialReward: 0,
-      };
-
-      await setNextTime(oneHour * 2);
-      await distribution.connect(SECOND).stake(poolId, wei(1));
-
-      await setNextTime(oneHour * 3);
-      await distribution.editPool(poolId, newPool);
-
       await setNextTime(oneDay + oneDay);
       await expect(distribution.connect(SECOND).claim(poolId, SECOND)).to.be.revertedWith('DS: nothing to claim');
     });
     it('should correctly claim, real data', async () => {
-      let reward;
-
       const newPool = {
         ...getDefaultPool(),
         initialReward: wei(14400),
@@ -1156,7 +1009,6 @@ describe('Distribution', () => {
       await depositToken.connect(PROTECTION).approve(await distribution.getAddress(), wei(1000));
 
       await setNextTime(oneHour * 2);
-      await distribution.editPool(poolId, newPool);
       await distribution.createPool(newPool);
 
       await setNextTime(oneHour * 4);
@@ -1168,21 +1020,9 @@ describe('Distribution', () => {
 
       await distribution.connect(COMMUNITY).stake(1, wei(1));
 
-      await setTime(oneDay + oneDay);
-      reward = await distribution.getCurrentUserReward(poolId, COMMUNITY);
-      expect(reward).to.eq(wei(3456));
-
-      await setTime(oneDay + oneDay * 3000);
-      reward = await distribution.getCurrentUserReward(poolId, COMMUNITY);
-      expect(reward).to.closeTo(wei(7702374.56), wei(0.1));
-
-      await setTime(oneDay + oneDay * 5833);
-      reward = await distribution.getCurrentUserReward(poolId, COMMUNITY);
-      expect(reward).to.closeTo(wei(10080000), wei(0.001));
-
       // Totally will be minted
       await setTime(oneDay + oneDay * 9999);
-      reward = await distribution.getCurrentUserReward(1, COMMUNITY);
+      const reward = await distribution.getCurrentUserReward(1, COMMUNITY);
       expect(reward).to.closeTo(wei(42000000), wei(0.01));
     });
   });

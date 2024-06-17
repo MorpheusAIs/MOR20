@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 
 import { Reverter } from '../helpers/reverter';
 
-import { FeeConfig } from '@/generated-types/ethers';
+import { FeeConfig, FeeConfigV2 } from '@/generated-types/ethers';
 import { ZERO_ADDR } from '@/scripts/utils/constants';
 import { wei } from '@/scripts/utils/utils';
 
@@ -28,19 +28,51 @@ describe('FeeConfig', () => {
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImpl, '0x');
     feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
 
-    await feeConfig.__FeeConfig_init(OWNER, wei(0.1, 25));
+    await feeConfig.FeeConfig_init(OWNER, wei(0.1, 25));
 
     await reverter.snapshot();
   });
 
   afterEach(reverter.revert);
 
+  describe('UUPS proxy functionality', () => {
+    describe('#_authorizeUpgrade', () => {
+      it('should correctly upgrade', async () => {
+        const feeConfigV2Factory = await ethers.getContractFactory('FeeConfigV2');
+        const feeConfigV2Implementation = await feeConfigV2Factory.deploy();
+
+        await feeConfig.upgradeTo(feeConfigV2Implementation);
+
+        const factoryV2 = feeConfigV2Factory.attach(await feeConfig.getAddress()) as FeeConfigV2;
+
+        expect(await factoryV2.version()).to.eq(2);
+      });
+      it('should revert if caller is not the owner', async () => {
+        await expect(feeConfig.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
+          'Ownable: caller is not the owner',
+        );
+      });
+    });
+  });
+
   describe('initialization', () => {
-    describe('#__FeeConfig_init', () => {
+    describe('#FeeConfig_init', () => {
       it('should revert if try to call init function twice', async () => {
         const reason = 'Initializable: contract is already initialized';
 
-        await expect(feeConfig.__FeeConfig_init(SECOND, wei(0.1, 25))).to.be.rejectedWith(reason);
+        await expect(feeConfig.FeeConfig_init(SECOND, wei(0.1, 25))).to.be.rejectedWith(reason);
+      });
+      it('should revert if `baseFee` is > 1', async () => {
+        const [feeConfigFactory, ERC1967ProxyFactory] = await Promise.all([
+          ethers.getContractFactory('FeeConfig'),
+          ethers.getContractFactory('ERC1967Proxy'),
+        ]);
+
+        const feeConfigImpl = await feeConfigFactory.deploy();
+        const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImpl, '0x');
+        const feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
+
+        await expect(feeConfig.FeeConfig_init(SECOND, wei(1.1, 25))).to.be.revertedWith('FC: invalid base fee');
       });
     });
   });
@@ -88,14 +120,18 @@ describe('FeeConfig', () => {
       await feeConfig.setBaseFee(wei(0.2, 25));
 
       expect(await feeConfig.baseFee()).to.be.equal(wei(0.2, 25));
+
+      await feeConfig.setBaseFee(wei(1, 25));
+
+      expect(await feeConfig.baseFee()).to.be.equal(wei(1, 25));
     });
     it('should revert if not called by the owner', async () => {
       await expect(feeConfig.connect(SECOND).setBaseFee(wei(0.1, 25))).to.be.revertedWith(
         'Ownable: caller is not the owner',
       );
     });
-    it('should revert if fee is >= 1', async () => {
-      await expect(feeConfig.setBaseFee(wei(1, 25))).to.be.revertedWith('FC: invalid base fee');
+    it('should revert if fee is > 1', async () => {
+      await expect(feeConfig.setBaseFee(wei(1.1, 25))).to.be.revertedWith('FC: invalid base fee');
     });
   });
 
@@ -117,3 +153,6 @@ describe('FeeConfig', () => {
     });
   });
 });
+
+// npx hardhat test "test/L1/FeeConfig.test.ts"
+// npx hardhat coverage --solcoverjs ./.solcover.ts --testfiles "test/L1/FeeConfig.test.ts"

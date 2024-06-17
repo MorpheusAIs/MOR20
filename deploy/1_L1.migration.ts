@@ -24,7 +24,7 @@ module.exports = async function (deployer: Deployer) {
 
   const feeConfig = await deployer.deployed(FeeConfig__factory, await feeConfigProxy.getAddress());
 
-  await feeConfig.__FeeConfig_init(config.feeConfig.treasury, config.feeConfig.baseFee);
+  await feeConfig.FeeConfig_init(config.feeConfig.treasury, config.feeConfig.baseFee);
 
   const l1FactoryImpl = await deployer.deploy(L1Factory__factory);
   const l1FactoryProxy = await deployer.deploy(ERC1967Proxy__factory, [await l1FactoryImpl.getAddress(), '0x'], {

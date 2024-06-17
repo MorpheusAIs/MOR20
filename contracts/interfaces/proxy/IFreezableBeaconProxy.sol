@@ -9,18 +9,18 @@ interface IFreezableBeaconProxy {
     /**
      * The function to freeze the implementation.
      */
-    function freeze() external;
+    function freezeProxy_() external;
 
     /**
      * The function to unfreeze the implementation.
      */
-    function unfreeze() external;
+    function unfreezeProxy_() external;
 
     /**
      * The function to check if the implementation is frozen.
      * @return The boolean value to indicating if the implementation is frozen.
      */
-    function isFrozen() external view returns (bool);
+    function isProxyFrozen_() external view returns (bool);
 
     /**
      * The function to get the implementation.

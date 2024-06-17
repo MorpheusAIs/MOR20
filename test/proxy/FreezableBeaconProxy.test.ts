@@ -6,7 +6,7 @@ import { Reverter } from '../helpers/reverter';
 
 import { FreezableBeaconProxy, PoolMockV1, PoolMockV2, UpgradeableBeacon } from '@/generated-types/ethers';
 
-describe('Factory', () => {
+describe('FreezableBeaconProxy', () => {
   const reverter = new Reverter();
 
   let SECOND: SignerWithAddress;
@@ -32,23 +32,26 @@ describe('Factory', () => {
     beacon = await UpgradeableBeacon.deploy(poolV1);
     beaconProxy = await FreezableBeaconProxy.deploy(beacon, '0x');
 
+    const proxy = PoolMockV1.attach(beaconProxy) as PoolMockV1;
+    await proxy.PoolMockV1_init();
+
     await reverter.snapshot();
   });
 
   afterEach(reverter.revert);
 
-  describe('freeze', () => {
-    it('should not freeze if not factory', async () => {
-      await expect(beaconProxy.connect(SECOND).freeze()).to.be.revertedWith('FBP: not factory');
+  describe('freezeProxy_', () => {
+    it('should not freeze if not owner', async () => {
+      await expect(beaconProxy.connect(SECOND).freezeProxy_()).to.be.revertedWith('FBP: caller is not the owner');
     });
 
     it('should not freeze if already frozen', async () => {
-      await beaconProxy.freeze();
-      await expect(beaconProxy.freeze()).to.be.revertedWith('FBP: already frozen');
+      await beaconProxy.freezeProxy_();
+      await expect(beaconProxy.freezeProxy_()).to.be.revertedWith('FBP: already frozen');
     });
 
     it('should not freeze if all conditions are met', async () => {
-      await beaconProxy.freeze();
+      await beaconProxy.freezeProxy_();
 
       await beacon.upgradeTo(poolV2);
 
@@ -56,23 +59,23 @@ describe('Factory', () => {
     });
   });
 
-  describe('unfreeze', () => {
-    it('should not freeze if not factory', async () => {
-      await expect(beaconProxy.connect(SECOND).unfreeze()).to.be.revertedWith('FBP: not factory');
+  describe('unfreezeProxy_', () => {
+    it('should not freeze if not owner', async () => {
+      await expect(beaconProxy.connect(SECOND).unfreezeProxy_()).to.be.revertedWith('FBP: caller is not the owner');
     });
 
     it('should not freeze if not frozen', async () => {
-      await expect(beaconProxy.unfreeze()).to.be.revertedWith('FBP: not frozen');
+      await expect(beaconProxy.unfreezeProxy_()).to.be.revertedWith('FBP: not frozen');
     });
 
     it('should not freeze if all conditions are met', async () => {
-      await beaconProxy.freeze();
+      await beaconProxy.freezeProxy_();
 
       await beacon.upgradeTo(poolV2);
 
       expect(await beaconProxy.implementation()).to.eq(await poolV1.getAddress());
 
-      await beaconProxy.unfreeze();
+      await beaconProxy.unfreezeProxy_();
 
       expect(await beaconProxy.implementation()).to.eq(await poolV2.getAddress());
 
@@ -82,17 +85,17 @@ describe('Factory', () => {
     });
   });
 
-  describe('isFrozen', () => {
+  describe('isProxyFrozen_', () => {
     it('should properly check if frozen', async () => {
-      expect(await beaconProxy.isFrozen()).to.be.false;
+      expect(await beaconProxy.isProxyFrozen_()).to.be.false;
 
-      await beaconProxy.freeze();
+      await beaconProxy.freezeProxy_();
 
-      expect(await beaconProxy.isFrozen()).to.be.true;
+      expect(await beaconProxy.isProxyFrozen_()).to.be.true;
 
-      await beaconProxy.unfreeze();
+      await beaconProxy.unfreezeProxy_();
 
-      expect(await beaconProxy.isFrozen()).to.be.false;
+      expect(await beaconProxy.isProxyFrozen_()).to.be.false;
     });
   });
 });

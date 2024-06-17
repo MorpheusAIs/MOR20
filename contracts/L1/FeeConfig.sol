@@ -1,23 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {PRECISION} from "@solarity/solidity-lib/utils/Globals.sol";
 
 import {IFeeConfig} from "../interfaces/L1/IFeeConfig.sol";
 
-contract FeeConfig is IFeeConfig, OwnableUpgradeable {
+contract FeeConfig is IFeeConfig, OwnableUpgradeable, UUPSUpgradeable {
     address public treasury;
     uint256 public baseFee;
 
     mapping(address => uint256) public fees;
 
-    function __FeeConfig_init(address treasury_, uint256 baseFee_) external initializer {
+    constructor() {
+        _disableInitializers();
+    }
+
+    function FeeConfig_init(address treasury_, uint256 baseFee_) external initializer {
         __Ownable_init();
 
+        setBaseFee(baseFee_);
         treasury = treasury_;
-        baseFee = baseFee_;
     }
 
     function setFee(address sender_, uint256 fee_) external onlyOwner {
@@ -32,8 +37,8 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable {
         treasury = treasury_;
     }
 
-    function setBaseFee(uint256 baseFee_) external onlyOwner {
-        require(baseFee_ < PRECISION, "FC: invalid base fee");
+    function setBaseFee(uint256 baseFee_) public onlyOwner {
+        require(baseFee_ <= PRECISION, "FC: invalid base fee");
 
         baseFee = baseFee_;
     }
@@ -46,4 +51,6 @@ contract FeeConfig is IFeeConfig, OwnableUpgradeable {
 
         return (fee_, treasury);
     }
+
+    function _authorizeUpgrade(address) internal view override onlyOwner {}
 }

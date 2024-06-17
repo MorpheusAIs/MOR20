@@ -88,8 +88,8 @@ contract L1Factory is IL1Factory, Factory {
         IL1Sender(l1SenderProxy_).L1Sender__init(distributionProxy_, lzConfig_, arbConfig_);
 
         if (!l1Params_.isUpgradeable) {
-            IFreezableBeaconProxy(distributionProxy_).freeze();
-            IFreezableBeaconProxy(l1SenderProxy_).freeze();
+            IFreezableBeaconProxy(distributionProxy_).freezeProxy_();
+            IFreezableBeaconProxy(l1SenderProxy_).freezeProxy_();
         }
 
         IOwnable(distributionProxy_).transferOwnership(l1Params_.owner);
