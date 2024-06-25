@@ -27,6 +27,9 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
         _disableInitializers();
     }
 
+    /**
+     * @inheritdoc IL1Sender
+     */
     function L1Sender__init(
         address distribution_,
         RewardTokenConfig calldata rewardTokenConfig_,
@@ -39,37 +42,24 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
         _setDepositTokenConfig(depositTokenConfig_);
     }
 
+    /**
+     * @inheritdoc IERC165
+     */
     function supportsInterface(bytes4 interfaceId_) external pure returns (bool) {
         return interfaceId_ == type(IL1Sender).interfaceId || interfaceId_ == type(IERC165).interfaceId;
     }
 
+    /**
+     * @inheritdoc IL1Sender
+     */
     function setRewardTokenLZParams(address zroPaymentAddress_, bytes calldata adapterParams_) external onlyOwner {
         rewardTokenConfig.zroPaymentAddress = zroPaymentAddress_;
         rewardTokenConfig.adapterParams = adapterParams_;
     }
 
-    function _setDepositTokenConfig(DepositTokenConfig calldata newConfig_) private {
-        require(newConfig_.receiver != address(0), "L1S: invalid receiver");
-
-        _setDepositToken(newConfig_.token);
-        _setDepositTokenGateway(newConfig_.gateway, newConfig_.token);
-
-        depositTokenConfig = newConfig_;
-    }
-
-    function _setDepositToken(address newToken_) private {
-        // Get stETH from wstETH
-        address unwrappedToken_ = IWStETH(newToken_).stETH();
-        // Increase allowance from stETH to wstETH. To exchange stETH for wstETH
-        IERC20(unwrappedToken_).approve(newToken_, type(uint256).max);
-
-        unwrappedDepositToken = unwrappedToken_;
-    }
-
-    function _setDepositTokenGateway(address newGateway_, address newToken_) private {
-        IERC20(newToken_).approve(IGatewayRouter(newGateway_).getGateway(newToken_), type(uint256).max);
-    }
-
+    /**
+     * @inheritdoc IL1Sender
+     */
     function sendDepositToken(
         uint256 gasLimit_,
         uint256 maxFeePerGas_,
@@ -95,6 +85,9 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
             );
     }
 
+    /**
+     * @inheritdoc IL1Sender
+     */
     function sendMintMessage(address user_, uint256 amount_, address refundTo_) external payable onlyDistribution {
         RewardTokenConfig storage config = rewardTokenConfig;
 
@@ -109,5 +102,27 @@ contract L1Sender is IL1Sender, OwnableUpgradeable {
             config.zroPaymentAddress, // future parameter
             config.adapterParams // adapterParams (see "Advanced Features")
         );
+    }
+
+    function _setDepositTokenConfig(DepositTokenConfig calldata newConfig_) private {
+        require(newConfig_.receiver != address(0), "L1S: invalid receiver");
+
+        _setDepositToken(newConfig_.token);
+        _setDepositTokenGateway(newConfig_.gateway, newConfig_.token);
+
+        depositTokenConfig = newConfig_;
+    }
+
+    function _setDepositToken(address newToken_) private {
+        // Get stETH from wstETH
+        address unwrappedToken_ = IWStETH(newToken_).stETH();
+        // Increase allowance from stETH to wstETH. To exchange stETH for wstETH
+        IERC20(unwrappedToken_).approve(newToken_, type(uint256).max);
+
+        unwrappedDepositToken = unwrappedToken_;
+    }
+
+    function _setDepositTokenGateway(address newGateway_, address newToken_) private {
+        IERC20(newToken_).approve(IGatewayRouter(newGateway_).getGateway(newToken_), type(uint256).max);
     }
 }

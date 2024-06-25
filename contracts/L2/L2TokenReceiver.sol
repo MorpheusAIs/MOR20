@@ -11,16 +11,33 @@ import {IL2TokenReceiver, IERC165, IERC721Receiver} from "../interfaces/L2/IL2To
 import {INonfungiblePositionManager} from "../interfaces/uniswap-v3/INonfungiblePositionManager.sol";
 
 contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
+    /**
+     * @notice Address of uniswap v3 router
+     */
     address public router;
+
+    /**
+     * @notice Uniswap v3 position nft
+     */
     address public nonfungiblePositionManager;
 
+    /**
+     * @notice 1 struct of params to perform swap with
+     */
     SwapParams public firstSwapParams;
+
+    /**
+     * @notice 2 struct of params to perform swap with
+     */
     SwapParams public secondSwapParams;
 
     constructor() {
         _disableInitializers();
     }
 
+    /**
+     * @inheritdoc IL2TokenReceiver
+     */
     function L2TokenReceiver__init(
         address router_,
         address nonfungiblePositionManager_,
@@ -36,6 +53,9 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
         _addAllowanceUpdateSwapParams(secondSwapParams_, false);
     }
 
+    /**
+     * @inheritdoc IERC165
+     */
     function supportsInterface(bytes4 interfaceId_) external pure returns (bool) {
         return
             interfaceId_ == type(IL2TokenReceiver).interfaceId ||
@@ -43,6 +63,9 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
             interfaceId_ == type(IERC165).interfaceId;
     }
 
+    /**
+     * @inheritdoc IL2TokenReceiver
+     */
     function editParams(SwapParams memory newParams_, bool isEditFirstParams_) external onlyOwner {
         SwapParams memory params_ = _getSwapParams(isEditFirstParams_);
 
@@ -58,14 +81,23 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
         _addAllowanceUpdateSwapParams(newParams_, isEditFirstParams_);
     }
 
+    /**
+     * @inheritdoc IL2TokenReceiver
+     */
     function withdrawToken(address recipient_, address token_, uint256 amount_) external onlyOwner {
         TransferHelper.safeTransfer(token_, recipient_, amount_);
     }
 
+    /**
+     * @inheritdoc IL2TokenReceiver
+     */
     function withdrawTokenId(address recipient_, address token_, uint256 tokenId_) external onlyOwner {
         IERC721(token_).safeTransferFrom(address(this), recipient_, tokenId_);
     }
 
+    /**
+     * @inheritdoc IL2TokenReceiver
+     */
     function swap(
         uint256 amountIn_,
         uint256 amountOutMinimum_,
@@ -93,6 +125,9 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
         return amountOut_;
     }
 
+    /**
+     * @inheritdoc IL2TokenReceiver
+     */
     function increaseLiquidityCurrentRange(
         uint256 tokenId_,
         uint256 amount0Add_,
@@ -117,6 +152,9 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
         emit LiquidityIncreased(tokenId_, amount0_, amount1_, liquidity_, amount0Min_, amount1Min_);
     }
 
+    /**
+     * @inheritdoc IL2TokenReceiver
+     */
     function decreaseLiquidityCurrentRange(
         uint256 tokenId_,
         uint128 liquidity_,
@@ -139,6 +177,9 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
         emit LiquidityDecreased(tokenId_, amount0_, amount1_, liquidity_, amount0Min_, amount1Min_);
     }
 
+    /**
+     * @inheritdoc IL2TokenReceiver
+     */
     function collectFees(uint256 tokenId_) public returns (uint256 amount0_, uint256 amount1_) {
         INonfungiblePositionManager.CollectParams memory params_ = INonfungiblePositionManager.CollectParams({
             tokenId: tokenId_,
@@ -152,6 +193,9 @@ contract L2TokenReceiver is IL2TokenReceiver, OwnableUpgradeable {
         emit FeesCollected(tokenId_, amount0_, amount1_);
     }
 
+    /**
+     * @inheritdoc IERC721Receiver
+     */
     function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
         return this.onERC721Received.selector;
     }

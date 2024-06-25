@@ -64,6 +64,26 @@ interface IL2MessageReceiver is ILayerZeroReceiver {
     function rewardToken() external view returns (address);
 
     /**
+     * Update L1Sender address. Only callable for owner
+     * @param lzSender_ New sender address
+     */
+    function setLzSender(address lzSender_) external;
+
+    /**
+     * The function to call blockingLzReceive
+     * @param senderChainId_ The source endpoint identifier
+     * @param senderAndReceiverAddresses_ The source sending contract address from the source chain
+     * @param nonce_ The ordered message nonce
+     * @param payload_ The signed payload is the UA bytes has encoded to be sent
+     */
+    function lzReceive(
+        uint16 senderChainId_,
+        bytes memory senderAndReceiverAddresses_,
+        uint64 nonce_,
+        bytes memory payload_
+    ) external;
+
+    /**
      * The function to call the nonblockingLzReceive.
      * @param senderChainId_ The source endpoint identifier.
      * @param senderAndReceiverAddresses_ The source sending contract address from the source chain.
