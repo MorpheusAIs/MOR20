@@ -313,14 +313,14 @@ describe('DistributionV2', () => {
       it('should revert if call init function incorrect', async () => {
         const reason = 'Initializable: contract is not initializing';
 
-        const DistributionMock = await ethers.getContractFactory('DistributionMock', {
+        const DistributionMock = await ethers.getContractFactory('DistributionMockV2', {
           libraries: {
             LinearDistributionIntervalDecrease: await lib.getAddress(),
           },
         });
         const distribution = await DistributionMock.deploy();
 
-        await expect(distribution.mockInit(depositToken, l1ArbSender, feeConfig, [])).to.be.rejectedWith(reason);
+        await expect(distribution.mockInitV2(depositToken, l1ArbSender, feeConfig, [])).to.be.rejectedWith(reason);
       });
     });
   });

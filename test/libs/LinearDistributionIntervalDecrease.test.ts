@@ -1,8 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-import { DistributionToArbV2, IDistributionV2 } from '@/generated-types/ethers';
-import { ZERO_ADDR } from '@/scripts/utils/constants';
+import { DistributionMock, IDistributionV2 } from '@/generated-types/ethers';
 import { wei } from '@/scripts/utils/utils';
 import { getDefaultPool, oneHour } from '@/test/helpers/distribution-helper';
 import { Reverter } from '@/test/helpers/reverter';
@@ -10,7 +9,7 @@ import { Reverter } from '@/test/helpers/reverter';
 describe('LinearDistributionIntervalDecrease', () => {
   const reverter = new Reverter();
 
-  let distribution: DistributionToArbV2;
+  let distribution: DistributionMock;
 
   before(async () => {
     const [ERC1967ProxyFactory, libFactory] = await Promise.all([
@@ -19,7 +18,7 @@ describe('LinearDistributionIntervalDecrease', () => {
     ]);
     const lib = await libFactory.deploy();
 
-    const distributionFactory = await ethers.getContractFactory('DistributionToArbV2', {
+    const distributionFactory = await ethers.getContractFactory('DistributionMock', {
       libraries: {
         LinearDistributionIntervalDecrease: await lib.getAddress(),
       },
@@ -27,9 +26,7 @@ describe('LinearDistributionIntervalDecrease', () => {
     const distributionImplementation = await distributionFactory.deploy();
 
     const distributionProxy = await ERC1967ProxyFactory.deploy(await distributionImplementation.getAddress(), '0x');
-    distribution = distributionFactory.attach(await distributionProxy.getAddress()) as DistributionToArbV2;
-
-    await distribution.DistributionToArbV2_init(ZERO_ADDR, ZERO_ADDR, ZERO_ADDR, []);
+    distribution = distributionFactory.attach(await distributionProxy.getAddress()) as DistributionMock;
 
     await reverter.snapshot();
   });
@@ -61,20 +58,39 @@ describe('LinearDistributionIntervalDecrease', () => {
       pool3.rewardDecrease = wei(51);
     });
 
-    it('should return correct rewards in a pool where `payoutStart % decreaseInterval = 0`', async () => {
-      await distribution.createPool(pool0);
+    it('should return 0 if `interval` is 0', async () => {
+      const pool: IDistributionV2.PoolStruct = {
+        ...pool0,
+        decreaseInterval: 0,
+      };
 
-      await _testRewardsCalculation(distribution, 0, Number(pool0.payoutStart.toString()));
+      await distribution.createMockPool(pool);
+
+      const reward = await distribution.getPeriodReward(0, 1, 3);
+      expect(reward).to.eq(wei(0));
+    });
+    it('should return correct rewards in a pool where `payoutStart % decreaseInterval = 0`', async () => {
+      await distribution.createMockPool(pool0);
+
+      await _testRewardsCalculation(
+        distribution as unknown as IDistributionV2,
+        0,
+        Number(pool0.payoutStart.toString()),
+      );
     });
 
     it('should return correct rewards in a pool where `payoutStart % decreaseInterval != 0`', async () => {
-      await distribution.createPool(pool1);
+      await distribution.createMockPool(pool1);
 
-      await _testRewardsCalculation(distribution, 0, Number(pool1.payoutStart.toString()));
+      await _testRewardsCalculation(
+        distribution as unknown as IDistributionV2,
+        0,
+        Number(pool1.payoutStart.toString()),
+      );
     });
 
     it('should return correct rewards, check limit time values for `initialReward % rewardDecrease == 0`', async () => {
-      await distribution.createPool(pool2);
+      await distribution.createMockPool(pool2);
 
       let reward;
       const payoutStart = Number(pool2.payoutStart.toString());
@@ -96,7 +112,7 @@ describe('LinearDistributionIntervalDecrease', () => {
     });
 
     it('should return correct rewards, check limit time values for `initialReward % rewardDecrease != 0`', async () => {
-      await distribution.createPool(pool3);
+      await distribution.createMockPool(pool3);
 
       let reward;
       const payoutStart = Number(pool3.payoutStart.toString());
@@ -125,7 +141,7 @@ describe('LinearDistributionIntervalDecrease', () => {
         rewardDecrease: 0,
       };
 
-      await distribution.createPool(pool);
+      await distribution.createMockPool(pool);
 
       const poolId = 0;
       const payoutStart = Number(pool.payoutStart.toString());

@@ -7,10 +7,10 @@ import { getCurrentBlockTime, setNextTime, setTime } from '../helpers/block-help
 import { oneDay } from '../helpers/distribution-helper';
 import { Reverter } from '../helpers/reverter';
 
-import { DistributionToBase, DistributionToBaseV2, L1FactoryToBase } from '@/generated-types/ethers';
+import { DistributionToBaseV2, L1FactoryToBase } from '@/generated-types/ethers';
 import { wei } from '@/scripts/utils/utils';
 
-describe('DistributionV3 Fork', () => {
+describe('DistributionV2 Fork', () => {
   const reverter = new Reverter();
 
   let OWNER: SignerWithAddress;
@@ -18,8 +18,7 @@ describe('DistributionV3 Fork', () => {
 
   let distribution: DistributionToBaseV2;
 
-  const richAddress = '0xE74546162c7c58929b898575C378Fd7EC5B16998';
-  // const privatePoolAddress = '0xD8A5529690cDf546FDcF07D593947cE298d60C51';
+  const richAddress = '0x896C20Da40c2A4df9B7C98B16a8D5A95129161a5';
   const distributionToBaseAddress = '0xcB7FdF9ccbdA5C9E9968fa021C5A5d051C4fF35e';
   const l1FactoryToBaseAddress = '0x890BfA255E6EE8DB5c67aB32dc600B14EBc4546c';
 
@@ -54,7 +53,7 @@ describe('DistributionV3 Fork', () => {
     const distributionV2Impl = await distributionV2Factory.deploy();
     distribution = distributionV2Factory.attach(distributionToBaseAddress) as DistributionToBaseV2;
 
-    //// Upgrade to V3
+    //// Upgrade to V2
     // Transfer ownersip
     const contractOwner = await ethers.getImpersonatedSigner(await l1FactoryToBaseCurrent.owner());
     await SECOND.sendTransaction({ to: contractOwner, value: wei(100) });
@@ -77,29 +76,29 @@ describe('DistributionV3 Fork', () => {
     await ethers.provider.send('hardhat_reset', []);
   });
 
-  // describe('should not change previous layout', () => {
-  //   it('should have the same fields', async () => {
-  //     expect(await distribution.depositToken()).to.be.eq('0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84');
-  //     expect(await distribution.totalDepositedInPublicPools()).to.be.eq('10999999999999999');
+  describe('should not change previous layout', () => {
+    it('should have the same fields', async () => {
+      expect(await distribution.depositToken()).to.be.eq('0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84');
+      expect(await distribution.totalDepositedInPublicPools()).to.be.eq('10999999999999999');
 
-  //     const userData = await distribution.usersData('0x05A1ff0a32bc24265BCB39499d0c5D9A6cb2011c', 0);
-  //     expect(userData.lastStake).to.be.eq('1718337827');
-  //     expect(userData.deposited).to.be.eq('10999999999999999');
-  //     expect(userData.rate).to.be.eq('0');
-  //     expect(userData.pendingRewards).to.be.eq('0');
-  //     expect(userData.claimLockStart).to.be.eq('0');
-  //     expect(userData.claimLockEnd).to.be.eq('0');
+      const userData = await distribution.usersData('0x05A1ff0a32bc24265BCB39499d0c5D9A6cb2011c', 0);
+      expect(userData.lastStake).to.be.eq('1718337827');
+      expect(userData.deposited).to.be.eq('10999999999999999');
+      expect(userData.rate).to.be.eq('0');
+      expect(userData.pendingRewards).to.be.eq('0');
+      expect(userData.claimLockStart).to.be.eq('0');
+      expect(userData.claimLockEnd).to.be.eq('0');
 
-  //     const poolData = await distribution.poolsData(0);
-  //     expect(poolData.lastUpdate).to.be.eq('1719029891');
-  //     expect(poolData.rate).to.be.eq('11589585333877345759207353220078');
-  //     expect(poolData.totalVirtualDeposited).to.be.eq('10999999999999999');
+      const poolData = await distribution.poolsData(0);
+      expect(poolData.lastUpdate).to.be.eq('1719029891');
+      expect(poolData.rate).to.be.eq('11589585333877345759207353220078');
+      expect(poolData.totalVirtualDeposited).to.be.eq('10999999999999999');
 
-  //     expect(await distribution.getCurrentUserReward(0, '0x05A1ff0a32bc24265BCB39499d0c5D9A6cb2011c')).to.be.eq(
-  //       '862904669381706126746983',
-  //     );
-  //   });
-  // });
+      expect(await distribution.getCurrentUserReward(0, '0x05A1ff0a32bc24265BCB39499d0c5D9A6cb2011c')).to.be.eq(
+        '862904669381706126746983',
+      );
+    });
+  });
 
   describe('should correctly lock claim', () => {
     let userPublicPool: SignerWithAddress;
@@ -166,6 +165,47 @@ describe('DistributionV3 Fork', () => {
 
       userData = await distribution.usersData(userPrivatePool.address, 4);
       expect(userData.claimLockStart).to.be.eq(claimLockStart);
+      expect(userData.claimLockEnd).to.be.eq(claimLockEnd);
+    });
+    it('should stake, claim and withdraw from V1', async () => {
+      // const userPublicPool = await ethers.getImpersonatedSigner(richAddress);
+      const claimLockEnd = (await getCurrentBlockTime()) + 1050 * oneDay;
+
+      let userData = await distribution.usersData(richAddress, 0);
+      expect(userData.lastStake).to.be.eq('1718340623');
+
+      // Move in feature to skip time restrictions
+      await setNextTime((await getCurrentBlockTime()) + 1000 * oneDay);
+      // Withdraw two times to check that nothing can't lock this proccess
+      await distribution.connect(userPublicPool).withdraw(0, wei(0.000001));
+      await distribution.connect(userPublicPool).withdraw(0, wei(0.000001));
+      // Claim  two times to check that nothing can't lock this proccess
+      await distribution.connect(userPublicPool).claim(0, richAddress, { value: wei(0.1) });
+      await distribution.connect(userPublicPool).claim(0, richAddress, { value: wei(0.1) });
+
+      await distribution.connect(userPublicPool).withdraw(0, wei(1));
+      // Stake again
+      await distribution.connect(userPublicPool).stake(0, wei(0.01) + 5n, 0);
+      // Withdraw should be locked, claim should be available
+      await expect(distribution.connect(userPublicPool).withdraw(0, wei(1))).to.be.rejectedWith(
+        'DS: pool withdraw is locked',
+      );
+      await distribution.connect(userPublicPool).claim(0, richAddress, { value: wei(0.1) });
+
+      // Move in feature to skip time restrictions
+      await setNextTime((await getCurrentBlockTime()) + 20 * oneDay);
+      await distribution.connect(userPublicPool).lockClaim(0, claimLockEnd);
+      // Withdraw should be available
+      await distribution.connect(userPublicPool).withdraw(0, wei(1));
+      // Stake should be availalble
+      await distribution.connect(userPublicPool).stake(0, wei(0.01) + 5n, 0);
+      // Claim should be locked
+      await expect(distribution.connect(userPublicPool).claim(0, richAddress, { value: wei(0.1) })).to.be.rejectedWith(
+        'DS: user claim is locked',
+      );
+
+      userData = await distribution.usersData(userPublicPool.address, 0);
+      expect(userData.claimLockStart).to.be.eq('1808034062');
       expect(userData.claimLockEnd).to.be.eq(claimLockEnd);
     });
   });
