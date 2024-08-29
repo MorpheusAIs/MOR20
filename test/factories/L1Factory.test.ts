@@ -124,37 +124,35 @@ describe('L1Factory', () => {
   }
 
   describe('UUPS proxy functionality', () => {
-    describe('#L1Factory_init', () => {
-      it('should revert if try to call init function twice', async () => {
-        const reason = 'Initializable: contract is already initialized';
+    it('should revert if try to call init function twice', async () => {
+      const reason = 'Initializable: contract is already initialized';
 
-        await expect(l1Factory.L1FactoryToArb_init()).to.be.rejectedWith(reason);
+      await expect(l1Factory.L1FactoryToArb_init()).to.be.rejectedWith(reason);
+    });
+
+    describe('#_authorizeUpgrade', () => {
+      it('should correctly upgrade', async () => {
+        const l1FactoryV2Factory = await ethers.getContractFactory('FactoryMockV2');
+        const l1FactoryV2Implementation = await l1FactoryV2Factory.deploy();
+
+        await l1Factory.upgradeTo(l1FactoryV2Implementation);
+
+        const l1factoryV2 = l1FactoryV2Factory.attach(await l1FactoryV2Implementation.getAddress()) as L1FactoryV2;
+
+        expect(await l1factoryV2.version()).to.eq(2);
       });
+      it('should revert if caller is not the owner', async () => {
+        await expect(l1Factory.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
+          'Ownable: caller is not the owner',
+        );
+      });
+      it('should revert if call init function incorrect', async () => {
+        const reason = 'Initializable: contract is not initializing';
 
-      describe('#_authorizeUpgrade', () => {
-        it('should correctly upgrade', async () => {
-          const l1FactoryV2Factory = await ethers.getContractFactory('FactoryMockV2');
-          const l1FactoryV2Implementation = await l1FactoryV2Factory.deploy();
+        const L1FactoryMockFactory = await ethers.getContractFactory('L1FactoryMock');
+        const l1Factory = await L1FactoryMockFactory.deploy();
 
-          await l1Factory.upgradeTo(l1FactoryV2Implementation);
-
-          const l1factoryV2 = l1FactoryV2Factory.attach(await l1FactoryV2Implementation.getAddress()) as L1FactoryV2;
-
-          expect(await l1factoryV2.version()).to.eq(2);
-        });
-        it('should revert if caller is not the owner', async () => {
-          await expect(l1Factory.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
-            'Ownable: caller is not the owner',
-          );
-        });
-        it('should revert if call init function incorrect', async () => {
-          const reason = 'Initializable: contract is not initializing';
-
-          const L1FactoryMockFactory = await ethers.getContractFactory('L1FactoryMock');
-          const l1Factory = await L1FactoryMockFactory.deploy();
-
-          await expect(l1Factory.mockInit()).to.be.rejectedWith(reason);
-        });
+        await expect(l1Factory.mockInit()).to.be.rejectedWith(reason);
       });
     });
   });

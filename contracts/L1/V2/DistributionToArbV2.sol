@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Distribution} from "./Distribution.sol";
+import {DistributionV2} from "./DistributionV2.sol";
 
-import {IDistributionToArb} from "../interfaces/L1/IDistributionToArb.sol";
-import {IL1ArbSender} from "../interfaces/L1/IL1ArbSender.sol";
+import {IDistributionToArbV2} from "../../interfaces/L1/V2/IDistributionToArbV2.sol";
+import {IL1ArbSender} from "../../interfaces/L1/IL1ArbSender.sol";
 
-contract DistributionToArb is IDistributionToArb, Distribution {
+contract DistributionToArbV2 is IDistributionToArbV2, DistributionV2 {
     constructor() {
         _disableInitializers();
     }
 
-    function DistributionToArb_init(
+    function DistributionToArbV2_init(
         address depositToken_,
         address l1Sender_,
         address feeConfig_,
         Pool[] calldata poolsInfo_
     ) external initializer {
-        __Distribution_init(depositToken_, l1Sender_, feeConfig_, poolsInfo_);
+        __DistributionV2_init(depositToken_, l1Sender_, feeConfig_, poolsInfo_);
     }
 
     function bridgeOverplus(
