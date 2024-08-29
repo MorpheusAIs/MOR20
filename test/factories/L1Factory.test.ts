@@ -1,12 +1,9 @@
 import {
-  Distribution,
-  Distribution__factory,
   FeeConfig,
   GatewayRouterMock,
   IL1Factory,
-  L1Factory,
-  L1Sender,
-  L1Sender__factory,
+  IL1FactoryToArb,
+  L1FactoryToArb,
   LZEndpointMock,
   LinearDistributionIntervalDecrease,
   StETHMock,
@@ -31,15 +28,9 @@ describe('L1Factory', () => {
   let OWNER: SignerWithAddress;
   let SECOND: SignerWithAddress;
 
-  let l1Factory: L1Factory;
+  let l1Factory: L1FactoryToArb;
 
-  let distributionFactory: Distribution__factory;
-  let l1SenderFactory: L1Sender__factory;
-
-  let l1SenderImplementation: L1Sender;
-  let distributionImplementation: Distribution;
   let feeConfig: FeeConfig;
-
   let stEthMock: StETHMock;
   let wstEthMock: WStETHMock;
   let gatewayRouterMock: GatewayRouterMock;
@@ -59,7 +50,7 @@ describe('L1Factory', () => {
       LZEndpointMockFactory,
     ] = await Promise.all([
       ethers.getContractFactory('LinearDistributionIntervalDecrease'),
-      ethers.getContractFactory('L1Factory'),
+      ethers.getContractFactory('L1FactoryToArb'),
       ethers.getContractFactory('StETHMock'),
       ethers.getContractFactory('WStETHMock'),
       ethers.getContractFactory('GatewayRouterMock'),
@@ -67,36 +58,37 @@ describe('L1Factory', () => {
       ethers.getContractFactory('ERC1967Proxy'),
       ethers.getContractFactory('LZEndpointMock'),
     ]);
-    l1SenderFactory = await ethers.getContractFactory('L1Sender');
+
+    const [l1SenderFactory] = await Promise.all([ethers.getContractFactory('L1ArbSender')]);
 
     let lib: LinearDistributionIntervalDecrease;
-    [lib, l1SenderImplementation, stEthMock, gatewayRouterMock, lzEndpoint] = await Promise.all([
+    [lib, stEthMock, gatewayRouterMock, lzEndpoint] = await Promise.all([
       libFactory.deploy(),
-      l1SenderFactory.deploy(),
       stEthMockFactory.deploy(),
       gatewayRouterMockFactory.deploy(),
       LZEndpointMockFactory.deploy(senderChainId),
     ]);
+    const [l1SenderImplementation] = await Promise.all([l1SenderFactory.deploy()]);
     wstEthMock = await wstEthMockFactory.deploy(stEthMock);
 
     const feeConfigImpl = await feeConfigFactory.deploy();
     const feeConfigProxy = await ERC1967ProxyFactory.deploy(feeConfigImpl, '0x');
     feeConfig = feeConfigFactory.attach(feeConfigProxy) as FeeConfig;
 
-    await feeConfig.__FeeConfig_init(OWNER, wei(0.1, 25));
+    await feeConfig.FeeConfig_init(OWNER, wei(0.1, 25));
 
-    distributionFactory = await ethers.getContractFactory('Distribution', {
+    const distributionFactory = await ethers.getContractFactory('DistributionToArb', {
       libraries: {
         LinearDistributionIntervalDecrease: lib,
       },
     });
-    distributionImplementation = await distributionFactory.deploy();
+    const distributionImplementation = await distributionFactory.deploy();
 
     const factoryImpl = await l1FactoryFactory.deploy();
     const factoryProxy = await ERC1967ProxyFactory.deploy(factoryImpl, '0x');
-    l1Factory = l1FactoryFactory.attach(factoryProxy) as L1Factory;
+    l1Factory = l1FactoryFactory.attach(factoryProxy) as L1FactoryToArb;
 
-    await l1Factory.L1Factory_init();
+    await l1Factory.L1FactoryToArb_init();
 
     const poolTypes = [PoolTypesL1.DISTRIBUTION, PoolTypesL1.L1_SENDER];
     const poolImplementations = [
@@ -124,24 +116,11 @@ describe('L1Factory', () => {
       destinationChainId: 2,
     };
 
-    const arbExternalDeps: IL1Factory.ArbExternalDepsStruct = {
+    const arbExternalDeps: IL1FactoryToArb.ArbExternalDepsStruct = {
       endpoint: gatewayRouterMock,
     };
 
     return { depositTokenExternalDeps, lzExternalDeps, arbExternalDeps };
-  }
-
-  function getL1DefaultParams() {
-    const l1Params: IL1Factory.L1ParamsStruct = {
-      isUpgradeable: true,
-      owner: OWNER,
-      protocolName: 'Mor20',
-      poolsInfo: [],
-      l2TokenReceiver: SECOND,
-      l2MessageReceiver: SECOND,
-    };
-
-    return l1Params;
   }
 
   describe('UUPS proxy functionality', () => {
@@ -149,7 +128,7 @@ describe('L1Factory', () => {
       it('should revert if try to call init function twice', async () => {
         const reason = 'Initializable: contract is already initialized';
 
-        await expect(l1Factory.L1Factory_init()).to.be.rejectedWith(reason);
+        await expect(l1Factory.L1FactoryToArb_init()).to.be.rejectedWith(reason);
       });
 
       describe('#_authorizeUpgrade', () => {
@@ -167,6 +146,14 @@ describe('L1Factory', () => {
           await expect(l1Factory.connect(SECOND).upgradeTo(ZERO_ADDR)).to.be.revertedWith(
             'Ownable: caller is not the owner',
           );
+        });
+        it('should revert if call init function incorrect', async () => {
+          const reason = 'Initializable: contract is not initializing';
+
+          const L1FactoryMockFactory = await ethers.getContractFactory('L1FactoryMock');
+          const l1Factory = await L1FactoryMockFactory.deploy();
+
+          await expect(l1Factory.mockInit()).to.be.rejectedWith(reason);
         });
       });
     });
@@ -207,7 +194,7 @@ describe('L1Factory', () => {
     });
   });
 
-  describe('setLzExternalDeps', () => {
+  describe('#lzExternalDeps', () => {
     it('should set lz external deps', async () => {
       const { lzExternalDeps } = getL1FactoryParams();
 
@@ -240,30 +227,6 @@ describe('L1Factory', () => {
     });
   });
 
-  describe('setArbExternalDeps', () => {
-    it('should set arb external deps', async () => {
-      const { arbExternalDeps } = getL1FactoryParams();
-
-      await l1Factory.setArbExternalDeps(arbExternalDeps);
-
-      const actualArbExternalDeps = await l1Factory.arbExternalDeps();
-      expect(actualArbExternalDeps).to.equal(arbExternalDeps.endpoint);
-    });
-    it('should revert if called by non-owner', async () => {
-      const { arbExternalDeps } = getL1FactoryParams();
-
-      await expect(l1Factory.connect(SECOND).setArbExternalDeps(arbExternalDeps)).to.be.revertedWith(
-        'Ownable: caller is not the owner',
-      );
-    });
-    it('should revert if endpoint is zero address', async () => {
-      const { arbExternalDeps } = getL1FactoryParams();
-      arbExternalDeps.endpoint = ZERO_ADDR;
-
-      await expect(l1Factory.setArbExternalDeps(arbExternalDeps)).to.be.revertedWith('L1F: invalid ARB endpoint');
-    });
-  });
-
   describe('#setFeeConfig', () => {
     it('should set fee config', async () => {
       await l1Factory.setFeeConfig(feeConfig);
@@ -279,112 +242,7 @@ describe('L1Factory', () => {
       );
     });
   });
-
-  describe('deploy', () => {
-    beforeEach(async () => {
-      const { depositTokenExternalDeps, lzExternalDeps, arbExternalDeps } = getL1FactoryParams();
-
-      await l1Factory.setDepositTokenExternalDeps(depositTokenExternalDeps);
-      await l1Factory.setLzExternalDeps(lzExternalDeps);
-      await l1Factory.setArbExternalDeps(arbExternalDeps);
-    });
-
-    it('should deploy', async () => {
-      const l1Params = getL1DefaultParams();
-
-      await l1Factory.deploy(l1Params);
-
-      const distribution = distributionFactory.attach(
-        await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.DISTRIBUTION),
-      ) as Distribution;
-      const l1Sender = l1SenderFactory.attach(
-        await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.L1_SENDER),
-      ) as L1Sender;
-
-      expect(await distribution.owner()).to.equal(OWNER);
-      expect(await l1Sender.owner()).to.equal(OWNER);
-
-      expect(await distribution.depositToken()).to.equal((await l1Factory.depositTokenExternalDeps()).token);
-      expect(await distribution.l1Sender()).to.equal(l1Sender);
-
-      expect(await l1Sender.unwrappedDepositToken()).to.equal((await l1Factory.depositTokenExternalDeps()).token);
-      expect(await l1Sender.distribution()).to.equal(distribution);
-
-      const depositTokenConfig = await l1Sender.depositTokenConfig();
-      expect(depositTokenConfig.token).to.equal((await l1Factory.depositTokenExternalDeps()).wToken);
-      expect(depositTokenConfig.gateway).to.equal(await l1Factory.arbExternalDeps());
-      expect(depositTokenConfig.receiver).to.equal(l1Params.l2TokenReceiver);
-
-      const rewardTokenConfig = await l1Sender.rewardTokenConfig();
-      expect(rewardTokenConfig.gateway).to.equal((await l1Factory.lzExternalDeps()).endpoint);
-      expect(rewardTokenConfig.receiver).to.equal(l1Params.l2MessageReceiver);
-      expect(rewardTokenConfig.receiverChainId).to.equal((await l1Factory.lzExternalDeps()).destinationChainId);
-      expect(rewardTokenConfig.zroPaymentAddress).to.equal((await l1Factory.lzExternalDeps()).zroPaymentAddress);
-      expect(rewardTokenConfig.adapterParams).to.equal((await l1Factory.lzExternalDeps()).adapterParams);
-    });
-    it('should revert if contract is paused', async () => {
-      await l1Factory.pause();
-
-      await expect(l1Factory.deploy(getL1DefaultParams())).to.be.revertedWith('Pausable: paused');
-    });
-  });
-
-  describe('#predictAddresses', () => {
-    beforeEach(async () => {
-      const { depositTokenExternalDeps, lzExternalDeps, arbExternalDeps } = getL1FactoryParams();
-
-      await l1Factory.setDepositTokenExternalDeps(depositTokenExternalDeps);
-      await l1Factory.setLzExternalDeps(lzExternalDeps);
-      await l1Factory.setArbExternalDeps(arbExternalDeps);
-    });
-
-    it('should predict addresses', async () => {
-      const l1Params = getL1DefaultParams();
-
-      const [distribution, l1Sender] = await l1Factory.predictAddresses(OWNER, l1Params.protocolName);
-
-      expect(distribution).to.be.properAddress;
-      expect(l1Sender).to.be.properAddress;
-
-      await l1Factory.deploy(l1Params);
-
-      expect(await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.DISTRIBUTION)).to.equal(
-        distribution,
-      );
-      expect(await l1Factory.getProxyPool(OWNER, l1Params.protocolName, PoolTypesL1.L1_SENDER)).to.equal(l1Sender);
-    });
-
-    it('should predict zero if empty protocol', async () => {
-      const [distribution, l1Sender] = await l1Factory.predictAddresses(OWNER, '');
-
-      expect(distribution).to.eq(ZERO_ADDR);
-      expect(l1Sender).to.eq(ZERO_ADDR);
-    });
-  });
-
-  describe('#getDeployedPools', () => {
-    beforeEach(async () => {
-      const { depositTokenExternalDeps, lzExternalDeps, arbExternalDeps } = getL1FactoryParams();
-
-      await l1Factory.setDepositTokenExternalDeps(depositTokenExternalDeps);
-      await l1Factory.setLzExternalDeps(lzExternalDeps);
-      await l1Factory.setArbExternalDeps(arbExternalDeps);
-    });
-
-    it('should predict addresses', async () => {
-      const l1Params = getL1DefaultParams();
-
-      const [distribution, l1Sender] = await l1Factory.predictAddresses(OWNER, l1Params.protocolName);
-
-      await l1Factory.deploy(l1Params);
-
-      expect(await l1Factory.countProtocols(OWNER)).to.equal(1);
-
-      const pools = await l1Factory.getDeployedPools(OWNER, 0, 1);
-
-      expect(pools[0].protocol).to.equal(l1Params.protocolName);
-      expect(pools[0].distribution).to.equal(distribution);
-      expect(pools[0].l1Sender).to.equal(l1Sender);
-    });
-  });
 });
+
+// npx hardhat test "test/factories/L1Factory.test.ts"
+// npx hardhat coverage --solcoverjs ./.solcover.ts --testfiles "test/factories/L1Factory.test.ts"

@@ -18,4 +18,8 @@ contract FactoryMock is Factory {
     function deploy2(string calldata protocol_, string calldata poolType_) external returns (address) {
         return _deploy2(protocol_, poolType_);
     }
+
+    function getL2Network() public pure override returns (string memory) {
+        return "TEST";
+    }
 }

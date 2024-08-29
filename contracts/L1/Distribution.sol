@@ -12,7 +12,7 @@ import {IDistribution} from "../interfaces/L1/IDistribution.sol";
 import {IFeeConfig} from "../interfaces/L1/IFeeConfig.sol";
 import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 
-contract Distribution is IDistribution, OwnableUpgradeable {
+abstract contract Distribution is IDistribution, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
     address public depositToken;
@@ -46,16 +46,12 @@ contract Distribution is IDistribution, OwnableUpgradeable {
     /*** Init                                                                                   ***/
     /**********************************************************************************************/
 
-    constructor() {
-        _disableInitializers();
-    }
-
-    function Distribution_init(
+    function __Distribution_init(
         address depositToken_,
         address l1Sender_,
         address feeConfig_,
         Pool[] calldata poolsInfo_
-    ) external initializer {
+    ) internal onlyInitializing {
         __Ownable_init();
 
         for (uint256 i; i < poolsInfo_.length; ++i) {
@@ -77,29 +73,6 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         pools.push(pool_);
 
         emit PoolCreated(pools.length - 1, pool_);
-    }
-
-    function editPool(uint256 poolId_, Pool calldata pool_) external onlyOwner poolExists(poolId_) {
-        _validatePool(pool_);
-
-        Pool storage pool = pools[poolId_];
-        require(pool.isPublic == pool_.isPublic, "DS: invalid pool type");
-        if (pool_.payoutStart > block.timestamp) {
-            require(pool.payoutStart == pool_.payoutStart, "DS: invalid payout start value");
-            require(pool.withdrawLockPeriod == pool_.withdrawLockPeriod, "DS: invalid WLP value");
-            require(pool.withdrawLockPeriodAfterStake == pool_.withdrawLockPeriodAfterStake, "DS: invalid WLPAS value");
-        }
-
-        PoolData storage poolData = poolsData[poolId_];
-        uint256 currentPoolRate_ = _getCurrentPoolRate(poolId_);
-
-        // Update pool data
-        poolData.rate = currentPoolRate_;
-        poolData.lastUpdate = uint128(block.timestamp);
-
-        pools[poolId_] = pool_;
-
-        emit PoolEdited(poolId_, pool_);
     }
 
     function getPeriodReward(uint256 poolId_, uint128 startTime_, uint128 endTime_) public view returns (uint256) {
@@ -325,11 +298,7 @@ contract Distribution is IDistribution, OwnableUpgradeable {
         return depositTokenContractBalance_ - totalDepositedInPublicPools;
     }
 
-    function bridgeOverplus(
-        uint256 gasLimit_,
-        uint256 maxFeePerGas_,
-        uint256 maxSubmissionCost_
-    ) external payable onlyOwner returns (bytes memory) {
+    function _bridgeOverplus() internal returns (uint256) {
         uint256 overplus_ = overplus();
         require(overplus_ > 0, "DS: overplus is zero");
 
@@ -344,14 +313,8 @@ contract Distribution is IDistribution, OwnableUpgradeable {
 
         IERC20(depositToken).safeTransfer(l1Sender, overplus_);
 
-        bytes memory bridgeMessageId_ = IL1Sender(l1Sender).sendDepositToken{value: msg.value}(
-            gasLimit_,
-            maxFeePerGas_,
-            maxSubmissionCost_
-        );
-
-        emit OverplusBridged(overplus_, bridgeMessageId_);
-
-        return bridgeMessageId_;
+        return overplus_;
     }
+
+    uint256[44] private __gap;
 }

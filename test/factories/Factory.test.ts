@@ -99,60 +99,6 @@ describe('Factory', () => {
     });
   });
 
-  describe('freezePool', () => {
-    it('should not freeze pool if pool not found', async () => {
-      await expect(factory.freezePool('name', 'pool0')).to.be.revertedWith('F: pool not found');
-    });
-
-    it('should freeze pool if all conditions are met', async () => {
-      await factory.setImplementations(['pool0', 'pool1'], [poolV1, poolV1]);
-
-      await factory.deploy2('name', 'pool0');
-      await factory.deploy2('name', 'pool1');
-
-      await factory.freezePool('name', 'pool0');
-
-      await factory.setImplementations(['pool0', 'pool1'], [poolV2, poolV2]);
-
-      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool0')) as PoolMockV1).version()).to.eq(
-        1,
-      );
-      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool1')) as PoolMockV1).version()).to.eq(
-        2,
-      );
-    });
-  });
-
-  describe('unfreezePool', () => {
-    it('should not unfreeze pool if pool not found', async () => {
-      await expect(factory.unfreezePool('name', 'pool0')).to.be.revertedWith('F: pool not found');
-    });
-
-    it('should unfreeze pool if all conditions are met', async () => {
-      await factory.setImplementations(['pool0', 'pool1'], [poolV1, poolV1]);
-
-      await factory.deploy2('name', 'pool0');
-      await factory.deploy2('name', 'pool1');
-
-      await factory.freezePool('name', 'pool0');
-
-      await factory.setImplementations(['pool0', 'pool1'], [poolV2, poolV2]);
-
-      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool0')) as PoolMockV1).version()).to.eq(
-        1,
-      );
-      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool1')) as PoolMockV1).version()).to.eq(
-        2,
-      );
-
-      await factory.unfreezePool('name', 'pool0');
-
-      expect(await (poolV1.attach(await factory.getProxyPool(OWNER, 'name', 'pool0')) as PoolMockV1).version()).to.eq(
-        2,
-      );
-    });
-  });
-
   describe('setImplementations', () => {
     it('should set implementation', async () => {
       await factory.setImplementations(['pool0'], [poolV1]);
@@ -186,7 +132,7 @@ describe('Factory', () => {
 
   describe('deploy2', () => {
     beforeEach(async () => {
-      const L1SenderFactory = await ethers.getContractFactory('L1Sender');
+      const L1SenderFactory = await ethers.getContractFactory('L1ArbSender');
       const L1SenderImplementation = await L1SenderFactory.deploy();
 
       await factory.setImplementations(['pool0'], [L1SenderImplementation]);
@@ -216,3 +162,6 @@ describe('Factory', () => {
     });
   });
 });
+
+// npx hardhat test "test/factories/Factory.test.ts"
+// npx hardhat coverage --solcoverjs ./.solcover.ts --testfiles "test/factories/Factory.test.ts"

@@ -43,32 +43,6 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
     }
 
     /**
-     * @notice The function to freeze the specific pool.
-     * @param protocol_ the name of the protocol.
-     * @param poolType_ the type of the pool.
-     */
-    function freezePool(string memory protocol_, string memory poolType_) public {
-        address proxy_ = _proxyPools[_msgSender()][protocol_][poolType_];
-
-        require(proxy_ != address(0), "F: pool not found");
-
-        IFreezableBeaconProxy(proxy_).freeze();
-    }
-
-    /**
-     * @notice The function to unfreeze the specific pool.
-     * @param protocol_ the name of the protocol.
-     * @param poolType_ the type of the pool.
-     */
-    function unfreezePool(string memory protocol_, string memory poolType_) public {
-        address proxy_ = _proxyPools[_msgSender()][protocol_][poolType_];
-
-        require(proxy_ != address(0), "F: pool not found");
-
-        IFreezableBeaconProxy(proxy_).unfreeze();
-    }
-
-    /**
      * The function to set the implementation for the specific pool.
      *
      * @param poolTypes_ The types of the pools.
@@ -150,6 +124,11 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
     }
 
     /**
+     * The function indicates the bridge implementation for a particular network.
+     */
+    function getL2Network() public pure virtual returns (string memory);
+
+    /**
      * @notice The function to deploy new `ERC1967Proxy`.
      *
      * @param protocol_ the name of the protocol.
@@ -206,8 +185,10 @@ abstract contract Factory is IFactory, OwnableUpgradeable, PausableUpgradeable, 
         string memory protocol_,
         string memory poolType_
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(sender_, protocol_, poolType_));
+        return keccak256(abi.encodePacked(sender_, protocol_, poolType_, getL2Network()));
     }
 
     function _authorizeUpgrade(address) internal view override onlyOwner {}
+
+    uint256[49] private __gap;
 }

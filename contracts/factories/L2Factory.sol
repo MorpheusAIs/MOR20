@@ -73,8 +73,8 @@ contract L2Factory is IL2Factory, Factory {
         );
 
         if (!l2Params_.isUpgradeable) {
-            IFreezableBeaconProxy(l2MessageReceiver_).freeze();
-            IFreezableBeaconProxy(l2TokenReceiver_).freeze();
+            IFreezableBeaconProxy(l2MessageReceiver_).freezeProxy_();
+            IFreezableBeaconProxy(l2TokenReceiver_).freezeProxy_();
         }
 
         IOwnable(l2MessageReceiver_).transferOwnership(l2Params_.owner);
@@ -112,5 +112,9 @@ contract L2Factory is IL2Factory, Factory {
 
     function getMor20(address deployer_, string calldata protocol_) external view returns (address) {
         return _mor20[deployer_][protocol_];
+    }
+
+    function getL2Network() public pure virtual override returns (string memory) {
+        return "";
     }
 }

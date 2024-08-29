@@ -12,20 +12,6 @@ interface IFactory {
     event ProxyDeployed(address proxy, address indexed implementation, string protocol, string poolType);
 
     /**
-     * The function to freeze the specific pool.
-     * @param protocol_ the name of the protocol.
-     * @param poolType_ the type of the pool.
-     */
-    function freezePool(string memory protocol_, string memory poolType_) external;
-
-    /**
-     * The function to unfreeze the specific pool.
-     * @param protocol_ the name of the protocol.
-     * @param poolType_ the type of the pool.
-     */
-    function unfreezePool(string memory protocol_, string memory poolType_) external;
-
-    /**
      * The function to set the implementation for the specific pool.
      * @param poolTypes_ The types of the pools.
      * @param implementations_ The new implementations pools will point to.
@@ -74,4 +60,9 @@ interface IFactory {
      * @return beacon the beacon which the pool points to.
      */
     function getBeacon(string memory poolType_) external view returns (address);
+
+    /**
+     * The function indicates the bridge implementation for a particular network.
+     */
+    function getL2Network() external pure returns (string memory);
 }

@@ -1,29 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IDistribution} from "../interfaces/L1/IDistribution.sol";
+import {Factory} from "./Factory.sol";
+
 import {IL1Factory} from "../interfaces/factories/IL1Factory.sol";
-import {IL1Sender} from "../interfaces/L1/IL1Sender.sol";
 import {IOwnable} from "../interfaces/utils/IOwnable.sol";
 import {IFreezableBeaconProxy} from "../interfaces/proxy/IFreezableBeaconProxy.sol";
 
-import {Factory} from "./Factory.sol";
-
-contract L1Factory is IL1Factory, Factory {
+abstract contract L1Factory is IL1Factory, Factory {
     string public constant DISTRIBUTION_POOL = "DISTRIBUTION";
     string public constant L1_SENDER_POOL = "L1_SENDER";
 
     address public feeConfig;
 
     DepositTokenExternalDeps public depositTokenExternalDeps;
-    ArbExternalDeps public arbExternalDeps;
     LzExternalDeps public lzExternalDeps;
 
     constructor() {
         _disableInitializers();
     }
 
-    function L1Factory_init() external initializer {
+    function __L1Factory_init() internal onlyInitializing {
         __Pausable_init();
         __Ownable_init();
         __UUPSUpgradeable_init();
@@ -46,54 +43,10 @@ contract L1Factory is IL1Factory, Factory {
         lzExternalDeps = lzExternalDeps_;
     }
 
-    function setArbExternalDeps(ArbExternalDeps calldata arbExternalDeps_) external onlyOwner {
-        require(arbExternalDeps_.endpoint != address(0), "L1F: invalid ARB endpoint");
-
-        arbExternalDeps = arbExternalDeps_;
-    }
-
     function setFeeConfig(address feeConfig_) external onlyOwner {
         require(feeConfig_ != address(0), "L1F: invalid fee config");
 
         feeConfig = feeConfig_;
-    }
-
-    function deploy(L1Params calldata l1Params_) external whenNotPaused {
-        _registerProtocol(l1Params_.protocolName);
-
-        address distributionProxy_ = _deploy2(l1Params_.protocolName, DISTRIBUTION_POOL);
-        address l1SenderProxy_ = _deploy2(l1Params_.protocolName, L1_SENDER_POOL);
-
-        IDistribution(distributionProxy_).Distribution_init(
-            depositTokenExternalDeps.token,
-            l1SenderProxy_,
-            feeConfig,
-            l1Params_.poolsInfo
-        );
-
-        IL1Sender.RewardTokenConfig memory lzConfig_ = IL1Sender.RewardTokenConfig(
-            lzExternalDeps.endpoint,
-            l1Params_.l2MessageReceiver,
-            lzExternalDeps.destinationChainId,
-            lzExternalDeps.zroPaymentAddress,
-            lzExternalDeps.adapterParams
-        );
-
-        IL1Sender.DepositTokenConfig memory arbConfig_ = IL1Sender.DepositTokenConfig(
-            depositTokenExternalDeps.wToken,
-            arbExternalDeps.endpoint,
-            l1Params_.l2TokenReceiver
-        );
-
-        IL1Sender(l1SenderProxy_).L1Sender__init(distributionProxy_, lzConfig_, arbConfig_);
-
-        if (!l1Params_.isUpgradeable) {
-            IFreezableBeaconProxy(distributionProxy_).freeze();
-            IFreezableBeaconProxy(l1SenderProxy_).freeze();
-        }
-
-        IOwnable(distributionProxy_).transferOwnership(l1Params_.owner);
-        IOwnable(l1SenderProxy_).transferOwnership(l1Params_.owner);
     }
 
     function predictAddresses(
@@ -123,4 +76,20 @@ contract L1Factory is IL1Factory, Factory {
             });
         }
     }
+
+    function _freezeProxy(bool isUpgradeable_, address distributionProxy_, address l1SenderProxy_) internal {
+        if (isUpgradeable_) {
+            return;
+        }
+
+        IFreezableBeaconProxy(distributionProxy_).freezeProxy_();
+        IFreezableBeaconProxy(l1SenderProxy_).freezeProxy_();
+    }
+
+    function _transferProxyOwnership(address owner_, address distributionProxy_, address l1SenderProxy_) internal {
+        IOwnable(distributionProxy_).transferOwnership(owner_);
+        IOwnable(l1SenderProxy_).transferOwnership(owner_);
+    }
+
+    uint256[45] private __gap;
 }

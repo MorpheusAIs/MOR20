@@ -96,36 +96,24 @@ interface IDistribution {
     event UserWithdrawn(uint256 indexed poolId, address indexed user, uint256 amount);
 
     /**
-     * The event that is emitted when the overplus of the deposit tokens is bridged.
+     * The event that is emitted when the overplus of the deposit tokens is bridged to the Arbitrum network.
+     * @param amount The amount of tokens.
+     * @param uniqueId The unique identifier for bridge.
      */
-    event OverplusBridged(uint256 amount, bytes uniqueId);
+    event OverplusBridgedToArb(uint256 amount, bytes uniqueId);
 
     /**
-     * The function to initialize the contract.
-     * @param depositToken_ The address of deposit token.
-     * @param l1Sender_ The address of bridge contract.
-     * @param feeConfig_ The address of fee config contract.
-     * @param poolsInfo_ The array of initial pools.
+     * The event that is emitted when the overplus of the deposit tokens is bridged to the Base network.
+     * @param amount The amount of tokens.
+     * @param bridgeData_ The additional data for the bridge.
      */
-    function Distribution_init(
-        address depositToken_,
-        address l1Sender_,
-        address feeConfig_,
-        Pool[] calldata poolsInfo_
-    ) external;
+    event OverplusBridgedToBase(uint256 amount, bytes bridgeData_);
 
     /**
      * The function to create a new pool.
      * @param pool_ The pool's data.
      */
     function createPool(Pool calldata pool_) external;
-
-    /**
-     * The function to edit the pool's data.
-     * @param poolId The pool's id.
-     * @param pool_ The new pool's data.
-     */
-    function editPool(uint256 poolId, Pool calldata pool_) external;
 
     /**
      * The function to calculate the total pool's reward for the specified period.
@@ -178,19 +166,6 @@ interface IDistribution {
      * @return The total overplus amount.
      */
     function overplus() external view returns (uint256);
-
-    /**
-     * The function to bridge the overplus of the staked deposit tokens.
-     * @param gasLimit_ The gas limit.
-     * @param maxFeePerGas_ The max fee per gas.
-     * @param maxSubmissionCost_ The max submission cost.
-     * @return The unique identifier for withdrawal.
-     */
-    function bridgeOverplus(
-        uint256 gasLimit_,
-        uint256 maxFeePerGas_,
-        uint256 maxSubmissionCost_
-    ) external payable returns (bytes memory);
 
     /**
      * The function to get the address of deposit token.
