@@ -38,7 +38,7 @@ A MOR20 deployment consists of the following contracts:
 * `L2MessageReceiver` – receives and processes MOR minting requests on Arbitrum
 * `L2TokenReceiverV2` – receives wstETH and manages Protocol-Owned Liquidity on Arbitrum
 
-These contracts are functionally equivalent to those used by the Morpheus token itself. For more information, see the [Morpheus smart contract docs](https://github.com/MorpheusAIs/Docs/blob/main/Smart%20Contracts/Overview.md).
+These contracts are functionally equivalent to those used by the Morpheus token itself. For more information, see the [Morpheus smart contract docs](https://github.com/MorpheusAIs/Docs/tree/main/Smart%20Contracts#overview).
 
 ### Contracts Deployment
 MOR20 contracts are deployed using the `Mor20FactoryL1` and `Mor20FactoryL2` factory contracts:
@@ -56,5 +56,7 @@ These methods can be called in any order; however, before calling either method,
 - [Techno Capital Machince document](https://github.com/MorpheusAIs/Docs/blob/main/!KEYDOCS%20README%20FIRST!/Capital%20Providers%2C%20MOR20%2C%20TCM/Techno%20Capital%20Machine%20(TCM).md)
 - [AMM Liquidity Deployment and Fair Price Discovery](https://github.com/MorpheusAIs/Docs/blob/main/!KEYDOCS%20README%20FIRST!/Capital%20Providers%2C%20MOR20%2C%20TCM/Phased%20AMM%20Deployment%20and%20Fair%20Price%20Discovery.md) 
 - [MOR20 Token Launch Lessons and Tips](https://github.com/MorpheusAIs/Docs/blob/main/!KEYDOCS%20README%20FIRST!/Capital%20Providers%2C%20MOR20%2C%20TCM/MOR20%20Token%20Launch%20Guide%2C%20Lessons%20and%20Tips.md)
+- [Research paper: MOR20 A Standard for Recurring Protocol Payments and Payouts in Web3](https://github.com/MorpheusAIs/Docs/blob/main/!KEYDOCS%20README%20FIRST!/Capital%20Providers%2C%20MOR20%2C%20TCM/MOR20%20A%20Standard%20for%20Recurring%20Protocol%20Payments%20and%20Payouts%20in%20Web3.pdf)
+- [MOR20 Testnet Launch Guide](https://github.com/MorpheusAIs/Docs/blob/main/!KEYDOCS%20README%20FIRST!/FAQs%20%26%20Guides/Guides/MOR20%20Testnet%20Launch%20Guide.md)
 
 
