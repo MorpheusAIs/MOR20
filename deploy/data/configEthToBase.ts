@@ -10,7 +10,7 @@ const wstEthL2 = '0xc1cba3fcea344f92d9239c08c0568f6f2f0ee452';
 const pools = [
   {
     // 'Capital Providers',
-    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
+    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
     claimLockPeriod: 7776000, // 90 days
@@ -22,7 +22,7 @@ const pools = [
   },
   {
     // 'Community',
-    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
+    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
     claimLockPeriod: 7344000, // 85 days
@@ -34,7 +34,7 @@ const pools = [
   },
   {
     // 'Developers',
-    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
+    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
     claimLockPeriod: 7344000, // 85 days
@@ -46,7 +46,7 @@ const pools = [
   },
   {
     // 'Team',
-    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
+    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
     claimLockPeriod: 7776000, // 90 days
@@ -58,7 +58,7 @@ const pools = [
   },
   {
     // 'Users',
-    payoutStart: 1718366400, // Friday, 14 June 2024, 12:00:00 GMT +0
+    payoutStart: 1718370660, // Friday, 14 June 2024, 13:11:00 GMT +0
     decreaseInterval: 86400, // 1 day
     withdrawLockPeriod: 604800, // 7 days
     claimLockPeriod: 7344000, // 85 days
@@ -73,7 +73,7 @@ const pools = [
 export const configEthToBase = {
   // FACTORY
   feeConfig: {
-    baseFee: '3500000000000000000000000', // 0.35%
+    baseFee: '3500000000000000000000000', // 0.35
     // https://etherscan.io/address/0x47176B2Af9885dC6C4575d4eFd63895f7Aaa4790
     treasury: '0x47176B2Af9885dC6C4575d4eFd63895f7Aaa4790', // Distribution contract address
   },
@@ -110,7 +110,7 @@ export const configEthToBase = {
   l1Params: {
     isUpgradeable: true,
     // owner: '0x201295fd6A833259E852E59551724d2d81456c6c',
-    owner: '0x040EF6Fb6592A70291954E2a6a1a8F320FF10626',
+    owner: '0x13116FAEDA111A45217D510e075e7Ecda3494E95',
     protocolName: 'Nounspace',
     poolsInfo: pools,
     l2TokenReceiver: '---', // TODO
@@ -119,7 +119,7 @@ export const configEthToBase = {
   l2Params: {
     isUpgradeable: true,
     // owner: '0xa2654e8df46466b7bffD0CB97FB7dDEAb8D3f015',
-    owner: '0x040EF6Fb6592A70291954E2a6a1a8F320FF10626',
+    owner: '0x13116FAEDA111A45217D510e075e7Ecda3494E95',
     protocolName: 'Nounspace',
     mor20Name: 'Nounspace',
     mor20Symbol: 'SPACE',
