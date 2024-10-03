@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {DistributionV4} from "./DistributionV4.sol";
+import {DistributionV2} from "./DistributionV2.sol";
 
-import {IDistributionToArbV4} from "../../interfaces/L1/V4/IDistributionToArbV4.sol";
+import {IDistributionToArbV2} from "../../interfaces/L1/V2/IDistributionToArbV2.sol";
 import {IL1ArbSender} from "../../interfaces/L1/IL1ArbSender.sol";
 
-contract DistributionToArbV4 is IDistributionToArbV4, DistributionV4 {
+contract DistributionToArbV2 is IDistributionToArbV2, DistributionV2 {
     constructor() {
         _disableInitializers();
     }
 
-    function DistributionToArbV4_init(
+    function DistributionToArbV2_init(
         address depositToken_,
         address l1Sender_,
         address feeConfig_,

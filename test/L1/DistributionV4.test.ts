@@ -313,14 +313,14 @@ describe('DistributionV4', () => {
       it('should revert if call init function incorrect', async () => {
         const reason = 'Initializable: contract is not initializing';
 
-        const DistributionMock = await ethers.getContractFactory('DistributionMock', {
+        const DistributionMock = await ethers.getContractFactory('DistributionMockV4', {
           libraries: {
             LinearDistributionIntervalDecrease: await lib.getAddress(),
           },
         });
         const distribution = await DistributionMock.deploy();
 
-        await expect(distribution.mockInit(depositToken, l1ArbSender, feeConfig, [])).to.be.rejectedWith(reason);
+        await expect(distribution.mockInitV4(depositToken, l1ArbSender, feeConfig, [])).to.be.rejectedWith(reason);
       });
     });
   });
@@ -1562,7 +1562,7 @@ describe('DistributionV4', () => {
     it("should revert if pool doesn't exist", async () => {
       await expect(distribution.connect(SECOND).claim(1, SECOND)).to.be.revertedWith("DS: pool doesn't exist");
     });
-    it("should revert if `withdrawLockPeriod` didn't pass", async () => {
+    it("should revert if `claimLockPeriod` didn't pass", async () => {
       await distribution.stake(poolId, wei(1), 0);
 
       await expect(distribution.claim(poolId, OWNER)).to.be.revertedWith('DS: pool claim is locked (1)');

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {IDistributionV4} from "./IDistributionV4.sol";
+import {IDistributionV2} from "./IDistributionV2.sol";
 
 /**
  * This contract used to bridge overplus to Base network.
  */
-interface IDistributionToArbV4 is IDistributionV4 {
+interface IDistributionToArbV2 is IDistributionV2 {
     /**
      * The function to initialize the contract.
      * @param depositToken_ The address of deposit token.
@@ -14,7 +14,7 @@ interface IDistributionToArbV4 is IDistributionV4 {
      * @param feeConfig_ The address of fee config contract.
      * @param poolsInfo_ The array of initial pools.
      */
-    function DistributionToArbV4_init(
+    function DistributionToArbV2_init(
         address depositToken_,
         address l1Sender_,
         address feeConfig_,

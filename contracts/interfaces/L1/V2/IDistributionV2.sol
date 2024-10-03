@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
  * This is the Distribution contract that stores all the pools and users data.
  * It is used to calculate the user's rewards and operate with overpluses.
  */
-interface IDistributionV4 {
+interface IDistributionV2 {
     /**
      * The structure that stores the core pool's data.
      * @param payoutStart The timestamp when the pool starts to pay out rewards.
@@ -71,7 +71,6 @@ interface IDistributionV4 {
         uint128 claimLockStart;
         uint128 claimLockEnd;
         uint256 virtualDeposited;
-        // Storage changes for the DistributionV4
         uint128 lastClaim;
     }
 

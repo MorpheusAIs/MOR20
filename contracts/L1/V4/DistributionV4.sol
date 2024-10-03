@@ -52,7 +52,7 @@ abstract contract DistributionV4 is IDistributionV4, OwnableUpgradeable {
     /*** Init                                                                                   ***/
     /**********************************************************************************************/
 
-    function __DistributionV2_init(
+    function __DistributionV4_init(
         address depositToken_,
         address l1Sender_,
         address feeConfig_,

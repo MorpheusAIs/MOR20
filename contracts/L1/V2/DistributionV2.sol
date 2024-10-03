@@ -9,11 +9,11 @@ import {PRECISION} from "@solarity/solidity-lib/utils/Globals.sol";
 import {LinearDistributionIntervalDecrease} from "../../libs/LinearDistributionIntervalDecrease.sol";
 import {LogExpMath} from "../../libs/LogExpMath.sol";
 
-import {IDistributionV4} from "../../interfaces/L1/V4/IDistributionV4.sol";
+import {IDistributionV2} from "../../interfaces/L1/V2/IDistributionV2.sol";
 import {IFeeConfig} from "../../interfaces/L1/IFeeConfig.sol";
 import {IL1Sender} from "../../interfaces/L1/IL1Sender.sol";
 
-abstract contract DistributionV4 is IDistributionV4, OwnableUpgradeable {
+abstract contract DistributionV2 is IDistributionV2, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
     uint128 constant DECIMAL = 1e18;
@@ -32,7 +32,7 @@ abstract contract DistributionV4 is IDistributionV4, OwnableUpgradeable {
     // Total deposited storage
     uint256 public totalDepositedInPublicPools;
 
-    // Pools limits, V4 update
+    // Pools limits, V2 update
     mapping(uint256 => PoolLimits) public poolsLimits;
 
     /**********************************************************************************************/
@@ -493,7 +493,7 @@ abstract contract DistributionV4 is IDistributionV4, OwnableUpgradeable {
     /**********************************************************************************************/
 
     function version() external pure returns (uint256) {
-        return 4;
+        return 2;
     }
 
     uint256[43] private __gap;

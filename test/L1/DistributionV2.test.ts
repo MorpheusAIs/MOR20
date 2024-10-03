@@ -955,6 +955,43 @@ describe('DistributionV2', () => {
     });
   });
 
+  describe('#editPoolLimits', () => {
+    const poolId = 0;
+
+    beforeEach(async () => {
+      await distribution.createPool(getDefaultPool());
+    });
+
+    it('should edit pool limits with correct data', async () => {
+      const tx = await distribution.editPoolLimits(poolId, {
+        claimLockPeriodAfterStake: oneDay,
+        claimLockPeriodAfterClaim: oneDay * 2,
+      });
+      await expect(tx).to.emit(distribution, 'PoolLimitsEdited');
+
+      const poolLimits = await distribution.poolsLimits(poolId);
+
+      expect(poolLimits.claimLockPeriodAfterStake).to.be.eq(oneDay);
+      expect(poolLimits.claimLockPeriodAfterClaim).to.be.eq(oneDay * 2);
+    });
+    it('should revert if caller is not owner', async () => {
+      await expect(
+        distribution.connect(SECOND).editPoolLimits(poolId, {
+          claimLockPeriodAfterStake: oneDay,
+          claimLockPeriodAfterClaim: oneDay * 2,
+        }),
+      ).to.be.revertedWith('Ownable: caller is not the owner');
+    });
+    it("should revert if pool doesn't exist", async () => {
+      await expect(
+        distribution.editPoolLimits(1, {
+          claimLockPeriodAfterStake: oneDay,
+          claimLockPeriodAfterClaim: oneDay * 2,
+        }),
+      ).to.be.revertedWith("DS: pool doesn't exist");
+    });
+  });
+
   describe('#stake', () => {
     const poolId = 0;
 
@@ -1525,10 +1562,10 @@ describe('DistributionV2', () => {
     it("should revert if pool doesn't exist", async () => {
       await expect(distribution.connect(SECOND).claim(1, SECOND)).to.be.revertedWith("DS: pool doesn't exist");
     });
-    it("should revert if `withdrawLockPeriod` didn't pass", async () => {
+    it("should revert if `claimLockPeriod` didn't pass", async () => {
       await distribution.stake(poolId, wei(1), 0);
 
-      await expect(distribution.claim(poolId, OWNER)).to.be.revertedWith('DS: pool claim is locked');
+      await expect(distribution.claim(poolId, OWNER)).to.be.revertedWith('DS: pool claim is locked (1)');
     });
     it('should revert if nothing to claim', async () => {
       const newPool = {
@@ -1549,6 +1586,27 @@ describe('DistributionV2', () => {
 
       await setNextTime(oneDay + oneDay);
       await expect(distribution.claim(poolId, OWNER)).to.be.revertedWith('DS: user claim is locked');
+    });
+    it("should revert if `claimLockPeriodAfterStake` didn't pass", async () => {
+      await setTime(oneDay + oneDay);
+      await distribution.stake(poolId, wei(1), 0);
+      await distribution.editPoolLimits(poolId, { claimLockPeriodAfterStake: oneHour, claimLockPeriodAfterClaim: 0 });
+
+      await expect(distribution.claim(poolId, OWNER)).to.be.revertedWith('DS: pool claim is locked (S)');
+    });
+    it("should revert if `claimLockPeriodAfterClaim` didn't pass", async () => {
+      await distribution.editPoolLimits(poolId, { claimLockPeriodAfterStake: 0, claimLockPeriodAfterClaim: 60 });
+
+      await setTime(oneDay * 2);
+      await distribution.stake(poolId, wei(1), 0);
+
+      await setTime(oneDay * 3);
+      await distribution.claim(poolId, OWNER, { value: wei(0.5) });
+      await expect(distribution.claim(poolId, OWNER, { value: wei(0.5) })).to.be.revertedWith(
+        'DS: pool claim is locked (C)',
+      );
+      await setTime(oneDay * 3 + 61);
+      await distribution.claim(poolId, OWNER, { value: wei(0.5) });
     });
     it('should correctly claim, real data', async () => {
       let reward;

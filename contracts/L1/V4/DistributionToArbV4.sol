@@ -17,7 +17,7 @@ contract DistributionToArbV4 is IDistributionToArbV4, DistributionV4 {
         address feeConfig_,
         Pool[] calldata poolsInfo_
     ) external initializer {
-        __DistributionV2_init(depositToken_, l1Sender_, feeConfig_, poolsInfo_);
+        __DistributionV4_init(depositToken_, l1Sender_, feeConfig_, poolsInfo_);
     }
 
     function bridgeOverplus(

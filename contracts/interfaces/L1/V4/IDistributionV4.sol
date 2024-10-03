@@ -71,7 +71,6 @@ interface IDistributionV4 {
         uint128 claimLockStart;
         uint128 claimLockEnd;
         uint256 virtualDeposited;
-        // Storage changes for the DistributionV4
         uint128 lastClaim;
     }
 
