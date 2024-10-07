@@ -32,9 +32,6 @@ abstract contract DistributionV2 is IDistributionV2, OwnableUpgradeable {
     // Total deposited storage
     uint256 public totalDepositedInPublicPools;
 
-    // Pools limits, V2 update
-    mapping(uint256 => PoolLimits) public poolsLimits;
-
     /**********************************************************************************************/
     /*** Modifiers                                                                              ***/
     /**********************************************************************************************/
@@ -70,7 +67,7 @@ abstract contract DistributionV2 is IDistributionV2, OwnableUpgradeable {
     }
 
     /**********************************************************************************************/
-    /*** Pool managment and data retrieval                                                      ***/
+    /*** Pool management and data retrieval                                                     ***/
     /**********************************************************************************************/
     function createPool(Pool calldata pool_) public onlyOwner {
         require(pool_.payoutStart > block.timestamp, "DS: invalid payout start value");
@@ -79,12 +76,6 @@ abstract contract DistributionV2 is IDistributionV2, OwnableUpgradeable {
         pools.push(pool_);
 
         emit PoolCreated(pools.length - 1, pool_);
-    }
-
-    function editPoolLimits(uint256 poolId_, PoolLimits calldata poolLimits_) external onlyOwner poolExists(poolId_) {
-        poolsLimits[poolId_] = poolLimits_;
-
-        emit PoolLimitsEdited(poolId_, poolLimits_);
     }
 
     function getPeriodReward(uint256 poolId_, uint128 startTime_, uint128 endTime_) public view returns (uint256) {
@@ -153,19 +144,10 @@ abstract contract DistributionV2 is IDistributionV2, OwnableUpgradeable {
         address user_ = _msgSender();
 
         Pool storage pool = pools[poolId_];
-        PoolLimits storage poolLimits = poolsLimits[poolId_];
         PoolData storage poolData = poolsData[poolId_];
         UserData storage userData = usersData[user_][poolId_];
 
-        require(block.timestamp > pool.payoutStart + pool.claimLockPeriod, "DS: pool claim is locked (1)");
-        require(
-            block.timestamp > userData.lastStake + poolLimits.claimLockPeriodAfterStake,
-            "DS: pool claim is locked (S)"
-        );
-        require(
-            block.timestamp > userData.lastClaim + poolLimits.claimLockPeriodAfterClaim,
-            "DS: pool claim is locked (C)"
-        );
+        require(block.timestamp > pool.payoutStart + pool.claimLockPeriod, "DS: pool claim is locked");
         require(block.timestamp > userData.claimLockEnd, "DS: user claim is locked");
 
         uint256 currentPoolRate_ = _getCurrentPoolRate(poolId_);
@@ -190,7 +172,6 @@ abstract contract DistributionV2 is IDistributionV2, OwnableUpgradeable {
         userData.virtualDeposited = userData.deposited;
         userData.claimLockStart = 0;
         userData.claimLockEnd = 0;
-        userData.lastClaim = uint128(block.timestamp);
 
         // Transfer rewards
         IL1Sender(l1Sender).sendMintMessage{value: msg.value}(receiver_, pendingRewards_, user_);
@@ -496,5 +477,5 @@ abstract contract DistributionV2 is IDistributionV2, OwnableUpgradeable {
         return 2;
     }
 
-    uint256[43] private __gap;
+    uint256[44] private __gap;
 }
