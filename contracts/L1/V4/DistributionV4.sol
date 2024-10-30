@@ -336,7 +336,10 @@ abstract contract DistributionV4 is IDistributionV4, OwnableUpgradeable {
             newDeposited_ = deposited_ - amount_;
 
             require(amount_ > 0, "DS: nothing to withdraw");
-            require(newDeposited_ >= pool.minimalStake || newDeposited_ == 0, "DS: invalid withdraw amount");
+            require(
+                newDeposited_ >= pool.minimalStake || newDeposited_ == 0 || depositTokenContractBalance_ == amount_,
+                "DS: invalid withdraw amount"
+            );
         } else {
             newDeposited_ = deposited_ - amount_;
         }
