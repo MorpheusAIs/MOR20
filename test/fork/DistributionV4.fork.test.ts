@@ -54,12 +54,12 @@ describe('DistributionV4 Fork', () => {
     distribution = distributionV2Factory.attach(distributionToBaseAddress) as DistributionToBaseV4;
 
     //// Upgrade to V4
-    // Transfer L1Factory ownersip
+    // Transfer L1Factory ownership
     const contractOwner = await ethers.getImpersonatedSigner(await l1FactoryToBaseCurrent.owner());
     await SECOND.sendTransaction({ to: contractOwner, value: wei(2) });
     await l1FactoryToBaseCurrent.connect(contractOwner).transferOwnership(OWNER);
 
-    // Transfer L1Factory ownersip
+    // Transfer L1Factory ownership
     const distributionContractOwner = await ethers.getImpersonatedSigner(await distribution.owner());
     await SECOND.sendTransaction({ to: distributionContractOwner, value: wei(2) });
     await distribution.connect(distributionContractOwner).transferOwnership(OWNER);

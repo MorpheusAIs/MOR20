@@ -54,7 +54,7 @@ describe('DistributionV2 Fork', () => {
     distribution = distributionV2Factory.attach(distributionToBaseAddress) as DistributionToBaseV2;
 
     //// Upgrade to V2
-    // Transfer ownersip
+    // Transfer ownership
     const contractOwner = await ethers.getImpersonatedSigner(await l1FactoryToBaseCurrent.owner());
     await SECOND.sendTransaction({ to: contractOwner, value: wei(100) });
     await l1FactoryToBaseCurrent.connect(contractOwner).transferOwnership(OWNER);
