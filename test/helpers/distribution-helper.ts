@@ -1,4 +1,4 @@
-import { IDistribution, IL2TokenReceiver } from '@/generated-types/ethers';
+import { IDistribution, IDistributionV5, IL2TokenReceiver } from '@/generated-types/ethers';
 import { wei } from '@/scripts/utils/utils';
 
 export const oneHour = 3600;
@@ -24,4 +24,25 @@ export const getDefaultSwapParams = (tokenIn: string, tokenOut: string): IL2Toke
     tokenOut: tokenOut,
     fee: 500,
   };
+};
+
+export const getDefaultReferrerTiers = (): IDistributionV5.ReferrerTierStruct[] => {
+  return [
+    {
+      amount: 0,
+      multiplier: wei(0.01, 25),
+    },
+    {
+      amount: wei(35),
+      multiplier: wei(0.025, 25),
+    },
+    {
+      amount: wei(350),
+      multiplier: wei(0.0375, 25),
+    },
+    {
+      amount: wei(3500),
+      multiplier: wei(0.05, 25),
+    },
+  ];
 };
