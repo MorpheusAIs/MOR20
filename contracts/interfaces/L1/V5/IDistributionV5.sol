@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
  * This is the Distribution contract that stores all the pools and users data.
  * It is used to calculate the user's rewards and operate with overpluses.
  */
-interface IDistributionV4 {
+interface IDistributionV5 {
     /**
      * The structure that stores the core pool's data.
      * @param payoutStart The timestamp when the pool starts to pay out rewards.
@@ -41,7 +41,7 @@ interface IDistributionV4 {
     }
 
     /**
-     * The structure that stores the pool rate data.
+     * The structure that stores the pool's rate data.
      * @param lastUpdate The timestamp when the pool was updated.
      * @param rate The current reward rate.
      * @param totalVirtualDeposited The total amount of tokens deposited in the pool with multiplier.
@@ -71,6 +71,22 @@ interface IDistributionV4 {
         uint128 claimLockStart;
         uint128 claimLockEnd;
         uint256 virtualDeposited;
+        // Storage changes for the DistributionV4
+        uint128 lastClaim;
+        // Storage changes for the DistributionV5
+        address referrer;
+    }
+
+    struct ReferrerTier {
+        uint256 amount;
+        uint256 multiplier;
+    }
+
+    struct ReferrerData {
+        uint256 amountStaked;
+        uint256 virtualAmountStaked;
+        uint256 rate;
+        uint256 pendingRewards;
         uint128 lastClaim;
     }
 
@@ -96,6 +112,13 @@ interface IDistributionV4 {
     event PoolLimitsEdited(uint256 indexed poolId, PoolLimits poolLimit);
 
     /**
+     * The event that is emitted when the pool referrers tiers are edited.
+     * @param poolId The pool's id.
+     * @param tiers The pool's referrers tiers.
+     */
+    event ReferrerTiersEdited(uint256 indexed poolId, ReferrerTier[] tiers);
+
+    /**
      * The event that is emitted when the user stakes tokens in the pool.
      * @param poolId The pool's id.
      * @param user The user's address.
@@ -111,6 +134,15 @@ interface IDistributionV4 {
      * @param amount The amount of tokens.
      */
     event UserClaimed(uint256 indexed poolId, address indexed user, address receiver, uint256 amount);
+
+    /**
+     * The event that is emitted when the referrer claims rewards.
+     * @param poolId The pool's id.
+     * @param user The user's address.
+     * @param receiver The receiver's address.
+     * @param amount The amount of tokens.
+     */
+    event ReferrerClaimed(uint256 indexed poolId, address indexed user, address receiver, uint256 amount);
 
     /**
      * The event that is emitted when the user withdraws tokens from the pool.
@@ -144,6 +176,15 @@ interface IDistributionV4 {
     event UserClaimLocked(uint256 indexed poolId, address indexed user, uint128 claimLockStart, uint128 claimLockEnd);
 
     /**
+     * The event that is emitted when the user is referred.
+     * @param poolId The pool's id.
+     * @param user The user's address.
+     * @param referrer The referrer's address.
+     * @param amount The amount of tokens.
+     */
+    event UserReferred(uint256 indexed poolId, address indexed user, address indexed referrer, uint256 amount);
+
+    /**
      * The function to create a new pool.
      * @param pool_ The pool's data.
      */
@@ -171,12 +212,14 @@ interface IDistributionV4 {
      * @param users_ The array of users.
      * @param amounts_ The array of amounts.
      * @param claimLockEnds_ The array of lock ends.
+     * @param referrers_ The array of referrers.
      */
     function manageUsersInPrivatePool(
         uint256 poolId_,
         address[] calldata users_,
         uint256[] calldata amounts_,
-        uint128[] calldata claimLockEnds_
+        uint128[] calldata claimLockEnds_,
+        address[] calldata referrers_
     ) external;
 
     /**
@@ -184,8 +227,9 @@ interface IDistributionV4 {
      * @param poolId_ The pool's id.
      * @param amount_ The amount of tokens to stake.
      * @param claimLockEnd_ The timestamp when the user can claim his rewards.
+     * @param referrer_ The referrer address.
      */
-    function stake(uint256 poolId_, uint256 amount_, uint128 claimLockEnd_) external;
+    function stake(uint256 poolId_, uint256 amount_, uint128 claimLockEnd_, address referrer_) external;
 
     /**
      * The function to claim rewards from the pool.
